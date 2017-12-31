@@ -1,11 +1,11 @@
 var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
-var location = function(fileNum, rankNum) {
-  let f = FILES[fileNum];
-  var rank = RANKS[rankNum];
-  return (f + rank);
-};
+// var location = function(fileNum, rankNum) {
+//   let f = FILES[fileNum];
+//   var rank = RANKS[rankNum];
+//   return (f + rank);
+// };
 
 
 var onDragStart = function(source, piece, position, orientation) {
