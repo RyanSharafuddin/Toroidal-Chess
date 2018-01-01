@@ -442,17 +442,6 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   }
 };
 
-function clickGetPositionBtn() {
-  var posObj = board1.position();
-  console.log("Current position as an Object:");
-  console.log(posObj);
-
-  console.log("Current position as a FEN string:");
-  console.log(board1.fen());
-
-  console.log("gameLogic: ");
-  console.log(gameLogic);
-};
 
 function resetPosition() {
   board1.position(TOROIDAL_START);
@@ -469,46 +458,10 @@ function resetPosition() {
   }
 };
 
-function promotePosition() {
-  board1.position("r1b2b1r/pP4pp/n2qkp1n/8/8/N2QKP1N/Pp4PP/R1B2B1R");
-  gameLogic.whiteTurn = true;
-  $("#Turn").html("Turn: White");
-  gameLogic.gameOver = false;
-}
 
-function checkmatePos() {
-  board1.position("8/8/r3k3/1K6/r7/8/3q4/8");
-  gameLogic.whiteTurn = false;
-  $("#Turn").html("Turn: Black");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "b5";
-  gameLogic.bKLoc = "e6";
-}
 
-function stalematePos() {
-  board1.position("8/8/r3k3/1K6/r7/8/3r4/8");
-  gameLogic.whiteTurn = false;
-  $("#Turn").html("Turn: Black");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "b5";
-  gameLogic.bKLoc = "e6";
-}
-
-function buggy() {
-  board1.position("r1b2b1r/pp3kpp/n1pq1p2/3Pp3/3PQ1n1/N1P1KP1N/PP4PP/R1B2B1R");
-  gameLogic.whiteTurn = true;
-  $("#Turn").html("Turn: White - currently in check");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "e3";
-  gameLogic.bKLoc = "f7";
-}
-
-$('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
-$("#prom").on('click', promotePosition);
-$("#cm").on('click', checkmatePos);
-$("#sm").on('click', stalematePos);
-$("#bug").on('click', buggy);
+
 
 
 
