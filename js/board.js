@@ -317,6 +317,34 @@ function partial(f) {
   }
 }
 
+function inCheck(whiteTurn, pos) {
+  var kingLoc = (whiteTurn) ? gameLogic.wKLoc : gameLogic.bKLoc;
+  for(var square in pos) {
+    if(pos.hasOwnProperty(square)) {
+      if((pos[square] != undefined) && (pos[square].charAt(0) != color)) {
+        if(threatens(pos, pos[square], square, kingLoc)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+function hasMoves(whiteTurn, pos) {
+  for(var square in pos) {
+    if(pos.hasOwnProperty(square)) {
+      if((pos[square] != undefined) && (pos[square].charAt(0) == color)) {
+        var moves = validMoves(square, pos[square], pos).filter(partial(wouldNotCheck, pos, pos[square], square));
+        if(moves.length > 0) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 /* Don't allow player to drag wrong color pieces or after game is over */
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
@@ -389,6 +417,24 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
   $("#Turn").html(turnString);
+  //must decide now if current player is checkmated or if game is stalemated
+  if(inCheck(gameLogic.whiteTurn, newPos)) {
+    if(hasMoves(gameLogic.whiteTurn, newPos)) {
+      $("#Turn").html(turnString + " - currently in check");
+      return;
+    }
+    else {
+      var color = (gameLogic.whiteTurn) ? "White" : "Black";
+      $("#Turn").html(color + " has been checkmated!");
+      gameLogic.gameOver = true;
+      return;
+    }
+  }
+  else if(!hasMoves(gameLogic.whiteTurn, newPos)) {
+    $("#Turn").html("Stalemate!");
+    gameLogic.gameOver = true;
+    return;
+  }
 };
 
 function clickGetPositionBtn() {

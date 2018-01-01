@@ -1,0 +1,4 @@
+https://blog.thesoftwarecraft.com/2013/05/partial-functions-in-javascript.html
+^helpful explanation of partial functions in javascript
+
+http://perfectionkills.com/understanding-delete/
