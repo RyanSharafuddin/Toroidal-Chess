@@ -278,29 +278,32 @@ function addPiece(piece, square) {
 function threatens(pos, piece, source, square) {
   moves = validMoves(source, piece, pos);
   if($.inArray(square, moves) != -1) {
-    console.log(piece + " at " + source + " threatens " + square);
+    //console.log(piece + " at " + source + " threatens " + square);
   }
   return ($.inArray(square, moves) != -1);
 }
 
 /*returns true if making this move would not leave the moving player in check */
 function wouldNotCheck(oldPos, piece, source, target) {
-  console.log("wouldNotCheck called with args:" + " piece: " + piece + " source: " + source + " target: " + target);
+//  console.log("wouldNotCheck called with args:" + " piece: " + piece + " source: " + source + " target: " + target);
   var color = piece.charAt(0);
   var myKingLoc = (piece.charAt(1) == "K") ? (target) : ((color == "w") ? (gameLogic.wKLoc) : (gameLogic.bKLoc));
+  var posCopy = Object.assign({}, oldPos); //okay because oldPos is not a nested object
 
-  delete oldPos[source];
-  oldPos[target] = piece;
 
-   console.log("myKingLoc: " + myKingLoc);
-   console.log("oldPos modified: ");
-   console.log(JSON.stringify(oldPos, null, 4));
+  //must clone oldPos here
+  delete posCopy[source];
+  posCopy[target] = piece;
 
-  for(var square in oldPos) {
-    if(oldPos.hasOwnProperty(square)) {
-      if((oldPos[square] != undefined) && (oldPos[square].charAt(0) != color)) {
-        if(threatens(oldPos, oldPos[square], square, myKingLoc)) {
-          console.log("Moving " + piece + " from " + source + " to " + target + " would put player in check");
+   // console.log("myKingLoc: " + myKingLoc);
+   // console.log("posCopy: ");
+   // console.log(JSON.stringify(posCopy, null, 4));
+
+  for(var square in posCopy) {
+    if(posCopy.hasOwnProperty(square)) {
+      if((posCopy[square] != undefined) && (posCopy[square].charAt(0) != color)) {
+        if(threatens(posCopy, posCopy[square], square, myKingLoc)) {
+          //console.log("Moving " + piece + " from " + source + " to " + target + " would put player in check");
           return false;
         }
       }
