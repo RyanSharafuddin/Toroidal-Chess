@@ -79,8 +79,56 @@ var rookMoves = function(color, fileNum, rankNum, oldPos) {
 };
 
 var bishopMoves = function(color, fileNum, rankNum, oldPos) {
+  console.log("Bishop moves called with color: " + color + " fileNum: " + fileNum + " rankNum: " + rankNum);
   var moves = [];
+  //upleft
+  var upLeft;
+  for(upLeft = 1; upLeft <= 7; upLeft++) {
+    console.log("Going upleft");
+    var currFileNum = mod(fileNum - upLeft, 8);
+    var currRankNum = mod(rankNum + upLeft, 8);
+    var square = coord(currFileNum, currRankNum);
+    console.log("Testing square " + square);
+    if(updateMoves(moves, square, oldPos, color) == -1) {
+      break;
+    }
+  }
 
+  //downright
+  for(var downRight = 1; downRight <= 7 - upLeft; downRight++) {
+    console.log("Going downright");
+    var currFileNum = mod(fileNum + downRight, 8);
+    var currRankNum = mod(rankNum - downRight, 8);
+    var square = coord(currFileNum, currRankNum);
+    console.log("Testing square " + square);
+    if(updateMoves(moves, square, oldPos, color) == -1) {
+      break;
+    }
+  }
+
+  var upRight;
+  for(upRight = 1; upRight <= 7; upRight++) {
+    console.log("Going upright");
+    var currFileNum = mod(fileNum + upRight, 8);
+    var currRankNum = mod(rankNum + upRight, 8);
+    var square = coord(currFileNum, currRankNum);
+    console.log("Testing square " + square);
+    if(updateMoves(moves, square, oldPos, color) == -1) {
+      break;
+    }
+  }
+
+  //downleft
+  for(var downLeft = 1; downLeft <= 7 - upRight; downLeft++) {
+    console.log("Going downleft");
+    var currFileNum = mod(fileNum - downLeft, 8);
+    var currRankNum = mod(rankNum - downLeft, 8);
+    var square = coord(currFileNum, currRankNum);
+    console.log("Testing square " + square);
+    if(updateMoves(moves, square, oldPos, color) == -1) {
+      break;
+    }
+  }
   return moves;
 }
 
