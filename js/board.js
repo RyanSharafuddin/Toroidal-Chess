@@ -15,7 +15,8 @@ function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
-/* Returns an array of validMoves for the piece at source with position oldPos */
+/* Returns an array of validMoves for the piece at source with position oldPos
+   Does not take check into account */
 var validMoves = function(source, piece, oldPos) {
   var file = source.charAt(0);
   var rank = source.charAt(1);
@@ -217,6 +218,56 @@ var updateMoves = function(moves, square, oldPos, color) {
   }
 }
 
+
+var promotionButtons = function(color, square) {
+  var buttons = [];
+  var queenButton = {
+    text: "Queen",
+    icon: "img/chesspieces/wikipedia/" + color + "Q.png", //Not working??
+    click: function() {
+      addPiece(color + "Q", square);
+      $(this).dialog( "close" );
+    }
+  }
+  buttons.push(queenButton);
+
+  var knightButton = {
+    text: "Knight",
+    click: function() {
+      addPiece(color + "N", square);
+      $(this).dialog( "close" );
+    }
+  }
+  buttons.push(knightButton);
+
+  var rookButton = {
+    text: "Rook",
+    click: function() {
+      addPiece(color + "R", square);
+      $(this).dialog( "close" );
+    }
+  }
+  buttons.push(rookButton);
+
+  var bishopButton = {
+    text: "Bishop",
+    click: function() {
+      addPiece(color + "B", square);
+      $(this).dialog( "close" );
+    }
+  }
+  buttons.push(bishopButton);
+
+  return buttons;
+}
+
+function addPiece(piece, square) {
+  console.log("addPiece called! adding " + piece + " to " + square);
+  posObj = board1.position();
+  posObj[square] = piece;
+  board1.position(posObj);
+}
+
 /* Don't allow player to drag wrong color pieces or after game is over */
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
@@ -238,14 +289,26 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     return 'snapback';
   }
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
+  var needPromotion = false;
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
+    needPromotion = true;
     //pawn promotion here
-  //   $("#promotionText").html("Promote pawn to:")
-  //   $("#promotionBox").dialog({
-  //     modal: true,
-  //     title: "Pawn Promotion",
-  //     buttons:
-  //   });
+    $("#promotionText").html("Promote pawn to:")
+
+    $(function() {
+      /* Note: To figure out how to hide the x button, see this site:
+      https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+      $("#promotionBox").dialog({
+        closeOnEscape: false,
+        open: function(event, ui) {
+          $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+        },
+        modal: true,
+        buttons: promotionButtons(piece.charAt(0), target),
+        title: "Pawn Promotion"
+    });
+  });
+
   }
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black"
@@ -262,16 +325,15 @@ var cfg = {
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
-var promotionButtons = [];
-var queenButton = {
-  text: "Queen"
 
-};
 
 var gameLogic = {
   whiteTurn: true,
   gameOver: false
 };
+
+
+
 
 
 
@@ -291,19 +353,21 @@ function resetPosition() {
   gameLogic.gameOver = false;
 };
 
-function addPiece() {
-  posObj = board1.position();
-  posObj["d8"] = "wQ";
-  board1.position(posObj);
+function promotePosition() {
+  board1.position("r1b2b1r/pP4pp/n2qkp1n/8/8/N2QKP1N/Pp4PP/R1B2B1R");
+  gameLogic.whiteTurn = true;
+  $("#Turn").html("Turn: White");
+  gameLogic.gameOver = false;
 }
+
 
 $('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
-$("#addPiece").on('click', addPiece);
+$("#prom").on('click', promotePosition);
 
 /*
-  2) promotion
   3) enPassant
   4) Incorporate checking, checkmate, and stalemate into account
   5) Show valid moves??? (Make sure can easily turn on/off)
+  6) Game server with Node.js
 */
