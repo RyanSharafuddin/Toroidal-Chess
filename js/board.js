@@ -240,6 +240,12 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
     //pawn promotion here
+  //   $("#promotionText").html("Promote pawn to:")
+  //   $("#promotionBox").dialog({
+  //     modal: true,
+  //     title: "Pawn Promotion",
+  //     buttons:
+  //   });
   }
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black"
@@ -256,6 +262,11 @@ var cfg = {
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
+var promotionButtons = [];
+var queenButton = {
+  text: "Queen"
+
+};
 
 var gameLogic = {
   whiteTurn: true,
@@ -278,10 +289,17 @@ function resetPosition() {
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
+};
+
+function addPiece() {
+  posObj = board1.position();
+  posObj["d8"] = "wQ";
+  board1.position(posObj);
 }
 
 $('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
+$("#addPiece").on('click', addPiece);
 
 /*
   2) promotion
