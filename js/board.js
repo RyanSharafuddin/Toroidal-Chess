@@ -237,6 +237,10 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     console.log("Target is not a valid move");
     return 'snapback';
   }
+  var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
+  if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
+    //pawn promotion here
+  }
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black"
   $("#Turn").html(turnString)
