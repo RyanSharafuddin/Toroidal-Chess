@@ -36,6 +36,9 @@ var validMoves = function(source, piece, oldPos) {
     case "wK":
     case "bK":
       return kingMoves(piece.charAt(0), fileNum, rankNum, oldPos);
+    case "wN":
+    case "bN":
+      return knightMoves(piece.charAt(0), fileNum, rankNum, oldPos);
     default:
       return [];
   }
@@ -151,6 +154,22 @@ var kingMoves = function(color, fileNum, rankNum, oldPos) {
       updateMoves(moves, square, oldPos, color);
     }
   }
+  return moves;
+}
+
+var knightMoves = function(color, fileNum, rankNum, oldPos) {
+  var moves = [];
+  updateMoves(moves, coord(mod(fileNum + 2, 8), mod(rankNum + 1, 8)), oldPos, color);
+  updateMoves(moves, coord(mod(fileNum + 2, 8), mod(rankNum - 1, 8)), oldPos, color);
+
+  updateMoves(moves, coord(mod(fileNum + 1, 8), mod(rankNum + 2, 8)), oldPos, color);
+  updateMoves(moves, coord(mod(fileNum + 1, 8), mod(rankNum - 2, 8)), oldPos, color);
+
+  updateMoves(moves, coord(mod(fileNum - 2, 8), mod(rankNum + 1, 8)), oldPos, color);
+  updateMoves(moves, coord(mod(fileNum - 2, 8), mod(rankNum - 1, 8)), oldPos, color);
+
+  updateMoves(moves, coord(mod(fileNum - 1, 8), mod(rankNum + 2, 8)), oldPos, color);
+  updateMoves(moves, coord(mod(fileNum - 1, 8), mod(rankNum - 2, 8)), oldPos, color);
   return moves;
 }
 
