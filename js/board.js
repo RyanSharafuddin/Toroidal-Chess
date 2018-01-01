@@ -285,16 +285,16 @@ function threatens(pos, piece, source, square) {
 
 /*returns true if making this move would not leave the moving player in check */
 function wouldNotCheck(oldPos, piece, source, target) {
-  //console.log("wouldNotCheck called with args:" + " piece: " + piece + " source: " + source + " target: " + target);
+  console.log("wouldNotCheck called with args:" + " piece: " + piece + " source: " + source + " target: " + target);
   var color = piece.charAt(0);
   var myKingLoc = (piece.charAt(1) == "K") ? (target) : ((color == "w") ? (gameLogic.wKLoc) : (gameLogic.bKLoc));
 
   delete oldPos[source];
   oldPos[target] = piece;
 
-  // console.log("myKingLoc: " + myKingLoc);
-  // console.log("oldPos modified: ");
-  // console.log(JSON.stringify(oldPos, null, 4));
+   console.log("myKingLoc: " + myKingLoc);
+   console.log("oldPos modified: ");
+   console.log(JSON.stringify(oldPos, null, 4));
 
   for(var square in oldPos) {
     if(oldPos.hasOwnProperty(square)) {
@@ -319,6 +319,7 @@ function partial(f) {
 
 function inCheck(whiteTurn, pos) {
   var kingLoc = (whiteTurn) ? gameLogic.wKLoc : gameLogic.bKLoc;
+  var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
     if(pos.hasOwnProperty(square)) {
       if((pos[square] != undefined) && (pos[square].charAt(0) != color)) {
@@ -332,6 +333,7 @@ function inCheck(whiteTurn, pos) {
 }
 
 function hasMoves(whiteTurn, pos) {
+  var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
     if(pos.hasOwnProperty(square)) {
       if((pos[square] != undefined) && (pos[square].charAt(0) == color)) {
@@ -471,10 +473,41 @@ function promotePosition() {
   gameLogic.gameOver = false;
 }
 
+function checkmatePos() {
+  board1.position("8/8/r3k3/1K6/r7/8/3q4/8");
+  gameLogic.whiteTurn = false;
+  $("#Turn").html("Turn: Black");
+  gameLogic.gameOver = false;
+  gameLogic.wKLoc = "b5";
+  gameLogic.bKLoc = "e6";
+}
+
+function stalematePos() {
+  board1.position("8/8/r3k3/1K6/r7/8/3r4/8");
+  gameLogic.whiteTurn = false;
+  $("#Turn").html("Turn: Black");
+  gameLogic.gameOver = false;
+  gameLogic.wKLoc = "b5";
+  gameLogic.bKLoc = "e6";
+}
+
+function buggy() {
+  board1.position("r1b2b1r/pp3kpp/n1pq1p2/3Pp3/3PQ1n1/N1P1KP1N/PP4PP/R1B2B1R");
+  gameLogic.whiteTurn = true;
+  $("#Turn").html("Turn: White - currently in check");
+  gameLogic.gameOver = false;
+  gameLogic.wKLoc = "e3";
+  gameLogic.bKLoc = "f7";
+}
 
 $('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
 $("#prom").on('click', promotePosition);
+$("#cm").on('click', checkmatePos);
+$("#sm").on('click', stalematePos);
+$("#bug").on('click', buggy);
+
+
 
 
 
