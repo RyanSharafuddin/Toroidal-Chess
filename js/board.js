@@ -198,8 +198,14 @@ var pawnMoves = function(color, fileNum, rankNum, oldPos) {
   if(oldPos[forwardLeft] != undefined && oldPos[forwardLeft].charAt(0) != color) {
     moves.push(forwardLeft);
   }
+  else if(oldPos[forwardLeft] == undefined && (gameLogic["enpassants"][forwardLeft] == true)) {
+    moves.push(forwardLeft); //can enpassant by going forwardLeft
+  }
   if(oldPos[forwardRight] != undefined && oldPos[forwardRight].charAt(0) != color) {
     moves.push(forwardRight);
+  }
+  else if(oldPos[forwardRight] == undefined && (gameLogic["enpassants"][forwardRight] == true)) {
+    moves.push(forwardRight); //can enpassant by going forwardLeft
   }
   return moves;
 }
@@ -289,12 +295,10 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     return 'snapback';
   }
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
-  var needPromotion = false;
+
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
-    needPromotion = true;
     //pawn promotion here
     $("#promotionText").html("Promote pawn to:")
-
     $(function() {
       /* Note: To figure out how to hide the x button, see this site:
       https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
@@ -308,34 +312,35 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
         title: "Pawn Promotion"
     });
   });
-
   }
+  var forward = (piece.charAt(0) == "w") ? 1 : -1;
+  //piece is pawn that moved columns to an empty square, so must have en passanted
+  if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) && (oldPos[target] == undefined)) {
+    console.log("Made en passant move!")
+    var backward = -1 * forward;
+    var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
+    posObj = board1.position();
+    delete posObj[eliminateSquare];
+    board1.position(posObj);
+  }
+
+  for(var square in gameLogic.enpassants) {
+    if(gameLogic.enpassants.hasOwnProperty(square)) {
+      //console.log("Un enpassanting square: " + square);
+      gameLogic.enpassants[square] = false;
+    }
+  }
+
+  if(piece.charAt(1) == "P" && (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
+    var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
+    //console.log("Setting en passant on square: " + enable);
+    gameLogic.enpassants[enable] = true;
+  }
+
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black"
   $("#Turn").html(turnString)
 };
-
-
-
-var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
-var cfg = {
-  position: TOROIDAL_START,
-  draggable: true,
-  onDragStart: onDragStart,
-  onDrop: onDrop
-};
-var board1 = ChessBoard('board1', cfg);
-
-
-var gameLogic = {
-  whiteTurn: true,
-  gameOver: false
-};
-
-
-
-
-
 
 function clickGetPositionBtn() {
   var posObj = board1.position();
@@ -344,6 +349,9 @@ function clickGetPositionBtn() {
 
   console.log("Current position as a FEN string:");
   console.log(board1.fen());
+
+  console.log("gameLogic: ");
+  console.log(gameLogic);
 };
 
 function resetPosition() {
@@ -351,6 +359,12 @@ function resetPosition() {
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
+  for(var square in gameLogic.enpassants) {
+    if(gameLogic.enpassants.hasOwnProperty(square)) {
+      console.log("Un enpassanting square: " + square);
+      gameLogic.enpassants[square] = false;
+    }
+  }
 };
 
 function promotePosition() {
@@ -364,6 +378,32 @@ function promotePosition() {
 $('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
 $("#prom").on('click', promotePosition);
+
+
+
+var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
+var cfg = {
+  position: TOROIDAL_START,
+  draggable: true,
+  onDragStart: onDragStart,
+  onDrop: onDrop
+};
+var board1 = ChessBoard('board1', cfg);
+
+var gameLogic = {
+  whiteTurn: true,
+  gameOver: false,
+  enpassants: {
+    a3: false,
+    b3: false,
+    g3: false,
+    h3: false,
+    a6: false,
+    b6: false,
+    g6: false,
+    h6: false
+  }
+};
 
 /*
   3) enPassant
