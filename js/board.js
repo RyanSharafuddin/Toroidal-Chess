@@ -212,7 +212,15 @@ function clickGetPositionBtn() {
   console.log("piece at string " + coord + ": " + posObj[coord]);
 };
 
+function resetPosition() {
+  board1.position(TOROIDAL_START);
+  gameLogic.whiteTurn = true;
+  $("#Turn").html("Turn: White");
+  gameLogic.gameOver = false;
+}
+
 $('#getPositionBtn').on('click', clickGetPositionBtn);
+$("#reset").on('click', resetPosition);
 
 /*
   3) Can only make moves that that piece can make
