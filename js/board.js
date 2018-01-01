@@ -33,6 +33,9 @@ var validMoves = function(source, piece, oldPos) {
     case "wQ":
     case "bQ":
       return queenMoves(piece.charAt(0), fileNum, rankNum, oldPos);
+    case "wK":
+    case "bK":
+      return kingMoves(piece.charAt(0), fileNum, rankNum, oldPos);
     default:
       return [];
   }
@@ -138,6 +141,17 @@ var bishopMoves = function(color, fileNum, rankNum, oldPos) {
 var queenMoves = function(color, fileNum, rankNum, oldPos) {
   //since a queen is a combination of rook and bishop
   return (rookMoves(color, fileNum, rankNum, oldPos).concat(bishopMoves(color, fileNum, rankNum, oldPos)))
+}
+
+var kingMoves = function(color, fileNum, rankNum, oldPos) {
+  var moves = [];
+  for(var fileChange = -1; fileChange <= 1; fileChange++) {
+    for(var rankChange = -1; rankChange <= 1; rankChange++) {
+      var square = coord(fileNum + fileChange, rankNum + rankChange);
+      updateMoves(moves, square, oldPos, color);
+    }
+  }
+  return moves;
 }
 
 //update moves list and return 0 to keep going, -1 to break
