@@ -274,6 +274,49 @@ function addPiece(piece, square) {
   board1.position(posObj);
 }
 
+/* Returns true if piece at source threatens square in pos */
+function threatens(pos, piece, source, square) {
+  moves = validMoves(source, piece, pos);
+  if($.inArray(square, moves) != -1) {
+    console.log(piece + " at " + source + " threatens " + square);
+  }
+  return ($.inArray(square, moves) != -1);
+}
+
+/*returns true if making this move would not leave the moving player in check */
+function wouldNotCheck(oldPos, piece, source, target) {
+  //console.log("wouldNotCheck called with args:" + " piece: " + piece + " source: " + source + " target: " + target);
+  var color = piece.charAt(0);
+  var myKingLoc = (piece.charAt(1) == "K") ? (target) : ((color == "w") ? (gameLogic.wKLoc) : (gameLogic.bKLoc));
+
+  delete oldPos[source];
+  oldPos[target] = piece;
+
+  // console.log("myKingLoc: " + myKingLoc);
+  // console.log("oldPos modified: ");
+  // console.log(JSON.stringify(oldPos, null, 4));
+
+  for(var square in oldPos) {
+    if(oldPos.hasOwnProperty(square)) {
+      if((oldPos[square] != undefined) && (oldPos[square].charAt(0) != color)) {
+        if(threatens(oldPos, oldPos[square], square, myKingLoc)) {
+          console.log("Moving " + piece + " from " + source + " to " + target + " would put player in check");
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function partial(f) {
+  var args = Array.prototype.slice.call(arguments, 1)
+  return function() {
+    var remainingArgs = Array.prototype.slice.call(arguments)
+    return f.apply(null, args.concat(remainingArgs))
+  }
+}
+
 /* Don't allow player to drag wrong color pieces or after game is over */
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
@@ -289,7 +332,9 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   console.log("Source is: " + source);
   console.log("Target is: " + target);
   moves = validMoves(source, piece, oldPos);
-  console.log("Valid moves are " + moves);
+  console.log("Valid moves (before taking check into account) are " + moves);
+  moves = moves.filter(partial(wouldNotCheck, oldPos, piece, source));
+  console.log("Valid moves after filtering out moves that leave in check are " + moves);
   if($.inArray(target, moves) === -1) {
     console.log("Target is not a valid move");
     return 'snapback';
@@ -337,9 +382,13 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     gameLogic.enpassants[enable] = true;
   }
 
+  if(piece.charAt(1) == "K") {
+    var kingField = piece.charAt(0) + "KLoc";
+    gameLogic[kingField] = target;
+  }
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
-  var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black"
-  $("#Turn").html(turnString)
+  var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
+  $("#Turn").html(turnString);
 };
 
 function clickGetPositionBtn() {
@@ -359,9 +408,11 @@ function resetPosition() {
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
+  gameLogic.wKLoc = "e3";
+  gameLogic.bKLoc = "e6";
   for(var square in gameLogic.enpassants) {
     if(gameLogic.enpassants.hasOwnProperty(square)) {
-      console.log("Un enpassanting square: " + square);
+    //  console.log("Un enpassanting square: " + square);
       gameLogic.enpassants[square] = false;
     }
   }
@@ -393,6 +444,8 @@ var board1 = ChessBoard('board1', cfg);
 var gameLogic = {
   whiteTurn: true,
   gameOver: false,
+  wKLoc: "e3",
+  bKLoc: "e6",
   enpassants: {
     a3: false,
     b3: false,
@@ -406,7 +459,6 @@ var gameLogic = {
 };
 
 /*
-  3) enPassant
   4) Incorporate checking, checkmate, and stalemate into account
   5) Show valid moves??? (Make sure can easily turn on/off)
   6) Game server with Node.js
