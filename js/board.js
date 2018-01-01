@@ -39,6 +39,9 @@ var validMoves = function(source, piece, oldPos) {
     case "wN":
     case "bN":
       return knightMoves(piece.charAt(0), fileNum, rankNum, oldPos);
+    case "wP":
+    case "bP":
+      return pawnMoves(piece.charAt(0), fileNum, rankNum, oldPos);
     default:
       return [];
   }
@@ -173,6 +176,33 @@ var knightMoves = function(color, fileNum, rankNum, oldPos) {
   return moves;
 }
 
+var pawnMoves = function(color, fileNum, rankNum, oldPos) {
+  var forward = (color == "w") ? 1 : -1;
+  var moves = [];
+  var oneAhead = coord(fileNum, rankNum + forward); //no need to mod because pawns don't occur on first or last ranks
+
+  if(oldPos[oneAhead] == undefined) {
+    moves.push(oneAhead);
+    var upTwo = (color == "w") ? ["a2", "b2", "g2", "h2"] : ["a7", "b7", "g7", "h7"]; //pawns here may be able to move forward 2 spaces
+    if($.inArray(coord(fileNum, rankNum), upTwo) != -1) {
+      var twoAhead = coord(fileNum, rankNum + (2 * forward));
+      if(oldPos[twoAhead] == undefined) {
+        moves.push(twoAhead);
+      }
+    }
+  }
+  var forwardLeft = coord(mod(fileNum - 1, 8), rankNum + forward);
+  var forwardRight = coord(mod(fileNum + 1, 8), rankNum + forward);
+
+  if(oldPos[forwardLeft] != undefined && oldPos[forwardLeft].charAt(0) != color) {
+    moves.push(forwardLeft);
+  }
+  if(oldPos[forwardRight] != undefined && oldPos[forwardRight].charAt(0) != color) {
+    moves.push(forwardRight);
+  }
+  return moves;
+}
+
 //update moves list and return 0 to keep going, -1 to break
 var updateMoves = function(moves, square, oldPos, color) {
   if(oldPos[square] == undefined) {
@@ -237,12 +267,6 @@ function clickGetPositionBtn() {
 
   console.log("Current position as a FEN string:");
   console.log(board1.fen());
-  console.log("piece at a1: '" + posObj.a1 + "'")
-  console.log("piece at b1: '" + posObj.b1 + "'")
-  var file = "c";
-  var rank = "1";
-  var coord = file + rank;
-  console.log("piece at string " + coord + ": " + posObj[coord]);
 };
 
 function resetPosition() {
@@ -256,8 +280,8 @@ $('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
 
 /*
-  3) Can only make moves that that piece can make
-  4) Can only make moves that that piece can make AND can't go through pieces
-  5) Incorporate checking into account
-  6) Incorporate en passant into account
+  2) promotion
+  3) enPassant
+  4) Incorporate checking, checkmate, and stalemate into account
+  5) Show valid moves??? (Make sure can easily turn on/off)
 */
