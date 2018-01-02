@@ -8,17 +8,14 @@
 //     console.log('listening on *: ' + port);
 // });
 console.log("Running app.js");
-var http = require('http');
-var fs = require('fs');
-var portNum = 3000;
-var server = http.createServer(function(req, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'}); //200 status code means everything okay
-  var readStream = fs.createReadStream(__dirname + '/index.html', 'utf8');
-  readStream.pipe(res);
+var express = require('express');
+var app = express();
+var portNum = 8000;
 
-  console.log("Got request and sent response");
-  console.log("Request URL is " + req.url);
-});
+// app.get('/', function(req, res) {
+//   res.send("This is the root page");
+// });
 
-server.listen(portNum); //listens on port portNum
-console.log("Now listening to port: " + portNum);
+app.use(express.static('static_files'));
+
+app.listen(portNum);
