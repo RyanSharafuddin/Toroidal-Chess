@@ -506,6 +506,26 @@ function showMoves() {
   console.log("Done printing move history");
 }
 
+function showAvailable() {
+  console.log("Showing legal moves: ")
+  if(gameLogic.gameOver) {
+    return;
+  }
+  color = gameLogic.whiteTurn ? "w" : "b";
+  pos = board1.position();
+  for(var square in pos) {
+    if(pos.hasOwnProperty(square)) {
+      if((pos[square] != undefined) && (pos[square].charAt(0) == color)) {
+        var moves = validMoves(square, pos[square], pos).filter(partial(wouldNotCheck, pos, pos[square], square));
+        moves.forEach(function(move) {
+          console.log(square + "-" + move);
+        });
+      }
+    }
+  }
+  console.log("All legal moves have been printed");
+}
+
 
 
 $('#getPositionBtn').on('click', clickGetPositionBtn);
@@ -514,6 +534,7 @@ $("#prom").on('click', promotePosition);
 $("#cm").on('click', checkmatePos);
 $("#sm").on('click', stalematePos);
 $("#history").on('click', showMoves);
+$("#available").on('click', showAvailable);
 
 
 
