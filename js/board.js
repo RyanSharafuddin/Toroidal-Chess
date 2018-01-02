@@ -422,24 +422,27 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
   $("#Turn").html(turnString);
+  var moveString = source + "-" + target;
   //must decide now if current player is checkmated or if game is stalemated
   if(inCheck(gameLogic.whiteTurn, newPos)) {
     if(hasMoves(gameLogic.whiteTurn, newPos)) {
       $("#Turn").html(turnString + " - currently in check");
-      return;
+      moveString = moveString + "+";
     }
     else {
       var color = (gameLogic.whiteTurn) ? "White" : "Black";
       $("#Turn").html(color + " has been checkmated!");
       gameLogic.gameOver = true;
-      return;
+      moveString = moveString + "#";
     }
   }
   else if(!hasMoves(gameLogic.whiteTurn, newPos)) {
     $("#Turn").html("Stalemate!");
     gameLogic.gameOver = true;
-    return;
+      moveString = moveString + "SM";
   }
+  console.log("Legal move made! " + moveString);
+  gameLogic.moves.push(moveString);
 };
 
 function clickGetPositionBtn() {
@@ -459,6 +462,7 @@ function resetPosition() {
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
+  gameLogic.moves = [];
   gameLogic.wKLoc = "e3";
   gameLogic.bKLoc = "e6";
   for(var square in gameLogic.enpassants) {
@@ -494,22 +498,22 @@ function stalematePos() {
   gameLogic.bKLoc = "e6";
 }
 
-function buggy() {
-  board1.position("r1b2b1r/pp3kpp/n1pq1p2/3Pp3/3PQ1n1/N1P1KP1N/PP4PP/R1B2B1R");
-  gameLogic.whiteTurn = true;
-  $("#Turn").html("Turn: White - currently in check");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "e3";
-  gameLogic.bKLoc = "f7";
+function showMoves() {
+  console.log("\nPrinting move history:");
+  gameLogic.moves.forEach(function(move, index) {
+    console.log((index + 1) + ": " + move);
+  });
+  console.log("Done printing move history");
 }
+
+
 
 $('#getPositionBtn').on('click', clickGetPositionBtn);
 $("#reset").on('click', resetPosition);
 $("#prom").on('click', promotePosition);
 $("#cm").on('click', checkmatePos);
 $("#sm").on('click', stalematePos);
-$("#bug").on('click', buggy);
-
+$("#history").on('click', showMoves);
 
 
 
@@ -528,6 +532,7 @@ var gameLogic = {
   gameOver: false,
   wKLoc: "e3",
   bKLoc: "e6",
+  moves: [],
   enpassants: {
     a3: false,
     b3: false,
