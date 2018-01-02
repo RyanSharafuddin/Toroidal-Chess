@@ -9,10 +9,12 @@
 // });
 console.log("Running app.js");
 var http = require('http');
+var fs = require('fs');
 var portNum = 3000;
 var server = http.createServer(function(req, res) {
-  res.writeHead(200, {'Content-Type': 'text/plain'}); //200 status code means everything okay
-  res.end("This is the plaintext for the response body");
+  res.writeHead(200, {'Content-Type': 'text/html'}); //200 status code means everything okay
+  var readStream = fs.createReadStream(__dirname + '/index.html', 'utf8');
+  readStream.pipe(res);
 
   console.log("Got request and sent response");
   console.log("Request URL is " + req.url);
