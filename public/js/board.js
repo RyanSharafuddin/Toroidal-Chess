@@ -231,7 +231,7 @@ var promotionButtons = function(color, square) {
     icon: "img/chesspieces/wikipedia/" + color + "Q.png", //Not working??
     click: function() {
       addPiece(color + "Q", square);
-      gameLogic.moves[gameLogic.moves.length - 1] += "Queen";
+      gameLogic.moves[gameLogic.moves.length - 1] += " Queen";
       $(this).dialog( "close" );
     }
   }
@@ -241,7 +241,7 @@ var promotionButtons = function(color, square) {
     text: "Knight",
     click: function() {
       addPiece(color + "N", square);
-      gameLogic.moves[gameLogic.moves.length - 1] += "Knight";
+      gameLogic.moves[gameLogic.moves.length - 1] += " Knight";
       $(this).dialog( "close" );
     }
   }
@@ -251,7 +251,7 @@ var promotionButtons = function(color, square) {
     text: "Rook",
     click: function() {
       addPiece(color + "R", square);
-      gameLogic.moves[gameLogic.moves.length - 1] += "Rook";
+      gameLogic.moves[gameLogic.moves.length - 1] += " Rook";
       $(this).dialog( "close" );
     }
   }
@@ -261,7 +261,7 @@ var promotionButtons = function(color, square) {
     text: "Bishop",
     click: function() {
       addPiece(color + "B", square);
-      gameLogic.moves[gameLogic.moves.length - 1] += "Bishop";
+      gameLogic.moves[gameLogic.moves.length - 1] += " Bishop";
       $(this).dialog( "close" );
     }
   }
@@ -275,6 +275,8 @@ function addPiece(piece, square) {
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
+  console.log("check_mate_stale called from addPiece");
+  check_mate_stale(piece.charAt(0) != "w", posObj); // != b/c want find out if other person in check
 }
 
 /* Returns true if piece at source threatens square in pos */
@@ -324,7 +326,10 @@ function partial(f) {
 }
 
 function inCheck(whiteTurn, pos) {
+  console.log("Called in check with these args:");
+  console.log("whiteTurn: " + whiteTurn + " pos: " + JSON.stringify(pos, null, 4));
   var kingLoc = (whiteTurn) ? gameLogic.wKLoc : gameLogic.bKLoc;
+  console.log("kingLoc: " + kingLoc);
   var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
     if(pos.hasOwnProperty(square)) {
@@ -351,6 +356,33 @@ function hasMoves(whiteTurn, pos) {
     }
   }
   return false;
+}
+
+//takes care of in check, checkmate, or stalemate
+function check_mate_stale(whiteTurn, pos) {
+  console.log("check_mate_stale called");
+  var turnString = (whiteTurn) ? "Turn: White" : "Turn: Black";
+  console.log("Calling inCheck from check_mate_stale");
+  if(inCheck(whiteTurn, pos)) {
+    if(hasMoves(whiteTurn, pos)) {
+      $("#Turn").html(turnString + " - currently in check");
+      console.log("IN CHECK");
+      gameLogic.moves[gameLogic.moves.length - 1] += "+";
+    }
+    else {
+      var color = (whiteTurn) ? "White" : "Black";
+      $("#Turn").html(color + " has been checkmated!");
+      gameLogic.moves[gameLogic.moves.length - 1] += "#"
+      console.log("checkmate!!");
+      gameLogic.gameOver = true;
+    }
+  }
+  else if(!hasMoves(whiteTurn, pos)) {
+    $("#Turn").html("Stalemate!");
+    gameLogic.moves[gameLogic.moves.length - 1] += "SM"
+    console.log("Stalemate");
+    gameLogic.gameOver = true;
+  }
 }
 
 /* Don't allow player to drag wrong color pieces or after game is over */
@@ -431,28 +463,8 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   $("#Turn").html(turnString);
   var moveString = source + "-" + target;
   //must decide now if current player is checkmated or if game is stalemated
-  if(inCheck(gameLogic.whiteTurn, newPos)) {
-    if(hasMoves(gameLogic.whiteTurn, newPos)) {
-      $("#Turn").html(turnString + " - currently in check");
-      moveString = moveString + "+";
-    }
-    else {
-      var color = (gameLogic.whiteTurn) ? "White" : "Black";
-      $("#Turn").html(color + " has been checkmated!");
-      gameLogic.gameOver = true;
-      moveString = moveString + "#";
-    }
-  }
-  else if(!hasMoves(gameLogic.whiteTurn, newPos)) {
-    $("#Turn").html("Stalemate!");
-    gameLogic.gameOver = true;
-      moveString = moveString + "SM";
-  }
-  console.log("Legal move made! " + moveString);
-  if(promoted) {
-    moveString += " -> ";
-  }
   gameLogic.moves.push(moveString);
+  check_mate_stale(gameLogic.whiteTurn, newPos);
 };
 
 function resetPosition() {
