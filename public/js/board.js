@@ -271,7 +271,7 @@ var promotionButtons = function(color, square) {
 }
 
 function addPiece(piece, square) {
-  console.log("addPiece called! adding " + piece + " to " + square);
+//  console.log("addPiece called! adding " + piece + " to " + square);
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
@@ -325,10 +325,10 @@ function partial(f) {
 }
 
 function inCheck(whiteTurn, pos) {
-  console.log("Called in check with these args:");
-  console.log("whiteTurn: " + whiteTurn + " pos: " + JSON.stringify(pos, null, 4));
+//  console.log("Called in check with these args:");
+//  console.log("whiteTurn: " + whiteTurn + " pos: " + JSON.stringify(pos, null, 4));
   var kingLoc = (whiteTurn) ? gameLogic.wKLoc : gameLogic.bKLoc;
-  console.log("kingLoc: " + kingLoc);
+//  console.log("kingLoc: " + kingLoc);
   var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
     if(pos.hasOwnProperty(square)) {
@@ -359,27 +359,27 @@ function hasMoves(whiteTurn, pos) {
 
 //takes care of in check, checkmate, or stalemate
 function check_mate_stale(whiteTurn, pos) {
-  console.log("check_mate_stale called");
+//  console.log("check_mate_stale called");
   var turnString = (whiteTurn) ? "Turn: White" : "Turn: Black";
-  console.log("Calling inCheck from check_mate_stale");
+//  console.log("Calling inCheck from check_mate_stale");
   if(inCheck(whiteTurn, pos)) {
     if(hasMoves(whiteTurn, pos)) {
       $("#Turn").html(turnString + " - currently in check");
-      console.log("IN CHECK");
+    //  console.log("IN CHECK");
       gameLogic.moves[gameLogic.moves.length - 1] += "+";
     }
     else {
       var color = (whiteTurn) ? "White" : "Black";
       $("#Turn").html(color + " has been checkmated!");
       gameLogic.moves[gameLogic.moves.length - 1] += "#"
-      console.log("checkmate!!");
+    //  console.log("checkmate!!");
       gameLogic.gameOver = true;
     }
   }
   else if(!hasMoves(whiteTurn, pos)) {
     $("#Turn").html("Stalemate!");
     gameLogic.moves[gameLogic.moves.length - 1] += "SM"
-    console.log("Stalemate");
+  //  console.log("Stalemate");
     gameLogic.gameOver = true;
   }
 }
@@ -397,15 +397,15 @@ var onDragStart = function(source, piece, position, orientation) {
 
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
-  console.log("onDrop called");
-  console.log("Source is: " + source);
-  console.log("Target is: " + target);
+//  console.log("onDrop called");
+//  console.log("Source is: " + source);
+//  console.log("Target is: " + target);
   moves = validMoves(source, piece, oldPos);
-  console.log("Valid moves (before taking check into account) are " + moves);
+//  console.log("Valid moves (before taking check into account) are " + moves);
   moves = moves.filter(partial(wouldNotCheck, oldPos, piece, source));
-  console.log("Valid moves after filtering out moves that leave in check are " + moves);
+//  console.log("Valid moves after filtering out moves that leave in check are " + moves);
   if($.inArray(target, moves) === -1) {
-    console.log("Target is not a valid move");
+  //  console.log("Target is not a valid move");
     return 'snapback';
   }
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
@@ -432,7 +432,7 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   var forward = (piece.charAt(0) == "w") ? 1 : -1;
   //piece is pawn that moved columns to an empty square, so must have en passanted
   if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) && (oldPos[target] == undefined)) {
-    console.log("Made en passant move!")
+  //  console.log("Made en passant move!")
     var backward = -1 * forward;
     var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
     posObj = board1.position();
@@ -466,8 +466,8 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   gameLogic.moves.push(moveString);
   check_mate_stale(gameLogic.whiteTurn, newPos);
   var totalState = { position: newPos, state: gameLogic, moveString: moveString, turnString: $("#Turn").text()};
-  console.log("Sending totalState: ");
-  console.log(JSON.stringify(totalState, null, 4));
+//  console.log("Sending totalState: ");
+//  console.log(JSON.stringify(totalState, null, 4));
   socket.emit('move', totalState);
 };
 
@@ -490,96 +490,11 @@ function resetPosition() {
   }
 };
 
-function clickGetPositionBtn() {
-  var posObj = board1.position();
-  console.log("Current position as an Object:");
-  console.log(posObj);
-
-  console.log("Current position as a FEN string:");
-  console.log(board1.fen());
-
-  console.log("gameLogic: ");
-  console.log(gameLogic);
-};
-
-function promotePosition() {
-  board1.position("r1b2b1r/pp4Pp/n1pqk2n/8/8/N1PQK2N/PP4pP/R1B2B1R");
-  gameLogic.whiteTurn = true;
-  $("#Turn").html("Turn: White");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "e3";
-  gameLogic.bKLoc = "e6";
-  gameLogic.enpassants = {
-    a3: false,
-    b3: false,
-    g3: false,
-    h3: false,
-    a6: false,
-    b6: false,
-    g6: false,
-    h6: false
-  };
-  gameLogic.moves = ["d4-e5", "d5-e4", "e5-f6", "e4-f3", "f6-g7", "f3-g2"];
-}
-
-function checkmatePos() {
-  board1.position("8/8/r3k3/1K6/r7/8/3q4/8");
-  gameLogic.whiteTurn = false;
-  $("#Turn").html("Turn: Black");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "b5";
-  gameLogic.bKLoc = "e6";
-  gameLogic.moves = ["Checkmate position button used, so move history no longer valid"];
-}
-
-function stalematePos() {
-  board1.position("8/8/r3k3/1K6/r7/8/3r4/8");
-  gameLogic.whiteTurn = false;
-  $("#Turn").html("Turn: Black");
-  gameLogic.gameOver = false;
-  gameLogic.wKLoc = "b5";
-  gameLogic.bKLoc = "e6";
-  gameLogic.moves = ["Stalemate position button used, so move history no longer valid"];
-}
-
-function showMoves() {
-  console.log("\nPrinting move history:");
-  gameLogic.moves.forEach(function(move, index) {
-    console.log((index + 1) + ": " + move);
-  });
-  console.log("Done printing move history");
-}
-
-function showAvailable() {
-  console.log("Showing legal moves: ")
-  if(gameLogic.gameOver) {
-    return;
-  }
-  color = gameLogic.whiteTurn ? "w" : "b";
-  pos = board1.position();
-  for(var square in pos) {
-    if(pos.hasOwnProperty(square)) {
-      if((pos[square] != undefined) && (pos[square].charAt(0) == color)) {
-        var moves = validMoves(square, pos[square], pos).filter(partial(wouldNotCheck, pos, pos[square], square));
-        moves.forEach(function(move) {
-          console.log(square + "-" + move);
-        });
-      }
-    }
-  }
-  console.log("All legal moves have been printed");
-}
 
 
 
-$('#getPositionBtn').on('click', clickGetPositionBtn);
+
 $("#reset").on('click', resetPosition);
-$("#prom").on('click', promotePosition);
-$("#cm").on('click', checkmatePos);
-$("#sm").on('click', stalematePos);
-$("#history").on('click', showMoves);
-$("#available").on('click', showAvailable);
-
 
 
 
@@ -632,6 +547,6 @@ socket.on('oppMove', function(totalState) {
   board1.position(totalState.position);
   gameLogic = totalState.state;
   $("#Turn").text(totalState.turnString);
-  console.log("Received oppMove! totalState is ");
-  console.log(JSON.stringify(totalState, null, 4));
+//  console.log("Received oppMove! totalState is ");
+//  console.log(JSON.stringify(totalState, null, 4));
 });
