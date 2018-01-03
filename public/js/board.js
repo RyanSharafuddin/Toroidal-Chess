@@ -491,3 +491,9 @@ var gameLogic = {
   }
 };
 var socket = io();
+var user_num = 0;
+
+socket.on('assign', function(num) {
+  user_num = num;
+  console.log("My user_num is: " + user_num);
+});
