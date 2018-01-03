@@ -388,11 +388,15 @@ function check_mate_stale(whiteTurn, pos) {
   }
 }
 
-/* Don't allow player to drag wrong color pieces or after game is over */
+/* Don't allow player to drag wrong color pieces or after game is over
+   Also, only player 1 can move white pieces; only player 2 can
+   move black*/
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
      (gameLogic.whiteTurn &&  piece.search(/^b/) !== -1) ||
-      (!gameLogic.whiteTurn &&  piece.search(/^w/) !== -1)) {
+      (!gameLogic.whiteTurn &&  piece.search(/^w/) !== -1) ||
+      (gameLogic.whiteTurn && (user_num != 1))  ||
+      (!gameLogic.whiteTurn && (user_num != 2) )) {
         return false;
       }
 };
@@ -496,6 +500,8 @@ function resetPosition() {
       gameLogic.enpassants[square] = false;
     }
   }
+  var totalState = { position: board1.position(), state: gameLogic, turnString: $("#Turn").text()};
+  socket.emit('move', totalState);
 };
 
 $("#reset").on('click', resetPosition);
@@ -530,7 +536,7 @@ var user_num = 0;
 
 socket.on('assign', function(num) {
   user_num = num;
-  var str = "Your user number: " + user_num;
+  var str = "Your user number is: " + user_num;
   if(user_num == 1) {
     str += " (White)";
     board1.orientation('white');
