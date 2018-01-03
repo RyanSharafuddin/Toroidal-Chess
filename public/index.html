@@ -19,11 +19,24 @@
         you can start making moves.  In the future I might make this more sophisticated,
       such as adding support for choosing your own room, nicknames, chat, etc. </p>
 
-    <h1 id="roomNum"></h1>
-    <h1 id="wait"></h1>
+    <h2 id="roomNum"></h2>
+    <h2 id="wait"></h2>
     <div id="promotionBox"> <div id="promotionText"> </div> </div>
-    <div id="board1" style="width: 700px"></div>
-    <input type="button" id="reset" value="Reset Position" />
+    <div id="board1" style="width: 650px"></div>
+
+    <div>
+        <style scoped>
+            .button-reset,
+            .button-reset{
+                background: rgb(223, 117, 20); /* this is an orange */
+                font-size: 125%;
+            }
+        </style>
+        <button class="button-reset pure-button" id="reset"> Reset Position </button>
+    </div>
+
+
+    <!-- <input type="button" id="reset" value="Reset Position" /> -->
     <p id="Turn">Turn: White</p>
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/board.js"></script>

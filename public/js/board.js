@@ -577,7 +577,7 @@ socket.on("oppLeft", function() {
   full = false;
   $("#wait").text("Status: waiting for new opponent to arrive");
   resetPosition();
-  alert("Your opponent left, so the game was reset. You are now waiting for a new opponent");
+  alert("Your opponent left, so the game was reset. You are now waiting for a new opponent.");
 });
 
 socket.on('oppMove', function(totalState) {
