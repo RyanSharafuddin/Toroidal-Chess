@@ -545,15 +545,28 @@ var gameLogic = {
   }
 };
 var socket = io();
-var roomNum = 0;
+var connected = false;
 var isBlack = false;
 var isWhite = false;
 var full = false;
 
+// while(!connected) {
+//   var roomID = prompt("What room would you like to enter?");
+//   if(roomID == null || roomID == "") {
+//     roomID = "" + Math.random();
+//   }
+//   socket.emit('enter', roomID);
+// }
+ var roomID = prompt("What room would you like to enter?");
+socket.emit('enter', roomID);
 
 socket.on('roomAssignment', function(assignment) {
+  if(assignment == null) {
+    return;
+  }
+  connected = true;
   full = assignment.full;
-  roomNum = assignment.roomID;
+  roomID = assignment.roomID;
   $("#roomNum").text("You are in room " + assignment.roomID + ". You are playing as " + assignment.color + ".");
   var fullstr = (full) ? "Status: opponent present" : "Status: waiting for opponent to arrive";
   $("#wait").text(fullstr);

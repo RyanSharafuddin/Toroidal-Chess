@@ -11,73 +11,59 @@ app.use(express.static('public'));
 // });
 
 
-var highest_used = 1;
+
 var rooms = {1: {hasBlack: false, hasWhite: false, fill: 0}};
 
 io.on('connection', function(socket) {
    var foundVacancy = false;
 
-   for(var roomID in rooms) {
-     if(rooms.hasOwnProperty(roomID)) {
-       if (rooms[roomID]["fill"] == 1) {
-         console.log("A client has joined room " + roomID);
-         rooms[roomID]["fill"] += 1;
-         foundVacancy = true;
-         socket.join("room" + roomID);
-         var color = rooms[roomID]["hasWhite"] ? "black" : "white";
-         rooms[roomID]["hasWhite"] = true;
-         rooms[roomID]["hasBlack"] = true;
-         socket.emit('roomAssignment', {roomID: roomID, color: color, full: true});
-         io.in("room" + roomID).emit('fullPresence', "dummy data"); //alert other player you've arrived
-         socket.roomID = roomID;
-         socket.color = color;
-         break;
-       }
-     }
-   }
+    socket.on('enter', function(requestedRoom) {
+      if((rooms[requestedRoom] == undefined) || (rooms[requestedRoom]["fill"] == 0)) {
+        console.log("A client has created room " + requestedRoom);
+        rooms[requestedRoom] = {hasBlack: false, hasWhite: true, fill: 1};
+        socket.join(requestedRoom);
+        var color = "white";
+        socket.emit('roomAssignment', {roomID: requestedRoom, color: color, full: false});
+        socket.roomID = requestedRoom;
+        socket.color = color;
+        console.log(JSON.stringify(rooms, null, 4));
+      }
+      else if (rooms[requestedRoom]["fill"] == 1) {
+          console.log("A client has joined room " + requestedRoom);
+          rooms[requestedRoom]["fill"] += 1;
+          socket.join(requestedRoom);
+          var color = rooms[requestedRoom]["hasWhite"] ? "black" : "white";
+          rooms[requestedRoom]["hasWhite"] = true;
+          rooms[requestedRoom]["hasBlack"] = true;
+          socket.emit('roomAssignment', {roomID: requestedRoom, color: color, fill: true});
+          socket.roomID = requestedRoom;
+          socket.color = color;
+          io.in(requestedRoom).emit('fullPresence', "dummy data"); //alert other player you've arrived
+          console.log(JSON.stringify(rooms, null, 4));
+          console.log("Sent fullPresence to everyone in room: " + requestedRoom);
+      }
 
-   if(!foundVacancy) {
-     for(var roomID in rooms) {
-       if(rooms.hasOwnProperty(roomID)) {
-         if (rooms[roomID]["fill"] == 0) {
-           console.log("A client has joined room " + roomID);
-           rooms[roomID]["fill"] += 1;
-           foundVacancy = true;
-           socket.join("room" + roomID);
-           var color = "white";
-           rooms[roomID]["hasWhite"] = true;
-           socket.emit('roomAssignment', {roomID: roomID, color: color, full: false});
-           socket.roomID = roomID;
-           socket.color = color;
-           break;
-         }
-       }
-     }
-   }
+      else if(rooms[requestedRoom]["fill"] == 2) {
+        console.log("A client has attempted to join a full room: " + requestedRoom);
+        socket.emit('roomAssignment', null);
+        console.log(JSON.stringify(rooms, null, 4));
+      }
+    });
 
-   if(!foundVacancy) {
-     highest_used += 1;
-     roomID = highest_used;
-     console.log("A client has joined room " + roomID);
-     rooms[roomID] = {hasBlack: false, hasWhite: true, fill: 1};
-     foundVacancy = true;
-     socket.join("room" + roomID);
-     var color = "white";
-     socket.emit('roomAssignment', {roomID: roomID, color: color, full: false});
-     socket.roomID = roomID;
-     socket.color = color;
-   }
-   //socket.emit('assign', next_id);
    socket.on('move', function(totalState){
      /* Remember, this could also be the reset button, so if reset on first move, don't
          be alarmed by undefined */
      console.log("Move made by " + socket.color + " in room " + socket.roomID);
      console.log("Move is: " + totalState.state.moves[totalState.state.moves.length - 1]);
-     socket.broadcast.to("room" + socket.roomID).emit('oppMove', totalState);
+     socket.broadcast.to(socket.roomID).emit('oppMove', totalState);
   //   io.emit('chat message', msg);
    });
+
   socket.on('disconnect', function(){
     console.log('A client has disconnected from room ' + socket.roomID);
+    if(rooms[socket.roomID] == undefined) {
+      return;
+    }
     rooms[socket.roomID]["fill"] -= 1;
     if(socket.color == "white") {
       rooms[socket.roomID]["hasWhite"] = false;
@@ -85,10 +71,9 @@ io.on('connection', function(socket) {
     else {
       rooms[socket.roomID]["hasBlack"] = false;
     }
-    io.in("room" + socket.roomID).emit('oppLeft', "dummy data");
+    io.in(socket.roomID).emit('oppLeft', "dummy data");
     console.log(JSON.stringify(rooms, null, 4));
   });
-  console.log(JSON.stringify(rooms, null, 4));
 });
 
 http.listen(port, function() {
