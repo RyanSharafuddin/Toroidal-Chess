@@ -27,7 +27,8 @@ io.on('connection', function(socket) {
          var color = rooms[roomID]["hasWhite"] ? "black" : "white";
          rooms[roomID]["hasWhite"] = true;
          rooms[roomID]["hasBlack"] = true;
-         socket.emit('roomAssignment', {roomID: roomID, color: color});
+         socket.emit('roomAssignment', {roomID: roomID, color: color, full: true});
+         io.in("room" + roomID).emit('fullPresence', "dummy data"); //alert other player you've arrived
          socket.roomID = roomID;
          socket.color = color;
          break;
@@ -45,7 +46,7 @@ io.on('connection', function(socket) {
            socket.join("room" + roomID);
            var color = "white";
            rooms[roomID]["hasWhite"] = true;
-           socket.emit('roomAssignment', {roomID: roomID, color: color});
+           socket.emit('roomAssignment', {roomID: roomID, color: color, full: false});
            socket.roomID = roomID;
            socket.color = color;
            break;
@@ -62,14 +63,17 @@ io.on('connection', function(socket) {
      foundVacancy = true;
      socket.join("room" + roomID);
      var color = "white";
-     socket.emit('roomAssignment', {roomID: roomID, color: color});
+     socket.emit('roomAssignment', {roomID: roomID, color: color, full: false});
      socket.roomID = roomID;
      socket.color = color;
    }
    //socket.emit('assign', next_id);
    socket.on('move', function(totalState){
-     console.log("Move made: " + totalState.state.moves[totalState.state.moves.length - 1]);
-     socket.broadcast.emit('oppMove', totalState);
+     /* Remember, this could also be the reset button, so if reset on first move, don't
+         be alarmed by undefined */
+     console.log("Move made by " + socket.color + " in room " + socket.roomID);
+     console.log("Move is: " + totalState.state.moves[totalState.state.moves.length - 1]);
+     socket.broadcast.to("room" + socket.roomID).emit('oppMove', totalState);
   //   io.emit('chat message', msg);
    });
   socket.on('disconnect', function(){
@@ -81,6 +85,7 @@ io.on('connection', function(socket) {
     else {
       rooms[socket.roomID]["hasBlack"] = false;
     }
+    io.in("room" + socket.roomID).emit('oppLeft', "dummy data");
     console.log(JSON.stringify(rooms, null, 4));
   });
   console.log(JSON.stringify(rooms, null, 4));

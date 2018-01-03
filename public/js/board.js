@@ -399,7 +399,7 @@ function check_mate_stale(whiteTurn, pos) {
    Also, only player 1 can move white pieces; only player 2 can
    move black*/
 var onDragStart = function(source, piece, position, orientation) {
-  if(gameLogic.gameOver ||
+  if(gameLogic.gameOver || !full ||
      (gameLogic.whiteTurn &&  piece.search(/^b/) !== -1) ||
       (!gameLogic.whiteTurn &&  piece.search(/^w/) !== -1) ||
       (gameLogic.whiteTurn && isBlack)  ||
@@ -491,13 +491,16 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
 };
 
 function resetPosition() {
-  if(!isBlack && !isWhite) {
+  if(!isBlack && !isWhite) { //spectator?
     return;
   }
   board1.position(TOROIDAL_START);
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
+  gameLogic.blackMated = false;
+  gameLogic.whiteMated = false;
+  gameLogic.stalemated = false;
   gameLogic.moves = [];
   gameLogic.wKLoc = "e3";
   gameLogic.bKLoc = "e6";
@@ -545,11 +548,15 @@ var socket = io();
 var roomNum = 0;
 var isBlack = false;
 var isWhite = false;
+var full = false;
 
 
 socket.on('roomAssignment', function(assignment) {
+  full = assignment.full;
   roomNum = assignment.roomID;
   $("#roomNum").text("You are in room " + assignment.roomID + ". You are playing as " + assignment.color + ".");
+  var fullstr = (full) ? "Status: opponent present" : "Status: waiting for opponent to arrive";
+  $("#wait").text(fullstr);
   if(assignment.color == "white") {
     isWhite = true;
     board1.orientation('white');
@@ -558,6 +565,19 @@ socket.on('roomAssignment', function(assignment) {
     isBlack = true;
     board1.orientation('black');
   }
+});
+
+socket.on('fullPresence', function(dummy) {
+  full = true;
+  $("#wait").text("Status: opponent present");
+});
+
+
+socket.on("oppLeft", function() {
+  full = false;
+  $("#wait").text("Status: waiting for new opponent to arrive");
+  resetPosition();
+  alert("Your opponent left, so the game was reset. You are now waiting for a new opponent");
 });
 
 socket.on('oppMove', function(totalState) {
@@ -585,6 +605,4 @@ socket.on('oppMove', function(totalState) {
       $("#Turn").text("Stalemate!");
     }
   }
-//  console.log("Received oppMove! totalState is ");
-//  console.log(JSON.stringify(totalState, null, 4));
 });
