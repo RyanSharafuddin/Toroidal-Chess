@@ -10,14 +10,16 @@ app.use(express.static('public'));
 //   console.log("Got request for homepage");
 // });
 var num_users = 0;
+var next_id = 1;
 
 io.on('connection', function(socket){
    console.log('A client has connected to the server');
    num_users += 1;
    console.log("There are " + num_users + " users");
-   socket.emit('assign', num_users);
+   socket.emit('assign', next_id);
+   next_id += 1;
    socket.on('move', function(totalState){
-     console.log("Move made: " + totalState.moveString);
+     console.log("Move made: " + totalState.state.moves[totalState.state.moves.length - 1]);
      socket.broadcast.emit('oppMove', totalState);
   //   io.emit('chat message', msg);
    });

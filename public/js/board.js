@@ -276,6 +276,10 @@ function addPiece(piece, square) {
   posObj[square] = piece;
   board1.position(posObj);
   check_mate_stale(piece.charAt(0) != "w", posObj); //!= b/c want know if other player threatened
+  var totalState = { position: posObj, state: gameLogic, turnString: $("#Turn").text()};
+  // console.log("Sending totalState: ");
+  // console.log(JSON.stringify(totalState, null, 4));
+  socket.emit('move', totalState);
 }
 
 /* Returns true if piece at source threatens square in pos */
@@ -464,11 +468,15 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   var moveString = source + "-" + target;
   //must decide now if current player is checkmated or if game is stalemated
   gameLogic.moves.push(moveString);
-  check_mate_stale(gameLogic.whiteTurn, newPos);
-  var totalState = { position: newPos, state: gameLogic, moveString: moveString, turnString: $("#Turn").text()};
-//  console.log("Sending totalState: ");
-//  console.log(JSON.stringify(totalState, null, 4));
-  socket.emit('move', totalState);
+  if(!promoted) {
+    //if there was no promotion, check for check, checkmate, stalemate and send over board state.
+    //However, if there was a promotion, do that stuff in add piece
+    check_mate_stale(gameLogic.whiteTurn, newPos);
+    var totalState = { position: newPos, state: gameLogic, turnString: $("#Turn").text()};
+    // console.log("Sending totalState: ");
+    // console.log(JSON.stringify(totalState, null, 4));
+    socket.emit('move', totalState);
+  }
 };
 
 function resetPosition() {
@@ -490,13 +498,7 @@ function resetPosition() {
   }
 };
 
-
-
-
-
 $("#reset").on('click', resetPosition);
-
-
 
 var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
