@@ -550,6 +550,7 @@ var isBlack = false;
 var isWhite = false;
 var full = false;
 
+
 // while(!connected) {
 //   var roomID = prompt("What room would you like to enter?");
 //   if(roomID == null || roomID == "") {
@@ -557,18 +558,36 @@ var full = false;
 //   }
 //   socket.emit('enter', roomID);
 // }
- var roomID = prompt("What room would you like to enter?");
-socket.emit('enter', roomID);
+
+function attempt_connection() {
+  if(connected) {
+    clearInterval(stopAttempting);
+    return;
+  }
+  var roomID = prompt("What room would you like to enter?");
+  if(roomID == null || roomID == "") {
+    roomID = "" + Math.random();
+  }
+  socket.emit('enter', roomID);
+}
+attempt_connection();
+var stopAttempting = setInterval(attempt_connection, 5000);
+
+// var roomID = prompt("What room would you like to enter?");
+// socket.emit('enter', roomID);
 
 socket.on('roomAssignment', function(assignment) {
   if(assignment == null) {
+    var laterStr = "The room you have requested is currently full. Please wait. In 5 ";
+    laterStr += "seconds, you will again be asked what room you would like to join."
+    $("#roomNum").text(laterStr);
     return;
   }
   connected = true;
   full = assignment.full;
   roomID = assignment.roomID;
   $("#roomNum").text("You are in room " + assignment.roomID + ". You are playing as " + assignment.color + ".");
-  var fullstr = (full) ? "Status: opponent present" : "Status: waiting for opponent to arrive";
+  var fullstr = (full) ? "Status: opponent present" : "Status: waiting for opponent to arrive.";
   $("#wait").text(fullstr);
   if(assignment.color == "white") {
     isWhite = true;
