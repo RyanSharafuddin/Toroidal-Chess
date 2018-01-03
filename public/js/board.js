@@ -374,7 +374,13 @@ function check_mate_stale(whiteTurn, pos) {
     }
     else {
       var color = (whiteTurn) ? "White" : "Black";
-      $("#Turn").html(color + " has been checkmated!");
+      $("#Turn").html("You checkmated " + color + "!");
+      if(whiteTurn) {
+        gameLogic.whiteMated = true;
+      }
+      else {
+        gameLogic.blackMated = true;
+      }
       gameLogic.moves[gameLogic.moves.length - 1] += "#"
     //  console.log("checkmate!!");
       gameLogic.gameOver = true;
@@ -382,6 +388,7 @@ function check_mate_stale(whiteTurn, pos) {
   }
   else if(!hasMoves(whiteTurn, pos)) {
     $("#Turn").html("Stalemate!");
+    gameLogic.stalemated = true;
     gameLogic.moves[gameLogic.moves.length - 1] += "SM"
   //  console.log("Stalemate");
     gameLogic.gameOver = true;
@@ -517,6 +524,9 @@ var board1 = ChessBoard('board1', cfg);
 var gameLogic = {
   whiteTurn: true,
   gameOver: false,
+  blackMated: false,
+  whiteMated: false,
+  stalemated: false,
   wKLoc: "e3",
   bKLoc: "e6",
   moves: [],
@@ -555,6 +565,27 @@ socket.on('oppMove', function(totalState) {
   board1.position(totalState.position);
   gameLogic = totalState.state;
   $("#Turn").text(totalState.turnString);
+  if(gameLogic.gameOver) {
+    if(gameLogic.whiteMated) {
+      if(user_num == 1) {
+          $("#Turn").text("You have been checkmated!");
+      }
+      else {
+        $("#Turn").text("White has been checkmated!");
+      }
+    }
+    else if (gameLogic.blackMated) {
+      if(user_num == 2) {
+          $("#Turn").text("You have been checkmated!");
+      }
+      else {
+        $("#Turn").text("Black has been checkmated!");
+      }
+    }
+    else if (gameLogic.stalemated) {
+      $("#Turn").text("Stalemate!");
+    }
+  }
 //  console.log("Received oppMove! totalState is ");
 //  console.log(JSON.stringify(totalState, null, 4));
 });
