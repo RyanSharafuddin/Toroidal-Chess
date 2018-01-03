@@ -5,10 +5,10 @@ var io = require('socket.io')(http);
 var port = process.env.PORT || 8000;
 
 app.use(express.static('public'));
-app.get('/', function(req, res) {
-  res.sendFile(__dirname + '/public/index.html');
-  console.log("Got request for homepage");
-});
+// app.get('/', function(req, res) {
+//   res.sendFile(__dirname + '/public/index.html');
+//   console.log("Got request for homepage");
+// });
 
 io.on('connection', function(socket){
    console.log('A client has connected to the server');
