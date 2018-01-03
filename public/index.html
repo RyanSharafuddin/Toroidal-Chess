@@ -13,14 +13,13 @@
   <body>
     <p> This is my attempt to set up a website where my cousin and I can
         play toroidal chess over the internet. This app is currently in its
-        primitive stages. As such, when a user connects, their user number will
-         be displayed below. If your user number is 1, you can play as white. If your
-        user number is 2, you can play as black. If your user number is any other number,
-        you can't play, but you can watch. Also, white can only start
-        making moves once player 2 has connected. In the future I might make this more sophisticated,
-      such as adding support for multiple users at once, nicknames, chat, etc. </p>
+        primitive stages. When you connect, you will be put in a room. If there
+        is another player in the room, you can begin playing immediately.
+        If not, you must wait for another player to join the room before
+        you can start making moves.  In the future I might make this more sophisticated,
+      such as adding support for choosing your own room, nicknames, chat, etc. </p>
 
-    <h1 id="userNum"></h1>
+    <h1 id="roomNum"></h1>
     <div id="promotionBox"> <div id="promotionText"> </div> </div>
     <div id="board1" style="width: 740px"></div>
     <input type="button" id="reset" value="Reset Position" />

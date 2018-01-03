@@ -402,8 +402,8 @@ var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
      (gameLogic.whiteTurn &&  piece.search(/^b/) !== -1) ||
       (!gameLogic.whiteTurn &&  piece.search(/^w/) !== -1) ||
-      (gameLogic.whiteTurn && (user_num != 1))  ||
-      (!gameLogic.whiteTurn && (user_num != 2) )) {
+      (gameLogic.whiteTurn && isBlack)  ||
+      (!gameLogic.whiteTurn && isWhite )) {
         return false;
       }
 };
@@ -491,7 +491,7 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
 };
 
 function resetPosition() {
-  if(user_num > 2) {
+  if(!isBlack && !isWhite) {
     return;
   }
   board1.position(TOROIDAL_START);
@@ -542,23 +542,22 @@ var gameLogic = {
   }
 };
 var socket = io();
-var user_num = 0;
+var roomNum = 0;
+var isBlack = false;
+var isWhite = false;
 
-socket.on('assign', function(num) {
-  user_num = num;
-  var str = "Your user number is: " + user_num;
-  if(user_num == 1) {
-    str += " (White)";
+
+socket.on('roomAssignment', function(assignment) {
+  roomNum = assignment.roomID;
+  $("#roomNum").text("You are in room " + assignment.roomID + ". You are playing as " + assignment.color + ".");
+  if(assignment.color == "white") {
+    isWhite = true;
     board1.orientation('white');
   }
-  else if(user_num == 2) {
-    str += " (Black)";
+  else if(assignment.color == "black") {
+    isBlack = true;
     board1.orientation('black');
   }
-  else {
-    str += " (Spectator)";
-  }
-  $("#userNum").text(str);
 });
 
 socket.on('oppMove', function(totalState) {
@@ -567,7 +566,7 @@ socket.on('oppMove', function(totalState) {
   $("#Turn").text(totalState.turnString);
   if(gameLogic.gameOver) {
     if(gameLogic.whiteMated) {
-      if(user_num == 1) {
+      if(isWhite) {
           $("#Turn").text("You have been checkmated!");
       }
       else {
@@ -575,7 +574,7 @@ socket.on('oppMove', function(totalState) {
       }
     }
     else if (gameLogic.blackMated) {
-      if(user_num == 2) {
+      if(isBlack) {
           $("#Turn").text("You have been checkmated!");
       }
       else {
