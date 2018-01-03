@@ -231,6 +231,7 @@ var promotionButtons = function(color, square) {
     icon: "img/chesspieces/wikipedia/" + color + "Q.png", //Not working??
     click: function() {
       addPiece(color + "Q", square);
+      gameLogic.moves[gameLogic.moves.length - 1] += "Queen";
       $(this).dialog( "close" );
     }
   }
@@ -240,6 +241,7 @@ var promotionButtons = function(color, square) {
     text: "Knight",
     click: function() {
       addPiece(color + "N", square);
+      gameLogic.moves[gameLogic.moves.length - 1] += "Knight";
       $(this).dialog( "close" );
     }
   }
@@ -249,6 +251,7 @@ var promotionButtons = function(color, square) {
     text: "Rook",
     click: function() {
       addPiece(color + "R", square);
+      gameLogic.moves[gameLogic.moves.length - 1] += "Rook";
       $(this).dialog( "close" );
     }
   }
@@ -258,6 +261,7 @@ var promotionButtons = function(color, square) {
     text: "Bishop",
     click: function() {
       addPiece(color + "B", square);
+      gameLogic.moves[gameLogic.moves.length - 1] += "Bishop";
       $(this).dialog( "close" );
     }
   }
@@ -372,8 +376,10 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     return 'snapback';
   }
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
+  var promoted = false;
 
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
+    promoted = true;
     //pawn promotion here
     $("#promotionText").html("Promote pawn to:")
     $(function() {
@@ -387,8 +393,8 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
         modal: true,
         buttons: promotionButtons(piece.charAt(0), target),
         title: "Pawn Promotion"
+      });
     });
-  });
   }
   var forward = (piece.charAt(0) == "w") ? 1 : -1;
   //piece is pawn that moved columns to an empty square, so must have en passanted
@@ -443,6 +449,9 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
       moveString = moveString + "SM";
   }
   console.log("Legal move made! " + moveString);
+  if(promoted) {
+    moveString += " -> ";
+  }
   gameLogic.moves.push(moveString);
 };
 
@@ -475,10 +484,23 @@ function clickGetPositionBtn() {
 };
 
 function promotePosition() {
-  board1.position("r1b2b1r/pP4pp/n2qkp1n/8/8/N2QKP1N/Pp4PP/R1B2B1R");
+  board1.position("r1b2b1r/pp4Pp/n1pqk2n/8/8/N1PQK2N/PP4pP/R1B2B1R");
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
+  gameLogic.wKLoc = "e3";
+  gameLogic.bKLoc = "e6";
+  gameLogic.enpassants = {
+    a3: false,
+    b3: false,
+    g3: false,
+    h3: false,
+    a6: false,
+    b6: false,
+    g6: false,
+    h6: false
+  };
+  gameLogic.moves = ["d4-e5", "d5-e4", "e5-f6", "e4-f3", "f6-g7", "f3-g2"];
 }
 
 function checkmatePos() {
@@ -488,6 +510,7 @@ function checkmatePos() {
   gameLogic.gameOver = false;
   gameLogic.wKLoc = "b5";
   gameLogic.bKLoc = "e6";
+  gameLogic.moves = ["Checkmate position button used, so move history no longer valid"];
 }
 
 function stalematePos() {
@@ -497,6 +520,7 @@ function stalematePos() {
   gameLogic.gameOver = false;
   gameLogic.wKLoc = "b5";
   gameLogic.bKLoc = "e6";
+  gameLogic.moves = ["Stalemate position button used, so move history no longer valid"];
 }
 
 function showMoves() {
