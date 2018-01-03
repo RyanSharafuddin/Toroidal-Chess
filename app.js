@@ -16,8 +16,9 @@ io.on('connection', function(socket){
    num_users += 1;
    console.log("There are " + num_users + " users");
    socket.emit('assign', num_users);
-   socket.on('move', function(moveString){
-     console.log("Move made: " + moveString);
+   socket.on('move', function(totalState){
+     console.log("Move made: " + totalState.moveString);
+     socket.broadcast.emit('oppMove', totalState);
   //   io.emit('chat message', msg);
    });
   socket.on('disconnect', function(){
