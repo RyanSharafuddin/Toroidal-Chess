@@ -9,15 +9,22 @@ app.use(express.static('public'));
 //   res.sendFile(__dirname + '/public/index.html');
 //   console.log("Got request for homepage");
 // });
+var num_users = 0;
 
 io.on('connection', function(socket){
    console.log('A client has connected to the server');
-   socket.on('move', function(moveString){
-     console.log("Move made: " + moveString);
+   num_users += 1;
+   console.log("There are " + num_users + " users");
+   socket.emit('assign', num_users);
+   socket.on('move', function(totalState){
+     console.log("Move made: " + totalState.moveString);
+     socket.broadcast.emit('oppMove', totalState);
   //   io.emit('chat message', msg);
    });
   socket.on('disconnect', function(){
     console.log('A client has disconnected from the server');
+    num_users -= 1;
+    console.log("There are " + num_users + " users");
   });
 });
 

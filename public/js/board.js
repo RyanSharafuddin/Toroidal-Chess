@@ -275,8 +275,7 @@ function addPiece(piece, square) {
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
-  console.log("check_mate_stale called from addPiece");
-  check_mate_stale(piece.charAt(0) != "w", posObj); // != b/c want find out if other person in check
+  check_mate_stale(piece.charAt(0) != "w", posObj); //!= b/c want know if other player threatened
 }
 
 /* Returns true if piece at source threatens square in pos */
@@ -394,6 +393,8 @@ var onDragStart = function(source, piece, position, orientation) {
       }
 };
 
+
+
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
   console.log("onDrop called");
@@ -458,16 +459,22 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   }
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var moveString = source + "-" + target;
-  socket.emit('move', moveString);
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
   $("#Turn").html(turnString);
   var moveString = source + "-" + target;
   //must decide now if current player is checkmated or if game is stalemated
   gameLogic.moves.push(moveString);
   check_mate_stale(gameLogic.whiteTurn, newPos);
+  var totalState = { position: newPos, state: gameLogic, moveString: moveString, turnString: $("#Turn").text()};
+  console.log("Sending totalState: ");
+  console.log(JSON.stringify(totalState, null, 4));
+  socket.emit('move', totalState);
 };
 
 function resetPosition() {
+  if(user_num > 2) {
+    return;
+  }
   board1.position(TOROIDAL_START);
   gameLogic.whiteTurn = true;
   $("#Turn").html("Turn: White");
@@ -602,3 +609,29 @@ var gameLogic = {
   }
 };
 var socket = io();
+var user_num = 0;
+
+socket.on('assign', function(num) {
+  user_num = num;
+  var str = "Your user number: " + user_num;
+  if(user_num == 1) {
+    str += " (White)";
+    board1.orientation('white');
+  }
+  else if(user_num == 2) {
+    str += " (Black)";
+    board1.orientation('black');
+  }
+  else {
+    str += " (Spectator)";
+  }
+  $("#userNum").text(str);
+});
+
+socket.on('oppMove', function(totalState) {
+  board1.position(totalState.position);
+  gameLogic = totalState.state;
+  $("#Turn").text(totalState.turnString);
+  console.log("Received oppMove! totalState is ");
+  console.log(JSON.stringify(totalState, null, 4));
+});
