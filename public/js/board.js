@@ -271,6 +271,7 @@ function addPiece(piece, square) {
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
+  check_mate_stale(piece.charAt(0) == "w", posObj);
 }
 
 /* Returns true if piece at source threatens square in pos */
@@ -349,6 +350,28 @@ function hasMoves(whiteTurn, pos) {
   return false;
 }
 
+//takes care of in check, checkmate, or stalemate
+function check_mate_stale(whiteTurn, pos) {
+  var turnString = (whiteTurn) ? "Turn: White" : "Turn: Black";
+  if(inCheck(whiteTurn, pos)) {
+    if(hasMoves(whiteTurn, pos)) {
+      $("#Turn").html(turnString + " - currently in check");
+      return;
+    }
+    else {
+      var color = (whiteTurn) ? "White" : "Black";
+      $("#Turn").html(color + " has been checkmated!");
+      gameLogic.gameOver = true;
+      return;
+    }
+  }
+  else if(!hasMoves(whiteTurn, pos)) {
+    $("#Turn").html("Stalemate!");
+    gameLogic.gameOver = true;
+    return;
+  }
+}
+
 /* Don't allow player to drag wrong color pieces or after game is over */
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
@@ -424,23 +447,7 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
   $("#Turn").html(turnString);
   //must decide now if current player is checkmated or if game is stalemated
-  if(inCheck(gameLogic.whiteTurn, newPos)) {
-    if(hasMoves(gameLogic.whiteTurn, newPos)) {
-      $("#Turn").html(turnString + " - currently in check");
-      return;
-    }
-    else {
-      var color = (gameLogic.whiteTurn) ? "White" : "Black";
-      $("#Turn").html(color + " has been checkmated!");
-      gameLogic.gameOver = true;
-      return;
-    }
-  }
-  else if(!hasMoves(gameLogic.whiteTurn, newPos)) {
-    $("#Turn").html("Stalemate!");
-    gameLogic.gameOver = true;
-    return;
-  }
+  check_mate_stale(gameLogic.whiteTurn, newPos);
 };
 
 function resetPosition() {
