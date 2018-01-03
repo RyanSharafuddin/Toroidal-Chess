@@ -271,7 +271,7 @@ function addPiece(piece, square) {
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
-  check_mate_stale(piece.charAt(0) == "w", posObj);
+  check_mate_stale(piece.charAt(0) != "w", posObj); //!= b/c want know if other player threatened
 }
 
 /* Returns true if piece at source threatens square in pos */
