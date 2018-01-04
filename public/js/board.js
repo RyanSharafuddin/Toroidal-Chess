@@ -230,8 +230,8 @@ var promotionButtons = function(color, square) {
     text: "Queen",
     icon: "img/chesspieces/wikipedia/" + color + "Q.png", //Not working??
     click: function() {
-      addPiece(color + "Q", square);
       gameLogic.moves[gameLogic.moves.length - 1] += " Queen";
+      addPiece(color + "Q", square);
       $(this).dialog( "close" );
     }
   }
@@ -240,8 +240,8 @@ var promotionButtons = function(color, square) {
   var knightButton = {
     text: "Knight",
     click: function() {
-      addPiece(color + "N", square);
       gameLogic.moves[gameLogic.moves.length - 1] += " Knight";
+      addPiece(color + "N", square);
       $(this).dialog( "close" );
     }
   }
@@ -250,8 +250,8 @@ var promotionButtons = function(color, square) {
   var rookButton = {
     text: "Rook",
     click: function() {
-      addPiece(color + "R", square);
       gameLogic.moves[gameLogic.moves.length - 1] += " Rook";
+      addPiece(color + "R", square);
       $(this).dialog( "close" );
     }
   }
@@ -260,8 +260,8 @@ var promotionButtons = function(color, square) {
   var bishopButton = {
     text: "Bishop",
     click: function() {
-      addPiece(color + "B", square);
       gameLogic.moves[gameLogic.moves.length - 1] += " Bishop";
+      addPiece(color + "B", square);
       $(this).dialog( "close" );
     }
   }
