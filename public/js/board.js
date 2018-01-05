@@ -574,8 +574,8 @@ var cfg = {
   position: TOROIDAL_START,
   draggable: true,
   onDragStart: onDragStart,
-  onMouseoutSquare: onMouseoutSquare,
-  onMouseoverSquare: onMouseoverSquare,
+//  onMouseoutSquare: onMouseoutSquare,
+//  onMouseoverSquare: onMouseoverSquare,
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
