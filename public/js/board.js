@@ -176,7 +176,7 @@ var kingMoves = function(color, fileNum, rankNum, oldPos) {
   var moves = [];
   for(var fileChange = -1; fileChange <= 1; fileChange++) {
     for(var rankChange = -1; rankChange <= 1; rankChange++) {
-      var square = coord(fileNum + fileChange, rankNum + rankChange);
+      var square = coord(mod(fileNum + fileChange, 8), mod(rankNum + rankChange, 8));
       updateMoves(moves, square, oldPos, color);
     }
   }
