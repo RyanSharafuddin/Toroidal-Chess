@@ -15,6 +15,28 @@ function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
+//from http://chessboardjs.com/examples#5003
+/*colors square in light_color if it's a white square, or
+  dark_color if it's a black sqaure.
+  light_color and dark_color must be hex strings in format
+  "#a9a9a9" */
+var color_square = function(square, light_color, dark_color) {
+  var squareEl = $('#board1 .square-' + square);
+  var background = light_color;
+  if (squareEl.hasClass('black-3c85d') === true) {
+    background = dark_color;
+  }
+  squareEl.css('background', background);
+}
+var uncolor_squares = function() {
+  $('#board1 .square-55d63').css('background', '');
+}
+var lightGray = '#a9a9a9';
+var darkGray = '#696969';
+var lightRed = '#DB3C3C';
+var darkRed = '#972B2B';
+
+
 /* Returns an array of validMoves for the piece at source with position oldPos
    Does not take check into account */
 var validMoves = function(source, piece, oldPos) {
@@ -516,11 +538,44 @@ function resetPosition() {
 
 $("#reset").on('click', resetPosition);
 
+/*On your turn, highlight in grey the places you can move to,
+  and highlight in red the squares enemy pieces threaten*/
+var onMouseoverSquare = function(square, piece, pos) {
+  if(!piece || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack) || !full) {
+    return;
+  }
+  console.log("Moused over square " + square + " and will calculate squares now");
+
+  var myPiece = (piece.charAt(0) == 'w' && isWhite) || (piece.charAt(0) == 'b' && isBlack);
+  console.log(myPiece ? "This is my piece, so show valid moves" : "Show enemy piece threatens");
+  var lightColor = (myPiece) ? lightGray : lightRed;
+  var darkColor = (myPiece) ? darkGray : darkRed;
+  var highlights = (myPiece) ? validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square)) : validMoves(square, piece, pos);
+
+  // exit if nothing to highlight
+  if (highlights.length === 0) return;
+
+  // highlight the square they moused over
+  color_square(square, lightColor, darkColor);
+
+  // highlight the possible squares for this piece
+  for (var i = 0; i < highlights.length; i++) {
+    color_square(highlights[i], lightColor, darkColor);
+  }
+};
+
+var onMouseoutSquare = function(square, piece) {
+  uncolor_squares();
+};
+
+
 var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
   position: TOROIDAL_START,
   draggable: true,
   onDragStart: onDragStart,
+  onMouseoutSquare: onMouseoutSquare,
+  onMouseoverSquare: onMouseoverSquare,
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
