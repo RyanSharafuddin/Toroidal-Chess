@@ -11,8 +11,8 @@ app.use(express.static('public'));
 // });
 
 
-
-var rooms = {1: {hasBlack: false, hasWhite: false, fill: 0}};
+//example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
+var rooms = {};
 
 io.on('connection', function(socket) {
    var foundVacancy = false;
@@ -56,7 +56,6 @@ io.on('connection', function(socket) {
      console.log("Move made by " + socket.color + " in room " + socket.roomID);
      console.log("Move is: " + totalState.state.moves[totalState.state.moves.length - 1]);
      socket.broadcast.to(socket.roomID).emit('oppMove', totalState);
-  //   io.emit('chat message', msg);
    });
 
   socket.on('disconnect', function(){
@@ -65,13 +64,11 @@ io.on('connection', function(socket) {
       return;
     }
     rooms[socket.roomID]["fill"] -= 1;
-    if(socket.color == "white") {
-      rooms[socket.roomID]["hasWhite"] = false;
-    }
-    else {
-      rooms[socket.roomID]["hasBlack"] = false;
-    }
+    (socket.color == "white") ? rooms[socket.roomID]["hasWhite"] = false : rooms[socket.roomID]["hasBlack"] = false;
     io.in(socket.roomID).emit('oppLeft', "dummy data");
+    if(rooms[socket.roomID]["fill"] == 0) {
+      delete(rooms[socket.roomID]);
+    }
     console.log(JSON.stringify(rooms, null, 4));
   });
 });

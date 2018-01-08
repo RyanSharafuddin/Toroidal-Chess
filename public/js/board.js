@@ -1,7 +1,7 @@
 //Notes: don't call anything "location".
 //Use bracket notation if you want to treat object as dictionary
-var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
 /* Converts a filenum and rankNum to a string representing the algebraic
    position. For example, coord(2, 3) returns "c4" */
@@ -28,6 +28,7 @@ var color_square = function(square, light_color, dark_color) {
   }
   squareEl.css('background', background);
 }
+
 var uncolor_squares = function() {
   $('#board1 .square-55d63').css('background', '');
 }
@@ -292,48 +293,33 @@ var promotionButtons = function(color, square) {
   return buttons;
 }
 
+/* Only call this when promoting a pawn */
 function addPiece(piece, square) {
-//  console.log("addPiece called! adding " + piece + " to " + square);
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
-  check_mate_stale(piece.charAt(0) != "w", posObj); //!= b/c want know if other player threatened
-  var totalState = { position: posObj, state: gameLogic, turnString: $("#Turn").text()};
-  // console.log("Sending totalState: ");
-  // console.log(JSON.stringify(totalState, null, 4));
-  socket.emit('move', totalState);
+  sendMove(posObj, gameLogic, $("#Turn").text());
 }
 
 /* Returns true if piece at source threatens square in pos */
 function threatens(pos, piece, source, square) {
   moves = validMoves(source, piece, pos);
-  if($.inArray(square, moves) != -1) {
-    //console.log(piece + " at " + source + " threatens " + square);
-  }
   return ($.inArray(square, moves) != -1);
 }
 
 /*returns true if making this move would not leave the moving player in check */
 function wouldNotCheck(oldPos, piece, source, target) {
-//  console.log("wouldNotCheck called with args:" + " piece: " + piece + " source: " + source + " target: " + target);
   var color = piece.charAt(0);
   var myKingLoc = (piece.charAt(1) == "K") ? (target) : ((color == "w") ? (gameLogic.wKLoc) : (gameLogic.bKLoc));
   var posCopy = Object.assign({}, oldPos); //okay because oldPos is not a nested object
 
-
-  //must clone oldPos here
   delete posCopy[source];
   posCopy[target] = piece;
-
-   // console.log("myKingLoc: " + myKingLoc);
-   // console.log("posCopy: ");
-   // console.log(JSON.stringify(posCopy, null, 4));
 
   for(var square in posCopy) {
     if(posCopy.hasOwnProperty(square)) {
       if((posCopy[square] != undefined) && (posCopy[square].charAt(0) != color)) {
         if(threatens(posCopy, posCopy[square], square, myKingLoc)) {
-          //console.log("Moving " + piece + " from " + source + " to " + target + " would put player in check");
           return false;
         }
       }
@@ -351,10 +337,7 @@ function partial(f) {
 }
 
 function inCheck(whiteTurn, pos) {
-//  console.log("Called in check with these args:");
-//  console.log("whiteTurn: " + whiteTurn + " pos: " + JSON.stringify(pos, null, 4));
   var kingLoc = (whiteTurn) ? gameLogic.wKLoc : gameLogic.bKLoc;
-//  console.log("kingLoc: " + kingLoc);
   var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
     if(pos.hasOwnProperty(square)) {
@@ -385,26 +368,17 @@ function hasMoves(whiteTurn, pos) {
 
 //takes care of in check, checkmate, or stalemate
 function check_mate_stale(whiteTurn, pos) {
-//  console.log("check_mate_stale called");
   var turnString = (whiteTurn) ? "Turn: White" : "Turn: Black";
-//  console.log("Calling inCheck from check_mate_stale");
   if(inCheck(whiteTurn, pos)) {
     if(hasMoves(whiteTurn, pos)) {
       $("#Turn").html(turnString + " - currently in check");
-    //  console.log("IN CHECK");
       gameLogic.moves[gameLogic.moves.length - 1] += "+";
     }
     else {
       var color = (whiteTurn) ? "White" : "Black";
       $("#Turn").html("You checkmated " + color + "!");
-      if(whiteTurn) {
-        gameLogic.whiteMated = true;
-      }
-      else {
-        gameLogic.blackMated = true;
-      }
+      (whiteTurn) ? gameLogic.whiteMated = true :   gameLogic.blackMated = true;
       gameLogic.moves[gameLogic.moves.length - 1] += "#"
-    //  console.log("checkmate!!");
       gameLogic.gameOver = true;
     }
   }
@@ -412,7 +386,6 @@ function check_mate_stale(whiteTurn, pos) {
     $("#Turn").html("Stalemate!");
     gameLogic.stalemated = true;
     gameLogic.moves[gameLogic.moves.length - 1] += "SM"
-  //  console.log("Stalemate");
     gameLogic.gameOver = true;
   }
 }
@@ -434,23 +407,16 @@ var onDragStart = function(source, piece, position, orientation) {
 
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
-//  console.log("onDrop called");
-//  console.log("Source is: " + source);
-//  console.log("Target is: " + target);
-  moves = validMoves(source, piece, oldPos);
-//  console.log("Valid moves (before taking check into account) are " + moves);
-  moves = moves.filter(partial(wouldNotCheck, oldPos, piece, source));
-//  console.log("Valid moves after filtering out moves that leave in check are " + moves);
+  var moves = validMoves(source, piece, oldPos).filter(partial(wouldNotCheck, oldPos, piece, source));
   if($.inArray(target, moves) === -1) {
-  //  console.log("Target is not a valid move");
     return 'snapback';
   }
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   var promoted = false;
 
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
-    promoted = true;
     //pawn promotion here
+    promoted = true;
     $("#promotionText").html("Promote pawn to:")
     $(function() {
       /* Note: To figure out how to hide the x button, see this site:
@@ -476,17 +442,15 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     delete posObj[eliminateSquare];
     board1.position(posObj);
   }
-
+  //reset enpassants
   for(var square in gameLogic.enpassants) {
     if(gameLogic.enpassants.hasOwnProperty(square)) {
-      //console.log("Un enpassanting square: " + square);
       gameLogic.enpassants[square] = false;
     }
   }
-
+  //set enpassant if this was an enpassant move
   if(piece.charAt(1) == "P" && (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
     var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
-    //console.log("Setting en passant on square: " + enable);
     gameLogic.enpassants[enable] = true;
   }
 
@@ -499,16 +463,9 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
   $("#Turn").html(turnString);
   var moveString = source + "-" + target;
-  //must decide now if current player is checkmated or if game is stalemated
   gameLogic.moves.push(moveString);
   if(!promoted) {
-    //if there was no promotion, check for check, checkmate, stalemate and send over board state.
-    //However, if there was a promotion, do that stuff in add piece
-    check_mate_stale(gameLogic.whiteTurn, newPos);
-    var totalState = { position: newPos, state: gameLogic, turnString: $("#Turn").text()};
-    // console.log("Sending totalState: ");
-    // console.log(JSON.stringify(totalState, null, 4));
-    socket.emit('move', totalState);
+    sendMove(newPos, gameLogic, $("#Turn").text());
   }
 };
 
@@ -526,14 +483,12 @@ function resetPosition() {
   gameLogic.moves = [];
   gameLogic.wKLoc = "e3";
   gameLogic.bKLoc = "e6";
-  for(var square in gameLogic.enpassants) {
+  for(var square in gameLogic.enpassants) { //rest enpassants
     if(gameLogic.enpassants.hasOwnProperty(square)) {
-    //  console.log("Un enpassanting square: " + square);
       gameLogic.enpassants[square] = false;
     }
   }
-  var totalState = { position: board1.position(), state: gameLogic, turnString: $("#Turn").text()};
-  socket.emit('move', totalState);
+  sendMove(board1.position(), gameLogic, $("#Turn").text());
 };
 
 $("#reset").on('click', resetPosition);
@@ -541,13 +496,11 @@ $("#reset").on('click', resetPosition);
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
 var onMouseoverSquare = function(square, piece, pos) {
-  if(!piece || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack) || !full) {
+  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack) || !full) {
     return;
   }
-  console.log("Moused over square " + square + " and will calculate squares now");
 
   var myPiece = (piece.charAt(0) == 'w' && isWhite) || (piece.charAt(0) == 'b' && isBlack);
-  console.log(myPiece ? "This is my piece, so show valid moves" : "Show enemy piece threatens");
   var lightColor = (myPiece) ? lightGray : lightRed;
   var darkColor = (myPiece) ? darkGray : darkRed;
   var highlights = (myPiece) ? validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square)) : validMoves(square, piece, pos);
@@ -569,7 +522,7 @@ var onMouseoutSquare = function(square, piece) {
 };
 
 
-var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
+const TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
   position: TOROIDAL_START,
   draggable: true,
@@ -599,6 +552,11 @@ var gameLogic = {
     h6: false
   }
 };
+function TotalState(pos, state, turnString) {
+  this.position = pos;
+  this.state = state;
+  this.turnString = turnString;
+}
 var socket = io();
 var connected = false;
 var isBlack = false;
@@ -606,14 +564,10 @@ var isWhite = false;
 var full = false;
 
 
-// while(!connected) {
-//   var roomID = prompt("What room would you like to enter?");
-//   if(roomID == null || roomID == "") {
-//     roomID = "" + Math.random();
-//   }
-//   socket.emit('enter', roomID);
-// }
 
+//------------------------------------------------------------------------------
+// Connection stuff
+//------------------------------------------------------------------------------
 function attempt_connection() {
   if(connected) {
     clearInterval(stopAttempting);
@@ -628,8 +582,12 @@ function attempt_connection() {
 attempt_connection();
 var stopAttempting = setInterval(attempt_connection, 5000);
 
-// var roomID = prompt("What room would you like to enter?");
-// socket.emit('enter', roomID);
+//to be used by addPiece and onDrop
+function sendMove(pos, state, turnString) {
+  check_mate_stale(state.whiteTurn, pos);
+  socket.emit('move', new TotalState(pos, state, turnString));
+}
+
 
 socket.on('roomAssignment', function(assignment) {
   if(assignment == null) {
@@ -658,7 +616,6 @@ socket.on('fullPresence', function(dummy) {
   full = true;
   $("#wait").text("Status: opponent present");
 });
-
 
 socket.on("oppLeft", function() {
   full = false;
