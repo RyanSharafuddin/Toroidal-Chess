@@ -4,11 +4,13 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 8000;
 
+app.get('/', function(req, res) {
+  res.render(__dirname +'/public/login/login.html');
+  res.end();
+  console.log("Got request for login page");
+});
 app.use(express.static('public'));
-// app.get('/', function(req, res) {
-//   res.sendFile(__dirname + '/public/index.html');
-//   console.log("Got request for homepage");
-// });
+
 
 
 //example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
