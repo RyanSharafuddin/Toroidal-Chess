@@ -569,6 +569,7 @@ var full = false;
 // Connection stuff
 //------------------------------------------------------------------------------
 function attempt_connection() {
+  console.log("attempting connection");
   if(connected) {
     clearInterval(stopAttempting);
     return;
@@ -590,7 +591,9 @@ function sendMove(pos, state, turnString) {
 
 
 socket.on('roomAssignment', function(assignment) {
+  console.log("received room assignment");
   if(assignment == null) {
+    console.log("null room");
     var laterStr = "The room you have requested is currently full. Please wait. In 5 ";
     laterStr += "seconds, you will again be asked what room you would like to join."
     $("#roomNum").text(laterStr);
