@@ -4,7 +4,16 @@ h1 {
   margin: 42px 0px 8px 0px;
 }
 
+ul {
+  list-style-type: none;
+}
+
 #welcome {
+  text-align: center;
   font-size: 300%;
   margin: 0px 0px 8px 0px;
+}
+
+#player_header {
+  text-decoration: underline;
 }

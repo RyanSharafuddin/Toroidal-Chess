@@ -37,15 +37,18 @@ app.post('/', function(req, res) {
 
 //example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
 var rooms = {};
-var availablePlayers = [];
+var onlinePlayers = {}; //{nickname: {id: id, inLobby: true or false, inGame: true or false}}
 //lobby room name is lobby for now
 io.on('connection', function(socket) {
 
     socket.on('lobby', function(nickname) {
       console.log(nickname + " has joined the lobby");
       socket.join("lobby");
-      availablePlayers.push(nickname);
-      console.log(availablePlayers);
+      socket.emit('currentNicks', onlinePlayers); //notify of current nicknames
+      onlinePlayers[nickname] = {id: socket.id, inLobby: true, inGame: false};
+      socket.nickname = nickname;
+      socket.broadcast.to("lobby").emit('lobby_enter', nickname); //notify everyone in lobby of entry
+      console.log(JSON.stringify(onlinePlayers, null, 4));
     });
 
     socket.on('enter', function(requestedRoom) {
@@ -88,7 +91,27 @@ io.on('connection', function(socket) {
      socket.broadcast.to(socket.roomID).emit('oppMove', totalState);
    });
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function() {
+    if(onlinePlayers[socket.nickname] == undefined) {
+      //login page
+      return;
+    }
+    if(onlinePlayers[socket.nickname]["inLobby"]) {
+      onlinePlayers[socket.nickname]["inLobby"] = false;
+      console.log(socket.nickname + " has left the lobby");
+      //update other lobby players
+      socket.broadcast.to("lobby").emit('lobby_leave', socket.nickname); //notify everyone in lobby of leaving
+    }
+    if(onlinePlayers[socket.nickname]["inGame"]) {
+      onlinePlayers[socket.nickname]["inGame"] = false;
+      console.log(socket.nickname + " has left a game");
+      //update the other player of that game
+    }
+    if(!onlinePlayers[socket.nickname]["inGame"] && !onlinePlayers[socket.nickname]["inLobby"]) {
+      delete onlinePlayers[socket.nickname];
+    }
+    console.log(JSON.stringify(onlinePlayers, null, 4));
+
     if(socket.roomID == undefined) {
       return;
     }

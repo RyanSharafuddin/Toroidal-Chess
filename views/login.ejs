@@ -12,7 +12,7 @@
   </head>
 
   <body>
-    <h1>Welcome to Toroidal Chess</h1>
+    <h1>Toroidal Chess</h1>
     <form action="/" method="post" id="login">
         <label for="nickname">Enter nickname:</label>
         <input type="text" id="nickname" name="user_nickname">
@@ -22,8 +22,13 @@
     /* set a function handler for the submit, which
        validates submissions */
       $('#login').submit(function() {
+        const LIMIT = 15;
         if ($.trim($("#nickname").val()) === "") {
           alert('Your nickname cannot consist entirely of whitespace.');
+          return false;
+        }
+        if ($("#nickname").val().length > LIMIT) {
+          alert('Your nickname cannot be longer than ' + LIMIT + ' characters.');
           return false;
         }
       });
