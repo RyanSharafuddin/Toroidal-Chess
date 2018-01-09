@@ -37,7 +37,17 @@ app.post('/', function(req, res) {
 
 //example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
 var rooms = {};
+var availablePlayers = [];
+//lobby room name is lobby for now
 io.on('connection', function(socket) {
+
+    socket.on('lobby', function(nickname) {
+      console.log(nickname + " has joined the lobby");
+      socket.join("lobby");
+      availablePlayers.push(nickname);
+      console.log(availablePlayers);
+    });
+
     socket.on('enter', function(requestedRoom) {
       if((rooms[requestedRoom] == undefined) || (rooms[requestedRoom]["fill"] == 0)) {
         console.log("A client has created room " + requestedRoom);
@@ -79,6 +89,9 @@ io.on('connection', function(socket) {
    });
 
   socket.on('disconnect', function(){
+    if(socket.roomID == undefined) {
+      return;
+    }
     console.log('A client has disconnected from room ' + socket.roomID);
     if(rooms[socket.roomID] == undefined) {
       return;
