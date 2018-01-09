@@ -39,10 +39,8 @@ app.post('/login', function(req, res, next) {
 });
 
 app.post('/gameStart', function(req, res) {
-  console.log("got POST request to start game");
-  console.log(req.body.myName);
-  console.log(req.body.enemyName);
-  res.render('board.ejs', {myName: req.body.myName, enemyName: req.body.enemyName, roomNamer: req.body.roomNamer});
+  var roomNamer = (req.body.roomNamer) ? "roomNamer" : "";
+  res.render('board.ejs', {myName: req.body.myName, enemyName: req.body.enemyName, roomNamer: roomNamer});
 });
 
 
@@ -68,8 +66,8 @@ io.on('connection', function(socket) {
       socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {challenger: socket.nickname});
     });
 
-    socket.on('declineChallenge', function(nickname) {
-      socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challengeDeclined', nickname);
+    socket.on('declineChallenge', function(challenger) {
+      socket.broadcast.to(onlinePlayers[challenger]["id"]).emit('challengeDeclined', socket.nickname);
     });
 
     socket.on('acceptChallenge', function(nickname) {
@@ -83,12 +81,13 @@ io.on('connection', function(socket) {
       var challenger = io.sockets.connected[onlinePlayers[nickname]["id"]]; //the socket of the challenged player
       onlinePlayers[challenger.nickname]["inLobby"] = false;
       onlinePlayers[challenger.nickname]["inGame"] = true;
-      challenger.broadcast.to("lobby").emit('lobby_leave', socket.nickname); //notify everyone in lobby of leaving
+      challenger.broadcast.to("lobby").emit('lobby_leave', challenger.nickname); //notify everyone in lobby of leaving
       challenger.leave("lobby");
       //inform challenger that challenge accepted
       challenger.emit('challengeAccepted', socket.nickname);
       challenger.hereFlag = true;
-
+      console.log("A challenge has been accepted and a game has been started. Here is the onlinePlayers structure: ");
+      console.log(JSON.stringify(onlinePlayers, null, 4));
     });
     /////////////////////////////////////////////////
     socket.on('enter', function(requestedRoom) {
@@ -131,7 +130,7 @@ io.on('connection', function(socket) {
      socket.broadcast.to(socket.roomID).emit('oppMove', totalState);
    });
 
-  socket.on('disconnect', function() {
+  socket.on('disconnect', function() { //only use this for xing out of site, not disconnects caused by switching pages
     if((onlinePlayers[socket.nickname] == undefined) || socket.hereFlag) {
       //login page
       return;

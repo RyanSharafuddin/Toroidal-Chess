@@ -83,7 +83,14 @@ $( document ).ready(function() {
         //emit to challenger that you've accepted the challenge
         socket.emit('acceptChallenge', challenge.challenger);
         //make POST request
-        $.post("gameStart", {myName: myNickname, enemyName: challenge.challenger, roomNamer: "no"});
+        $.ajax({
+          url: "gameStart",
+          type: 'POST',
+          data: {myName: myNickname, enemyName: challenge.challenger, roomNamer: false},
+          success: function(page) {
+            document.write(page);
+          }
+        });
         console.log("Have accepted the challenge!");
         $(this).dialog( "close" );
       }
@@ -128,7 +135,8 @@ $( document ).ready(function() {
 
     });
   });
-  socket.on('challengeDeclined', function(nickname) {
+
+  socket.on('challengeDeclined', function(decliner) {
     var buttons = [];
     var ok = {
       text: "OK",
@@ -139,7 +147,7 @@ $( document ).ready(function() {
     buttons.push(ok);
     clearInterval(closeInvitation);
     $("#waitBox").dialog("close");
-    $("#declineBox").text("'" + nickname + "'" + " has declined your challenge.");
+    $("#declineBox").text("'" + decliner + "'" + " has declined your challenge.");
     $("#declineBox").dialog({
       modal: true,
       buttons: buttons,
@@ -147,13 +155,20 @@ $( document ).ready(function() {
     });
   });
 
-  socket.on('challengeAccepted', function(nickname) {
-    console.log(nickname + " has accepted your challenge!");
+  socket.on('challengeAccepted', function(accepter) {
+    console.log(accepter + " has accepted your challenge!");
     $("#waitBox").dialog("close");
     clearInterval(closeInvitation);
     //make POST request
     //data that needs to be included: myName, enemyName, challenge parameters such as show moves, threats, time
-    $.post("gameStart", {myName: myNickname, enemyName: nickname, roomNamer: "yes"});
+    $.ajax({
+      url: "gameStart",
+      type: 'POST',
+      data: {myName: myNickname, enemyName: accepter, roomNamer: true},
+      success: function(page) {
+        document.write(page);
+      }
+    });
   });
 
 });
