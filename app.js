@@ -3,15 +3,15 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var path = require('path');
-var port = process.env.PORT || 8000;
-
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var port = process.env.PORT || 8000;
+
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded()); //necesary to handle post requests
 app.use(cookieParser());
 //app.use(session({ secret: '$#%!@#@@#SSDASASDVV@@@@', key: 'sid'})); //???
 app.use(express.static(path.join(__dirname, '/public')));
@@ -26,6 +26,10 @@ app.get('/', function(req, res) {
 app.get('/main', function(req, res) {
   console.log("Got request for main page!");
   res.render('main');
+});
+
+app.post('/',function(req, res) {
+  console.log("Someone attempted to log in with nickname " + req.body.user_nickname);
 });
 
 
