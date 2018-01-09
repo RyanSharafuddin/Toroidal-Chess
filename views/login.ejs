@@ -12,6 +12,11 @@
   </head>
 
   <body>
+    <!-- Upon submitting form, server checks if nickname is unique. If so,
+        continue to lobby, if not, get back this page with the id of the below div
+        set to 'not_unique'. Then a jQuery function checks the id of the div and informs
+        user that nickname is already chosen -->
+    <div id='<%= unique %>'></div>
     <h1>Toroidal Chess</h1>
     <form action="/" method="post" id="login">
         <label for="nickname">Enter nickname:</label>

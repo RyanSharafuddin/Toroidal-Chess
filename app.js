@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, '/public')));
    specifically the second answer for an explanation of how express.static works */
 app.get('/', function(req, res) {
   console.log("Got request for login page");
-  res.render('login');
+  res.render('login', {unique: ""});
 });
 
 app.get('/main', function(req, res) {
@@ -31,7 +31,15 @@ app.get('/main', function(req, res) {
 app.post('/', function(req, res) {
   var user_nickname = req.body.user_nickname;
   console.log("Someone attempted to log in with nickname '" + user_nickname + "'");
-  res.render('lobby', {user_nickname: user_nickname});
+  if(onlinePlayers[user_nickname] == undefined) { //this is a unique nickname
+    console.log("This is a unique nickname");
+    res.render('lobby', {user_nickname: user_nickname});
+  }
+  else {
+    //nickname already taken
+    console.log("This nickname is already taken");
+    res.render('login', {unique: "not_unique"})
+  }
 });
 
 
