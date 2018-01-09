@@ -9,6 +9,7 @@ $( document ).ready(function() {
   var closeInvitation;  //set up a 'global' variable for future use
   var busy = false; //waiting on invitation or have standing invitation
 
+  //to be used when someone enters the lobby
   function addPlayer(nickname) {
       /* what the button HTML should come out to be in the end
       <li id='playerNICKNAME'><input type='button' id='playerNICKNAMEbutton' class='challengeButton' value='NICKNAME' /></li>
@@ -18,39 +19,46 @@ $( document ).ready(function() {
       $("#playerList").append(buttonHTML);
       var buttonSelector = "#player" + nickname + "button";
       $(buttonSelector).on('click', function() {
-        console.log("Challenged " + $(buttonSelector).attr("value") + "!");
-        socket.emit('send_challenge', $(buttonSelector).attr("value"));
-        //put up a waiting for response dialogue
-        var timeLeft = WAIT_TIME;
+        challengePlayer($(buttonSelector).attr("value"));
+      });
+  }
+
+  //to be used when someone challenges player by clicking their button
+  function challengePlayer(nickname) {
+    busy = true;
+    console.log("Currently busy");
+    socket.emit('send_challenge', nickname);
+    //put up a waiting for response dialogue
+    var timeLeft = WAIT_TIME;
+    var waitHTML = "Waiting for a response from '" + nickname + "'."
+    waitHTML += "<br> Will wait " + timeLeft + " more seconds.";
+    $("#waitText").html(waitHTML);
+    $(function() {
+      /* Note: To figure out how to hide the x button, see this site:
+      https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+      $("#waitBox").dialog({
+        closeOnEscape: false,
+        open: function(event, ui) {
+          $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+        },
+        modal: true,
+        buttons: [],
+        title: "Waiting . . ."
+      });
+      var decrementTime = function() {
+        timeLeft -= 1;
         var waitHTML = "Waiting for a response from '" + nickname + "'."
         waitHTML += "<br> Will wait " + timeLeft + " more seconds.";
         $("#waitText").html(waitHTML);
-        $(function() {
-          /* Note: To figure out how to hide the x button, see this site:
-          https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-          $("#waitBox").dialog({
-            closeOnEscape: false,
-            open: function(event, ui) {
-              $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-            },
-            modal: true,
-            buttons: [],
-            title: "Waiting . . ."
-          });
-          var decrementTime = function() {
-            timeLeft -= 1;
-            var waitHTML = "Waiting for a response from '" + nickname + "'."
-            waitHTML += "<br> Will wait " + timeLeft + " more seconds.";
-            $("#waitText").html(waitHTML);
-            if(timeLeft == 0) {
-              clearInterval(closeInvitation);
-              $("#waitBox").dialog("close");
-            }
-          }
-          closeInvitation = setInterval(decrementTime, 1000);
-        });
-
-      })
+        if(timeLeft == 0) {
+          busy = false;
+          console.log("Free again");
+          clearInterval(closeInvitation);
+          $("#waitBox").dialog("close");
+        }
+      }
+      closeInvitation = setInterval(decrementTime, 1000);
+    });
   }
 
   socket.on('lobby_enter', function(nickname) { //upon other people entering lobby
@@ -58,6 +66,7 @@ $( document ).ready(function() {
     console.log(nickname + " entered");
   });
 
+  //when first enter lobby, find out who's here
   socket.on('currentNicks', function(onlinePlayers) {
     console.log("Players already here: ")
     console.log(JSON.stringify(onlinePlayers, null, 4));
@@ -69,13 +78,20 @@ $( document ).ready(function() {
       }
     }
   });
-
+  //when other people leave the lobby
   socket.on('lobby_leave', function(nickname) {
     console.log(nickname + " left");
     $("#player" + nickname).remove();
   });
 
   socket.on('challenged', function(challenge) {
+    if(busy) {
+      //emit busy tone & return
+      socket.emit('busyTone', challenge.challenger);
+      return;
+    }
+    busy = true;
+    console.log("busy now");
     var buttons = [];
     var acceptButton = {
       text: "Accept",
@@ -92,6 +108,7 @@ $( document ).ready(function() {
           }
         });
         console.log("Have accepted the challenge!");
+        busy = false;
         $(this).dialog( "close" );
       }
     };
@@ -100,6 +117,8 @@ $( document ).ready(function() {
       click: function() {
         //emit that you've declined
         socket.emit('declineChallenge', challenge.challenger);
+        busy = false;
+        console.log("Free again");
         $(this).dialog( "close" );
       }
     };
@@ -128,6 +147,8 @@ $( document ).ready(function() {
         $("#challengeText").html(challengeHTML);
         if(timeLeft == 0) {
           clearInterval(closeInvitation);
+          busy = false;
+          console.log("Free again");
           $("#challengeBox").dialog("close");
         }
       }
@@ -147,12 +168,15 @@ $( document ).ready(function() {
     buttons.push(ok);
     clearInterval(closeInvitation);
     $("#waitBox").dialog("close");
-    $("#declineBox").text("'" + decliner + "'" + " has declined your challenge.");
+    var reasonStr = (decliner.reason == "busy") ? " is currently busy deciding on another invitation." : " has declined your challenge.";
+    $("#declineBox").text("'" + decliner.name + "'" + reasonStr);
     $("#declineBox").dialog({
       modal: true,
       buttons: buttons,
       title: "Declined"
     });
+    busy = false;
+    console.log("Free again");
   });
 
   socket.on('challengeAccepted', function(accepter) {
@@ -169,6 +193,7 @@ $( document ).ready(function() {
         document.write(page);
       }
     });
+    busy = false;
   });
 
 });

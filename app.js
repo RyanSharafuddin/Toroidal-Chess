@@ -67,7 +67,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('declineChallenge', function(challenger) {
-      socket.broadcast.to(onlinePlayers[challenger]["id"]).emit('challengeDeclined', socket.nickname);
+      socket.broadcast.to(onlinePlayers[challenger]["id"]).emit('challengeDeclined', {name: socket.nickname, reason: "want"});
     });
 
     socket.on('acceptChallenge', function(nickname) {
@@ -88,6 +88,12 @@ io.on('connection', function(socket) {
       challenger.hereFlag = true;
       console.log("A challenge has been accepted and a game has been started. Here is the onlinePlayers structure: ");
       console.log(JSON.stringify(onlinePlayers, null, 4));
+    });
+
+    //socket telling callerNickName that they have a standing invitation
+    socket.on('busyTone', function(callerNickName) {
+      var callerSocket = io.sockets.connected[onlinePlayers[callerNickName]["id"]];
+      callerSocket.emit('challengeDeclined', {name: socket.nickname, reason: "busy"});
     });
     /////////////////////////////////////////////////
     socket.on('enter', function(requestedRoom) {
