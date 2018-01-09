@@ -59,6 +59,12 @@ io.on('connection', function(socket) {
       console.log(JSON.stringify(onlinePlayers, null, 4));
     });
 
+    /* Every socket automatically joins a room that has the same name as its id, which
+       is unique */
+    socket.on('send_challenge', function(nickname) {
+      socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {challenger: socket.nickname});
+    });
+    /////////////////////////////////////////////////
     socket.on('enter', function(requestedRoom) {
       if((rooms[requestedRoom] == undefined) || (rooms[requestedRoom]["fill"] == 0)) {
         console.log("A client has created room " + requestedRoom);
@@ -119,7 +125,7 @@ io.on('connection', function(socket) {
       delete onlinePlayers[socket.nickname];
     }
     console.log(JSON.stringify(onlinePlayers, null, 4));
-
+    //////////////////////////////////////////////////////////
     if(socket.roomID == undefined) {
       return;
     }
