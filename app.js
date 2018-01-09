@@ -23,12 +23,7 @@ app.get('/', function(req, res) {
   res.render('login', {unique: ""});
 });
 
-app.get('/main', function(req, res) {
-  console.log("Got request for main page!");
-  res.render('main');
-});
-
-app.post('/', function(req, res) {
+app.post('/login', function(req, res, next) {
   var user_nickname = req.body.user_nickname;
   console.log("Someone attempted to log in with nickname '" + user_nickname + "'");
   if(onlinePlayers[user_nickname] == undefined) { //this is a unique nickname
@@ -40,6 +35,14 @@ app.post('/', function(req, res) {
     console.log("This nickname is already taken");
     res.render('login', {unique: "not_unique"})
   }
+  next();
+});
+
+app.post('/gameStart', function(req, res) {
+  console.log("got POST request to start game");
+  console.log(req.body.myName);
+  console.log(req.body.enemyName);
+  res.render('board.ejs', {myName: req.body.myName, enemyName: req.body.enemyName, roomNamer: req.body.roomNamer});
 });
 
 
@@ -71,6 +74,21 @@ io.on('connection', function(socket) {
 
     socket.on('acceptChallenge', function(nickname) {
       //both players must leave lobby, then join their own private room, and then game happens
+      onlinePlayers[socket.nickname]["inLobby"] = false;
+      onlinePlayers[socket.nickname]["inGame"] = true;
+      socket.broadcast.to("lobby").emit('lobby_leave', socket.nickname); //notify everyone in lobby of leaving
+      socket.leave("lobby");
+      socket.hereFlag = true;
+
+      var challenger = io.sockets.connected[onlinePlayers[nickname]["id"]]; //the socket of the challenged player
+      onlinePlayers[challenger.nickname]["inLobby"] = false;
+      onlinePlayers[challenger.nickname]["inGame"] = true;
+      challenger.broadcast.to("lobby").emit('lobby_leave', socket.nickname); //notify everyone in lobby of leaving
+      challenger.leave("lobby");
+      //inform challenger that challenge accepted
+      challenger.emit('challengeAccepted', socket.nickname);
+      challenger.hereFlag = true;
+
     });
     /////////////////////////////////////////////////
     socket.on('enter', function(requestedRoom) {
@@ -114,7 +132,7 @@ io.on('connection', function(socket) {
    });
 
   socket.on('disconnect', function() {
-    if(onlinePlayers[socket.nickname] == undefined) {
+    if((onlinePlayers[socket.nickname] == undefined) || socket.hereFlag) {
       //login page
       return;
     }

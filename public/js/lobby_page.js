@@ -7,6 +7,7 @@ $( document ).ready(function() {
   Should be slightly less than WAIT_TIME, to ensure this times out first */
   const INVITE_TIME = WAIT_TIME - 2;
   var closeInvitation;  //set up a 'global' variable for future use
+  var busy = false; //waiting on invitation or have standing invitation
 
   function addPlayer(nickname) {
       /* what the button HTML should come out to be in the end
@@ -81,6 +82,9 @@ $( document ).ready(function() {
       click: function() {
         //emit to challenger that you've accepted the challenge
         socket.emit('acceptChallenge', challenge.challenger);
+        //make POST request
+        $.post("gameStart", {myName: myNickname, enemyName: challenge.challenger, roomNamer: "no"});
+        console.log("Have accepted the challenge!");
         $(this).dialog( "close" );
       }
     };
@@ -141,6 +145,15 @@ $( document ).ready(function() {
       buttons: buttons,
       title: "Declined"
     });
+  });
+
+  socket.on('challengeAccepted', function(nickname) {
+    console.log(nickname + " has accepted your challenge!");
+    $("#waitBox").dialog("close");
+    clearInterval(closeInvitation);
+    //make POST request
+    //data that needs to be included: myName, enemyName, challenge parameters such as show moves, threats, time
+    $.post("gameStart", {myName: myNickname, enemyName: nickname, roomNamer: "yes"});
   });
 
 });

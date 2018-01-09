@@ -11,19 +11,10 @@
   </head>
 
   <body>
-    <h1> Welcome to Toroidal Chess </h1>
-      <p> This app is currently in its
-        primitive stages. If you are in an empty room,
-        you must wait for someone else to join the room before being able
-        to make moves.  In the future I might make this more sophisticated,
-      such as adding support for nicknames, chat, being able to invite other
-      connected users to your room, etc.
-      The rules for toroidal chess can be found
-      <a href="http://www.chessvariants.com/shape.dir/torus_standard_board.html" target="_blank">
-	       here</a>. </p>
+    <h1> <span id="myName"><%= myName %></span> vs. <span id="enemyName>"><%= enemyName %></span></h1>
 
-    <h2 id="roomNum"></h2>
-    <h2 id="wait"></h2>
+    <!-- <h2 id="wait"></h2> -->
+    <div id="roomNamer<%=roomNamer%>"></div>
     <div id="promotionBox"> <div id="promotionText"> </div> </div>
     <div id="board1" style="width: 650px"></div>
 

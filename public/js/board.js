@@ -394,7 +394,7 @@ function check_mate_stale(whiteTurn, pos) {
    Also, only player 1 can move white pieces; only player 2 can
    move black*/
 var onDragStart = function(source, piece, position, orientation) {
-  if(gameLogic.gameOver || !full ||
+  if(gameLogic.gameOver ||
      (gameLogic.whiteTurn &&  piece.search(/^b/) !== -1) ||
       (!gameLogic.whiteTurn &&  piece.search(/^w/) !== -1) ||
       (gameLogic.whiteTurn && isBlack)  ||
@@ -496,7 +496,7 @@ $("#reset").on('click', resetPosition);
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
 var onMouseoverSquare = function(square, piece, pos) {
-  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack) || !full) {
+  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack)) {
     return;
   }
 
@@ -558,30 +558,29 @@ function TotalState(pos, state, turnString) {
   this.turnString = turnString;
 }
 var socket = io();
-var connected = false;
 var isBlack = false;
 var isWhite = false;
-var full = false;
-
+var myName = $("#myName").text();
+var enemyName = $("#enemyName").text();
 
 
 //------------------------------------------------------------------------------
 // Connection stuff
 //------------------------------------------------------------------------------
-function attempt_connection() {
-  console.log("attempting connection");
-  if(connected) {
-    clearInterval(stopAttempting);
-    return;
-  }
-  var roomID = prompt("What room would you like to enter?");
-  if(roomID == null || roomID == "") {
-    roomID = "" + Math.random();
-  }
-  socket.emit('enter', roomID);
-}
-attempt_connection();
-var stopAttempting = setInterval(attempt_connection, 5000);
+// function attempt_connection() {
+//   console.log("attempting connection");
+//   if(connected) {
+//     clearInterval(stopAttempting);
+//     return;
+//   }
+//   var roomID = prompt("What room would you like to enter?");
+//   if(roomID == null || roomID == "") {
+//     roomID = "" + Math.random();
+//   }
+//   socket.emit('enter', roomID);
+// }
+// attempt_connection();
+// var stopAttempting = setInterval(attempt_connection, 5000);
 
 //to be used by addPiece and onDrop
 function sendMove(pos, state, turnString) {
