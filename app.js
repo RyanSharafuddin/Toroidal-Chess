@@ -19,8 +19,8 @@ app.use(express.static(path.join(__dirname, '/public')));
 /* See https://stackoverflow.com/questions/5924072/express-js-cant-get-my-static-files-why
    specifically the second answer for an explanation of how express.static works */
 app.get('/', function(req, res) {
-  res.render('login');
   console.log("Got request for login page");
+  res.render('login');
 });
 
 app.get('/main', function(req, res) {
@@ -28,8 +28,10 @@ app.get('/main', function(req, res) {
   res.render('main');
 });
 
-app.post('/',function(req, res) {
-  console.log("Someone attempted to log in with nickname " + req.body.user_nickname);
+app.post('/', function(req, res) {
+  var user_nickname = req.body.user_nickname;
+  console.log("Someone attempted to log in with nickname '" + user_nickname + "'");
+  res.render('lobby', {user_nickname: user_nickname});
 });
 
 

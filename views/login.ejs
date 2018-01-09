@@ -7,16 +7,25 @@
      rel = "stylesheet">
     <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
     <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="js/login_page.js"></script>
   </head>
 
   <body>
     <h1>Welcome to Toroidal Chess</h1>
-    <!-- <p> This is a test to see if I understand how to support multiple pages. <br>
-        Clicking <a href="main">here</a> should take you to the main toroidal page.</p> -->
-    <form action="/" method="post">
+    <form action="/" method="post" id="login">
         <label for="nickname">Enter nickname:</label>
         <input type="text" id="nickname" name="user_nickname">
         <button type="submit">Enter site</button>
     </form>
+    <script type="text/javascript">
+    /* set a function handler for the submit, which
+       validates submissions */
+      $('#login').submit(function() {
+        if ($.trim($("#nickname").val()) === "") {
+          alert('Your nickname cannot consist entirely of whitespace.');
+          return false;
+        }
+      });
+    </script>
   </body>
 </html>
