@@ -2,18 +2,21 @@
 <html lang="en">
   <head>
     <title>Login Page</title>
+    <link rel="stylesheet" href="css/login_page.css">
     <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
      rel = "stylesheet">
     <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
     <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   </head>
 
-
   <body>
-    <p> This is a test to see if I understand how to support multiple pages <br>
-        Clicking <a href="main">here</a> should take you to the main toroidal page.</p>
-
+    <h1>Welcome to Toroidal Chess</h1>
+    <!-- <p> This is a test to see if I understand how to support multiple pages. <br>
+        Clicking <a href="main">here</a> should take you to the main toroidal page.</p> -->
+    <form action="/" method="post">
+        <label for="nickname">Enter nickname:</label>
+        <input type="text" id="nickname" name="user_nickname">
+        <button type="submit">Enter site</button>
+    </form>
   </body>
-
-
 </html>

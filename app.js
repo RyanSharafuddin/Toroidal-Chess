@@ -16,8 +16,8 @@ app.use(cookieParser());
 //app.use(session({ secret: '$#%!@#@@#SSDASASDVV@@@@', key: 'sid'})); //???
 app.use(express.static(path.join(__dirname, '/public')));
 
-
-
+/* See https://stackoverflow.com/questions/5924072/express-js-cant-get-my-static-files-why
+   specifically the second answer for an explanation of how express.static works */
 app.get('/', function(req, res) {
   res.render('login');
   console.log("Got request for login page");
@@ -29,14 +29,9 @@ app.get('/main', function(req, res) {
 });
 
 
-
-
 //example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
 var rooms = {};
-
 io.on('connection', function(socket) {
-   var foundVacancy = false;
-
     socket.on('enter', function(requestedRoom) {
       if((rooms[requestedRoom] == undefined) || (rooms[requestedRoom]["fill"] == 0)) {
         console.log("A client has created room " + requestedRoom);
@@ -62,7 +57,6 @@ io.on('connection', function(socket) {
           console.log(JSON.stringify(rooms, null, 4));
           console.log("Sent fullPresence to everyone in room: " + requestedRoom);
       }
-
       else if(rooms[requestedRoom]["fill"] == 2) {
         console.log("A client has attempted to join a full room: " + requestedRoom);
         socket.emit('roomAssignment', null);
