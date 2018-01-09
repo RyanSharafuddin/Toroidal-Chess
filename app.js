@@ -64,6 +64,14 @@ io.on('connection', function(socket) {
     socket.on('send_challenge', function(nickname) {
       socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {challenger: socket.nickname});
     });
+
+    socket.on('declineChallenge', function(nickname) {
+      socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challengeDeclined', nickname);
+    });
+
+    socket.on('acceptChallenge', function(nickname) {
+      //both players must leave lobby, then join their own private room, and then game happens
+    });
     /////////////////////////////////////////////////
     socket.on('enter', function(requestedRoom) {
       if((rooms[requestedRoom] == undefined) || (rooms[requestedRoom]["fill"] == 0)) {

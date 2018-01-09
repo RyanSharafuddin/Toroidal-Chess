@@ -2,6 +2,11 @@ $( document ).ready(function() {
   var socket = io();
   var myNickname = $("#nickname").text();
   socket.emit('lobby', myNickname);
+  const WAIT_TIME = 60; //how many seconds to wait for someone to reply to invitation
+  /* how many seconds someone has to reply to an invitation.
+  Should be slightly less than WAIT_TIME, to ensure this times out first */
+  const INVITE_TIME = WAIT_TIME - 2;
+  var closeInvitation;  //set up a 'global' variable for future use
 
   function addPlayer(nickname) {
       /* what the button HTML should come out to be in the end
@@ -14,6 +19,36 @@ $( document ).ready(function() {
       $(buttonSelector).on('click', function() {
         console.log("Challenged " + $(buttonSelector).attr("value") + "!");
         socket.emit('send_challenge', $(buttonSelector).attr("value"));
+        //put up a waiting for response dialogue
+        var timeLeft = WAIT_TIME;
+        var waitHTML = "Waiting for a response from '" + nickname + "'."
+        waitHTML += "<br> Will wait " + timeLeft + " more seconds.";
+        $("#waitText").html(waitHTML);
+        $(function() {
+          /* Note: To figure out how to hide the x button, see this site:
+          https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+          $("#waitBox").dialog({
+            closeOnEscape: false,
+            open: function(event, ui) {
+              $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+            },
+            modal: true,
+            buttons: [],
+            title: "Waiting . . ."
+          });
+          var decrementTime = function() {
+            timeLeft -= 1;
+            var waitHTML = "Waiting for a response from '" + nickname + "'."
+            waitHTML += "<br> Will wait " + timeLeft + " more seconds.";
+            $("#waitText").html(waitHTML);
+            if(timeLeft == 0) {
+              clearInterval(closeInvitation);
+              $("#waitBox").dialog("close");
+            }
+          }
+          closeInvitation = setInterval(decrementTime, 1000);
+        });
+
       })
   }
 
@@ -45,6 +80,7 @@ $( document ).ready(function() {
       text: "Accept",
       click: function() {
         //emit to challenger that you've accepted the challenge
+        socket.emit('acceptChallenge', challenge.challenger);
         $(this).dialog( "close" );
       }
     };
@@ -52,13 +88,16 @@ $( document ).ready(function() {
       text: "Decline",
       click: function() {
         //emit that you've declined
+        socket.emit('declineChallenge', challenge.challenger);
         $(this).dialog( "close" );
       }
     };
     buttons.push(acceptButton);
     buttons.push(declineButton);
-    console.log("You have been challenged by " + challenge.challenger);
-    $("#challengeText").html("You have been challenged by '" + challenge.challenger + "'!")
+    var timeLeft = INVITE_TIME;
+    var challengeHTML = "You have been challenged by '" + challenge.challenger + "'!"
+    challengeHTML += "<br>You have " + timeLeft + " seconds before the challenge times out.";
+    $("#challengeText").html(challengeHTML);
     $(function() {
       /* Note: To figure out how to hide the x button, see this site:
       https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
@@ -71,8 +110,37 @@ $( document ).ready(function() {
         buttons: buttons,
         title: "Challenge!"
       });
+      var decrementTime = function() {
+        timeLeft -= 1;
+        var challengeHTML = "You have been challenged by '" + challenge.challenger + "'!"
+        challengeHTML += "<br>You have " + timeLeft + " seconds before the challenge times out.";
+        $("#challengeText").html(challengeHTML);
+        if(timeLeft == 0) {
+          clearInterval(closeInvitation);
+          $("#challengeBox").dialog("close");
+        }
+      }
+      var closeInvitation = setInterval(decrementTime, 1000);
+
     });
   });
-
+  socket.on('challengeDeclined', function(nickname) {
+    var buttons = [];
+    var ok = {
+      text: "OK",
+      click: function() {
+        $(this).dialog( "close" );
+      }
+    };
+    buttons.push(ok);
+    clearInterval(closeInvitation);
+    $("#waitBox").dialog("close");
+    $("#declineBox").text("'" + nickname + "'" + " has declined your challenge.");
+    $("#declineBox").dialog({
+      modal: true,
+      buttons: buttons,
+      title: "Declined"
+    });
+  });
 
 });
