@@ -563,6 +563,20 @@ function proposeDraw() {
   });
   socket.emit('drawProposal');
 }
+
+function lobbyButton() {
+  if(!gameLogic.gameOver) {
+    //dialog: are you sure you want to return? You'll lose.
+  }
+}
+
+function lobbyReturn() {
+  if(!gameLogic.gameOver) {
+    //tell other player that you left
+    socket.emit('abandonGame');
+  }
+}
+
 //--------------------------- END BUTTON SETUP ---------------------------------
 //--------------------------- FINISH GAME PRETTIFYING --------------------------
 function finishGame(data) {

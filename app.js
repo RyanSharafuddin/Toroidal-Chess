@@ -24,6 +24,10 @@ app.get('/', function(req, res) {
   res.render('login', {unique: ""});
 });
 
+app.get('/rules', function(req, res) { //TODO once polished up rules page, include link to rules in login
+  res.render('rules');
+});
+
 app.post('/login', function(req, res, next) {
   var user_nickname = req.body.user_nickname;
   console.log("Someone attempted to log in with nickname '" + user_nickname + "'");
