@@ -22,6 +22,7 @@ h1 {
 
 #gameOptions {
   display: flex;
+  margin-top: 30px;
 }
 #gameOptions > div {
   flex: 1; /*grow*/
@@ -55,14 +56,19 @@ h1 {
 }
 
 /*------------------ https://codepen.io/AllThingsSmitty/pen/MmxxOz -----------*/
+#sendChal {
+  margin: 0px 0px 5px 0px;
+  position: relative;
+  left: 5%;
+}
 .sliderLabelContainer {
   position: relative;
 }
 
 .sliderLabel {
   position: absolute;
-  bottom: 0px;
-  left: 0px;
+  bottom: 7px;
+  right: 5px;
   margin: 0px;
 }
 
