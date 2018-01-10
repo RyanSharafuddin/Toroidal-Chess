@@ -13,6 +13,8 @@
   margin: auto;
   width: 50%;
 }
+
+
 /* http://cssbuttoncreator.com/ */
 .gameButtons {
   -webkit-border-radius: 20px;
@@ -79,4 +81,10 @@
 
 .unHighlightedPlayerName {
   background: rgba(107,117,126,0.86);
+}
+
+#chatContainer {
+  float: right;
+  width: 25%;
+  display: inline-block;
 }
