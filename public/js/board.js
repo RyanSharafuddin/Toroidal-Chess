@@ -900,3 +900,13 @@ socket.on('drawReply', function(reply) {
     });
   }
 });
+//------------------------------Chat Stuff--------------------------------------
+$('#messageForm').submit(function(){
+  socket.emit('chatMessage', {message: $('#m').val(), sender: myName});
+  $('#m').val('');
+  return false;
+});
+
+socket.on('chatting', function(data) {
+  $('#messages').append($('<li>').text(data.message));
+});

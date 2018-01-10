@@ -173,6 +173,10 @@ io.on('connection', function(socket) {
       onlinePlayers[nickname]["color"] = undefined;
       console.log(nickname + " has gone from game to lobby");
     });
+
+    socket.on('chatMessage', function(data) { //send to all, including self
+      io.in(socket.gameRoom).emit('chatting', data);
+    });
   //-----------------------------End Board Functions ------------------------------
 
   socket.on('disconnect', function() { //only use this for xing out of site, not disconnects caused by switching pages
