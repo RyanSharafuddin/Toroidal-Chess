@@ -20,7 +20,7 @@
   border-radius: 20px;
   color: #FFFFFF;
   font-family: Verdana;
-  font-size: 30px;
+  font-size: 20px;
   margin: 7px 5px 5px 5px;
   font-weight: 200;
   padding: 8px;
@@ -52,4 +52,30 @@
 
 .disabled:hover {
   background: #5b5e63;
+}
+
+.highlightedPlayerName {
+  margin: 5px 0px 5px 0px;
+  border: 5px 0px 5px 0px solid;
+  padding: 20px 0px 20px 0px;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  width: 650px; /* same as board */
+  overflow: hidden;
+  -webkit-border-radius: 0 / 8px;
+  border-radius: 0 / 8px;
+  font: normal 23px/0 Verdana, Geneva, sans-serif;
+  color: rgba(255,255,255,1);
+  text-align: center;
+  -o-text-overflow: clip;
+  text-overflow: clip;
+  background: #58d112;
+  -webkit-box-shadow: 1px 1px 1px 0 rgba(178,91,91,0.3) ;
+  box-shadow: 1px 1px 1px 0 rgba(178,91,91,0.3) ;
+  text-shadow: 1px 1px 1px rgba(214,107,107,0.2) ;
+}
+
+.unHighlightedPlayerName {
+  background: rgba(107,117,126,0.86);
 }

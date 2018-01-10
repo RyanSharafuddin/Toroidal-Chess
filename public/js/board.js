@@ -1,8 +1,8 @@
 //--------------------------- UTILITY STUFF ------------------------------------
 //Notes: don't call anything "location".
 //Use bracket notation if you want to treat object as dictionary
-const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
+var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
 /* Converts a filenum and rankNum to a string representing the algebraic
    position. For example, coord(2, 3) returns "c4" */
@@ -41,10 +41,10 @@ var color_square = function(square, light_color, dark_color) {
 var uncolor_squares = function() {
   $('#board1 .square-55d63').css('background', '');
 }
-const LIGHT_GRAY = '#a9a9a9';
-const DARK_GRAY = '#696969';
-const LIGHT_RED = '#DB3C3C';
-const DARK_RED = '#972B2B';
+var LIGHT_GRAY = '#a9a9a9';
+var DARK_GRAY = '#696969';
+var LIGHT_RED = '#DB3C3C';
+var DARK_RED = '#972B2B';
 //--------------------------- END UTILITY STUFF --------------------------------
 //--------------------------- GAME RULES ---------------------------------------
 
@@ -360,13 +360,22 @@ function hasMoves(whiteTurn, pos) {
   return false;
 }
 
-//takes care of in check, checkmate, or stalemate
+//takes care of in check, checkmate, or stalemate, returns name of player in check
+//or "" if no one is in check. (Note: just check, not checkmate)
 function check_mate_stale(whiteTurn, pos) {
   var turnString = (whiteTurn) ? "Turn: White" : "Turn: Black";
+  var checkString = "";
   if(inCheck(whiteTurn, pos)) {
     if(hasMoves(whiteTurn, pos)) {
       $("#Turn").html(turnString + " - currently in check");
       gameLogic.moves[gameLogic.moves.length - 1] += "+";
+      //white turn is in check
+      if((whiteTurn && isWhite) || (!whiteTurn && isBlack)) {
+        checkString = myName;
+      }
+      else {
+        checkString = enemyName;
+      }
     }
     else {
       var color = (whiteTurn) ? "White" : "Black";
@@ -384,6 +393,7 @@ function check_mate_stale(whiteTurn, pos) {
     gameLogic.gameOver = true;
     finishGame({winner: "draw", reason: "stalemate"});
   }
+  return checkString;
 }
 //--------------------------- END GAME RULES -----------------------------------
 //--------------------------- USER INTERACTION ---------------------------------
@@ -655,8 +665,8 @@ function finishGame(data) {
   }
 }
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
-//--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
-const TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
+//--------------------------- GLOBALS AND SETUP varRUCTORS -------------------
+var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
   position: TOROIDAL_START,
   draggable: true,
@@ -686,10 +696,11 @@ var gameLogic = {
     h6: false
   }
 };
-function TotalState(pos, state, turnString) {
+function TotalState(pos, state, turnString, inCheck) {
   this.position = pos;
   this.state = state;
   this.turnString = turnString;
+  this.inCheck = inCheck; //either the nickname of the player who's in check, or ""
 }
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
@@ -700,7 +711,8 @@ var canProposeDraw = true; //renew ability to propose draw everytime you move
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
-//----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
+$("#vs").remove(); //needed to get info; don't want to display
+//----------------------- END GLOBALS AND SETUP varRUCTORS -------------------
 
 
 //------------------------------------------------------------------------------
@@ -709,25 +721,50 @@ var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
 var socket = io();
 socket.emit('startGame', {myName: myName, enemyName: enemyName, roomName: roomName});
 
-//to be used by addPiece and onDrop
-function sendMove(pos, state, turnString) {
-  check_mate_stale(state.whiteTurn, pos);
-  var turnString = $("#Turn").text();
-  canProposeDraw = true;
-  //TODO ungrey out button
-  $("#draw").removeClass("disabled");
-  socket.emit('move', new TotalState(pos, state, turnString));
-}
-
 socket.on('start', function(data) {
   (data.color == "white") ? (isWhite = true) : (isBlack = true);
+  isWhite ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
   board1.orientation(data.color);
 });
+
+//to be used by addPiece and onDrop
+function sendMove(pos, state, turnString) {
+  var inCheck = check_mate_stale(state.whiteTurn, pos);
+  if(inCheck == myName) {
+    $("#myNameDisplay").text(myName + " - in check");
+  }
+  if(inCheck == enemyName) {
+    $("#enemyNameDisplay").text(enemyName + " - in check");
+  }
+  if(inCheck == "") {
+    $("#myNameDisplay").text(myName);
+    $("#enemyNameDisplay").text(enemyName);
+  }
+  var turnString = $("#Turn").text();
+  canProposeDraw = true;
+  $("#draw").removeClass("disabled");
+  $("#myNameDisplay").addClass("unHighlightedPlayerName");
+  $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
+  socket.emit('move', new TotalState(pos, state, turnString, inCheck));
+}
 
 socket.on('oppMove', function(totalState) {
   board1.position(totalState.position);
   gameLogic = totalState.state;
   $("#Turn").text(totalState.turnString);
+  $("#myNameDisplay").removeClass("unHighlightedPlayerName");
+  $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+  var inCheck = totalState.inCheck;
+  if(inCheck == myName) {
+    $("#myNameDisplay").text(myName + " - in check");
+  }
+  if(inCheck == enemyName) {
+    $("#enemyNameDisplay").text(enemyName + " - in check");
+  }
+  if(inCheck == "") {
+    $("#myNameDisplay").text(myName);
+    $("#enemyNameDisplay").text(enemyName);
+  }
   if(gameLogic.gameOver) {
     if(gameLogic.whiteMated) {
       finishGame({winner: "black", reason: "checkmate"});
