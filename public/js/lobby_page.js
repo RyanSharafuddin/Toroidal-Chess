@@ -89,6 +89,17 @@ function onLoad() {
       socket.emit('busyTone', challenge.challenger);
       return;
     }
+    var timeLeft = INVITE_TIME;
+    var offerValid = challenge.showValid
+    var offerThreat = challenge.showThreat;
+    var offerValidStr = (offerValid) ? "Yes." : "No.";
+    var offerThreatStr = (offerThreat) ? "Yes." : "No.";
+    var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
+    challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
+    challengeHTML += "Show valid moves: " + offerValidStr;
+    challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
+    challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
+    console.log(challengeHTML);
     busy = true;
     console.log("busy now");
     var buttons = [];
@@ -103,7 +114,11 @@ function onLoad() {
         $.ajax({
           url: "gameStart",
           type: 'POST',
-          data: {myName: myNickname, enemyName: challenge.challenger, roomNamer: "0"},
+          data: {myName: myNickname,
+            enemyName: challenge.challenger,
+            roomNamer: "0",
+            showValid: offerValidStr,
+            showThreat: offerThreatStr},
           success: function(page) {
             //necessary to open document before write
             document.open();
@@ -127,10 +142,7 @@ function onLoad() {
     };
     buttons.push(acceptButton);
     buttons.push(declineButton);
-    var timeLeft = INVITE_TIME;
-    var challengeHTML = "You have been challenged by '" + challenge.challenger + "'!"
-    challengeHTML += "<br>You have " + timeLeft + " seconds before the challenge times out.";
-    $("#challengeText").html(challengeHTML);
+    $("#challengeText").text(challengeHTML);
     /* Note: To figure out how to hide the x button, see this site:
     https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
     $("#challengeBox").dialog({
@@ -144,8 +156,11 @@ function onLoad() {
     });
     var decrementTime = function() {
       timeLeft -= 1;
-      var challengeHTML = "You have been challenged by '" + challenge.challenger + "'!"
-      challengeHTML += "<br>You have " + timeLeft + " seconds before the challenge times out.";
+      var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
+      challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
+      challengeHTML += "Show valid moves: " + offerValidStr;
+      challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
+      challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
       $("#challengeText").html(challengeHTML);
       if(timeLeft == 0) {
         clearInterval(closeInvitation);
@@ -180,6 +195,8 @@ function onLoad() {
   });
 
   socket.on('challengeAccepted', function(accepter) {
+    var offerValidStr = (showValid) ? "Yes." : "No.";
+    var offerThreatStr = (showThreat) ? "Yes." : "No.";
     console.log(accepter + " has accepted your challenge!");
     $("#waitBox").dialog("close");
     clearInterval(closeInvitation);
@@ -188,7 +205,11 @@ function onLoad() {
     $.ajax({
       url: "gameStart",
       type: 'POST',
-      data: {myName: myNickname, enemyName: accepter, roomNamer: "1"},
+      data: {myName: myNickname,
+        enemyName: accepter,
+        roomNamer: "1",
+        showValid: offerValidStr,
+        showThreat: offerThreatStr},
       success: function(page) {
         document.open();
         document.write(page);
