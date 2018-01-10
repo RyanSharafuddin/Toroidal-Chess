@@ -136,6 +136,11 @@ io.on('connection', function(socket) {
       //in order to prevent this function from activating upon moving from lobby to game or game to lobby
       return;
     }
+    if(onlinePlayers[socket.nickname] == undefined) {
+      console.log("socket not present in onlinePlayers . . .");
+      console.log("nickname: " + socket.nickname);
+      return;
+    }
     if(onlinePlayers[socket.nickname]["inLobby"]) {
       onlinePlayers[socket.nickname]["inLobby"] = false;
       console.log(socket.nickname + " has left the lobby");

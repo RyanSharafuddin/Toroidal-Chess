@@ -2,13 +2,46 @@
   text-align: center;
 }
 
+
+#board1 {
+  width: 650px;
+}
+
+.gameButtons {
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  border-radius: 20px;
+  color: #FFFFFF;
+  font-family: Verdana;
+  font-size: 30px;
+  margin: 7px 5px 5px 5px;
+  font-weight: 200;
+  padding: 8px;
+  background-color: #F67F07;
+  box-shadow: 1px 1px 20px 0px #000000;
+  -webkit-box-shadow: 1px 1px 20px 0px #000000;
+  -moz-box-shadow: 1px 1px 20px 0px #000000;
+  text-shadow: 1px 1px 20px #000000;
+  border: solid #000000 1px;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.gameButtons:hover {
+  background: #206EBD;
+  text-decoration: none;
+}
+
+/* specific to resign: turns red when hovered over*/
+#resign:hover {
+  background: #D00202;
+  text-decoration: none;
+}
+
 /* For the div containing the board and the buttons */
 #board_buttons {
   align-content: center;
   margin: auto;
   width: 50%;
-}
-
-#board1 {
-  width: 650px;
 }
