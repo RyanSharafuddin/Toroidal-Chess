@@ -1,4 +1,8 @@
-$( document ).ready(function() {
+function onLoad() {
+  if(loaded) {
+    return;
+  }
+  loaded = true;
   var socket = io();
   var myNickname = $("#nickname").text();
   socket.emit('lobby', myNickname);
@@ -195,5 +199,10 @@ $( document ).ready(function() {
     });
     busy = false;
   });
+}
 
-});
+var loaded = false;
+// $( document ).ready(function() { //don't need document.ready b/c script at bottom
+//   onLoad();
+// });
+onLoad();
