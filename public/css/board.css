@@ -7,6 +7,13 @@
   width: 650px;
 }
 
+/* For the div containing the board and the buttons */
+#board_buttons {
+  align-content: center;
+  margin: auto;
+  width: 50%;
+}
+
 .gameButtons {
   -webkit-border-radius: 20px;
   -moz-border-radius: 20px;
@@ -37,11 +44,4 @@
 #resign:hover {
   background: #D00202;
   text-decoration: none;
-}
-
-/* For the div containing the board and the buttons */
-#board_buttons {
-  align-content: center;
-  margin: auto;
-  width: 50%;
 }

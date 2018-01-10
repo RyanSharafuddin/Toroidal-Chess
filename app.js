@@ -123,6 +123,10 @@ io.on('connection', function(socket) {
       console.log("Move is: " + totalState.state.moves[totalState.state.moves.length - 1]);
       socket.broadcast.to(socket.gameRoom).emit('oppMove', totalState);
     });
+
+    socket.on('resignation', function(resignData) {
+      socket.broadcast.to(socket.gameRoom).emit('resigned', resignData);
+    });
   //-----------------------------End Board Functions ------------------------------
 
   socket.on('disconnect', function() { //only use this for xing out of site, not disconnects caused by switching pages

@@ -469,7 +469,7 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   }
 };
 
-function resetPosition() {
+function resetPosition() { //this function is not to be used in production
   if(!isBlack && !isWhite) { //spectator?
     return;
   }
@@ -491,7 +491,41 @@ function resetPosition() {
   sendMove(board1.position(), gameLogic, $("#Turn").text());
 };
 
-$("#reset").on('click', resetPosition);
+function resign() {
+  if(gameLogic.gameOver) { //resign button shouldn't do anything if already gameover
+    return;
+  }
+  var yesButton = {
+    text: "Yes",
+    click: function() {
+      gameLogic.gameOver = true;
+      var winnerColor = isWhite ? "black" : "white";
+      finishGame({winner: winnerColor, reason: "resign"});
+      socket.emit('resignation', {winnerColor: winnerColor});
+      $(this).dialog( "close" );
+    }
+  };
+  var noButton = {
+    text: "No",
+    click: function() {
+      $(this).dialog( "close" );
+    }
+  };
+  $("#resignText").html("Are you sure you want to resign?")
+  $(function() {
+    /* Note: To figure out how to hide the x button, see this site:
+    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+    $("#resignBox").dialog({
+      closeOnEscape: false,
+      open: function(event, ui) {
+        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+      },
+      modal: true,
+      buttons: [yesButton, noButton],
+      title: "Resign?"
+    });
+  });
+}
 
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
@@ -523,7 +557,7 @@ var onMouseoutSquare = function(square, piece) {
 
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
-                    reason: "checkmate", "stalemate", "oppResigned", "oppLeft", "drawAgreement"} */
+                    reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
   console.log("finishGame called");
   gameLogic.gameOver = true;
   $("#Turn").text("");
@@ -541,8 +575,13 @@ function finishGame(data) {
     case "stalemate":
       $("#announceWinner").text("Stalemate!");
       break;
-    case "oppResigned":
-      $("#announceWinner").text("'" + enemyName + "' resigned!'");
+    case "resign":
+      if((isWhite && winner == "white") || (isBlack && winner == "black")) {
+          $("#announceWinner").text("'" + enemyName + "' resigned!'");
+      }
+      else {
+        $("#announceWinner").text("You resigned!");
+      }
       break;
     case "oppLeft":
       $("#announceWinner").text("'" + enemyName + "' left!'");
@@ -589,6 +628,7 @@ function TotalState(pos, state, turnString) {
   this.state = state;
   this.turnString = turnString;
 }
+$("#resign").on('click', resign);
 
 var isBlack = false;
 var isWhite = false;
@@ -652,4 +692,8 @@ socket.on("oppLeft", function() {
     return;
   }
   finishGame({winner: ((isWhite) ? "white" : "black"), reason: "oppLeft"});
+});
+
+socket.on('resigned', function(resignData) {
+  finishGame({winner: resignData.winnerColor, reason: "resign"});
 });
