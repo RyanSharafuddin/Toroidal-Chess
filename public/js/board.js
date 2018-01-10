@@ -1,3 +1,4 @@
+//--------------------------- UTILITY STUFF ------------------------------------
 //Notes: don't call anything "location".
 //Use bracket notation if you want to treat object as dictionary
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -13,6 +14,14 @@ var coord = function(fileNum, rankNum) {
 
 function mod(n, m) {
   return ((n % m) + m) % m;
+}
+
+function partial(f) {
+  var args = Array.prototype.slice.call(arguments, 1)
+  return function() {
+    var remainingArgs = Array.prototype.slice.call(arguments)
+    return f.apply(null, args.concat(remainingArgs))
+  }
 }
 
 //from http://chessboardjs.com/examples#5003
@@ -32,11 +41,12 @@ var color_square = function(square, light_color, dark_color) {
 var uncolor_squares = function() {
   $('#board1 .square-55d63').css('background', '');
 }
-var lightGray = '#a9a9a9';
-var darkGray = '#696969';
-var lightRed = '#DB3C3C';
-var darkRed = '#972B2B';
-
+const LIGHT_GRAY = '#a9a9a9';
+const DARK_GRAY = '#696969';
+const LIGHT_RED = '#DB3C3C';
+const DARK_RED = '#972B2B';
+//--------------------------- END UTILITY STUFF --------------------------------
+//--------------------------- GAME RULES ---------------------------------------
 
 /* Returns an array of validMoves for the piece at source with position oldPos
    Does not take check into account */
@@ -82,7 +92,6 @@ var rookMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   //up
   for(var up = 1; up <= 7 - down; up++) {
     var currRankNum = mod(rankNum + up, 8);
@@ -91,7 +100,6 @@ var rookMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   //left
   var left;
   for(left = 1; left <= 7; left++) {
@@ -101,7 +109,6 @@ var rookMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   //right
   for(var right = 1; right <= 7 - left; right++) {
     var currFileNum = mod(fileNum + right, 8);
@@ -110,7 +117,6 @@ var rookMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   return moves;
 };
 
@@ -129,7 +135,6 @@ var bishopMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   //downright
   for(var downRight = 1; downRight <= 7 - upLeft; downRight++) {
   //  console.log("Going downright");
@@ -141,7 +146,6 @@ var bishopMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   var upRight;
   for(upRight = 1; upRight <= 7; upRight++) {
   //  console.log("Going upright");
@@ -153,7 +157,6 @@ var bishopMoves = function(color, fileNum, rankNum, oldPos) {
       break;
     }
   }
-
   //downleft
   for(var downLeft = 1; downLeft <= 7 - upRight; downLeft++) {
   //  console.log("Going downleft");
@@ -289,7 +292,6 @@ var promotionButtons = function(color, square) {
     }
   }
   buttons.push(bishopButton);
-
   return buttons;
 }
 
@@ -326,14 +328,6 @@ function wouldNotCheck(oldPos, piece, source, target) {
     }
   }
   return true;
-}
-
-function partial(f) {
-  var args = Array.prototype.slice.call(arguments, 1)
-  return function() {
-    var remainingArgs = Array.prototype.slice.call(arguments)
-    return f.apply(null, args.concat(remainingArgs))
-  }
 }
 
 function inCheck(whiteTurn, pos) {
@@ -391,6 +385,8 @@ function check_mate_stale(whiteTurn, pos) {
     finishGame({winner: "draw", reason: "stalemate"});
   }
 }
+//--------------------------- END GAME RULES -----------------------------------
+//--------------------------- USER INTERACTION ---------------------------------
 
 /* Don't allow player to drag wrong color pieces or after game is over
    Also, only player 1 can move white pieces; only player 2 can
@@ -402,8 +398,6 @@ var onDragStart = function(source, piece, position, orientation) {
         return false;
       }
 };
-
-
 
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
@@ -418,18 +412,16 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     //pawn promotion here
     promoted = true;
     $("#promotionText").html("Promote pawn to:")
-    $(function() {
-      /* Note: To figure out how to hide the x button, see this site:
-      https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-      $("#promotionBox").dialog({
-        closeOnEscape: false,
-        open: function(event, ui) {
-          $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-        },
-        modal: true,
-        buttons: promotionButtons(piece.charAt(0), target),
-        title: "Pawn Promotion"
-      });
+    /* Note: To figure out how to hide the x button, see this site:
+    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+    $("#promotionBox").dialog({
+      closeOnEscape: false,
+      open: function(event, ui) {
+        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+      },
+      modal: true,
+      buttons: promotionButtons(piece.charAt(0), target),
+      title: "Pawn Promotion"
     });
   }
   var forward = (piece.charAt(0) == "w") ? 1 : -1;
@@ -468,6 +460,36 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
     sendMove(newPos, gameLogic, $("#Turn").text());
   }
 };
+
+/*On your turn, highlight in grey the places you can move to,
+  and highlight in red the squares enemy pieces threaten*/
+var onMouseoverSquare = function(square, piece, pos) {
+  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack)) {
+    return;
+  }
+  var myPiece = (piece.charAt(0) == 'w' && isWhite) || (piece.charAt(0) == 'b' && isBlack);
+  var lightColor = (myPiece) ? LIGHT_GRAY : LIGHT_RED;
+  var darkColor = (myPiece) ? DARK_GRAY : DARK_RED;
+  var highlights = (myPiece) ? validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square)) : validMoves(square, piece, pos);
+
+  // exit if nothing to highlight
+  if (highlights.length === 0) return;
+
+  // highlight the square they moused over
+  color_square(square, lightColor, darkColor);
+
+  // highlight the possible squares for this piece
+  for (var i = 0; i < highlights.length; i++) {
+    color_square(highlights[i], lightColor, darkColor);
+  }
+};
+
+var onMouseoutSquare = function(square, piece) {
+  uncolor_squares();
+};
+
+//--------------------------- END USER INTERACTION -----------------------------
+//--------------------------- BUTTON SETUP -------------------------------------
 
 function resetPosition() { //this function is not to be used in production
   if(!isBlack && !isWhite) { //spectator?
@@ -512,49 +534,25 @@ function resign() {
     }
   };
   $("#resignText").html("Are you sure you want to resign?")
-  $(function() {
-    /* Note: To figure out how to hide the x button, see this site:
-    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-    $("#resignBox").dialog({
-      closeOnEscape: false,
-      open: function(event, ui) {
-        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-      },
-      modal: true,
-      buttons: [yesButton, noButton],
-      title: "Resign?"
-    });
+
+  /* Note: To figure out how to hide the x button, see this site:
+  https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+  $("#resignBox").dialog({
+    closeOnEscape: false,
+    open: function(event, ui) {
+      $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+    },
+    modal: true,
+    buttons: [yesButton, noButton],
+    title: "Resign?"
   });
+  console.log('About to call: $("#resignBox").dialog("open");');
+  $("#resignBox").dialog("open");
+
 }
 
-/*On your turn, highlight in grey the places you can move to,
-  and highlight in red the squares enemy pieces threaten*/
-var onMouseoverSquare = function(square, piece, pos) {
-  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack)) {
-    return;
-  }
-
-  var myPiece = (piece.charAt(0) == 'w' && isWhite) || (piece.charAt(0) == 'b' && isBlack);
-  var lightColor = (myPiece) ? lightGray : lightRed;
-  var darkColor = (myPiece) ? darkGray : darkRed;
-  var highlights = (myPiece) ? validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square)) : validMoves(square, piece, pos);
-
-  // exit if nothing to highlight
-  if (highlights.length === 0) return;
-
-  // highlight the square they moused over
-  color_square(square, lightColor, darkColor);
-
-  // highlight the possible squares for this piece
-  for (var i = 0; i < highlights.length; i++) {
-    color_square(highlights[i], lightColor, darkColor);
-  }
-};
-
-var onMouseoutSquare = function(square, piece) {
-  uncolor_squares();
-};
-
+//--------------------------- END BUTTON SETUP ---------------------------------
+//--------------------------- FINISH GAME PRETTIFYING --------------------------
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
                     reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
@@ -591,8 +589,8 @@ function finishGame(data) {
       break;
   }
 }
-
-
+//--------------------------- END FINISH GAME PRETTIFYING ----------------------
+//--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
 const TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
   position: TOROIDAL_START,
@@ -635,23 +633,8 @@ var isWhite = false;
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
+//----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
 
-//document.ready function not working for some reason
-// $( document ).ready(function() { //set up globals that depend on page
-//   myName = $("#myName").text();
-//   enemyName = $("#enemyName").text();
-//   //add X in case someone names themselves "lobby"
-//   roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
-//   console.log("inside document.ready");
-//   console.log("myName is " + myName);
-//   console.log("enemyName is " + enemyName);
-//   console.log("roomName is " + roomName);
-// });
-
-console.log("outside document.ready");
-console.log("myName is " + myName);
-console.log("enemyName is " + enemyName);
-console.log("roomName is " + roomName);
 
 //------------------------------------------------------------------------------
 // Connection stuff
