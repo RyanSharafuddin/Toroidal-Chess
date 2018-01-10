@@ -13,19 +13,22 @@
        imagine that a regular chessboard was bent into a cylinder, so that
        the left and right edges were connected, as shown in the figure below:</p>
        <!--  include cylindrical illustration -->
-       <img src="img/cylindrical-chess.jpeg" alt="Cylindrical Board">
+       <img id="cylindrical" src="img/cylindrical-chess.jpeg" alt="Cylindrical Board">
     <p>This can be represented by a square board where the left and right edges
        are connected. So, if a piece moved off the left edge, it would reappear
        on the right edge, and vice-versa. As an example, in the image below, the
-       white rook can move from g5 to b5, even though there are pieces on e5 and
-       c5, since it can move right and wrap around the edge. It cannot however,
-       move to d5, since its path in both directions is blocked.</p>
+       greyed squares represent all legal moves for white's rook.
+       The white rook can move from g5 to b5, even though there are pieces on e5
+       and c5, since it can move right and wrap around the edge. It cannot
+       however, move to d5, since its path in both directions is blocked.</p>
         <!-- include illustration of the above-->
-        <img src="img/illustration_1.png" alt="Rules illustration">
+        <img id="img_1" src="img/illustration_1.png" alt="Rules illustration">
     <p>Now, imagine further bending that cylinder into a torus (doughnut shape),
       so that the front and back edges are now connected, as in the image below:</p>
        <!-- TODO include toroidal illustration -->
-      <p>This is toroidal chess. Any piece that moves off the edge of the board
+       <img id="toroidal" src="img/toroidal.jpeg" alt="Toroidal Board">
+      <p>This is toroidal chess. If represented by a square board,
+      any piece that moves off the edge of the board
       reappears on the opposite edge. All the other rules of chess are exactly
       the same, with a few caveats. These are:</p>
       <ol>
@@ -39,7 +42,8 @@
                position and be considered to have moved. All moves must change
                the board position. </li>
     </ol>
-      <!-- TODO include starting position illustration -->
+      <!-- include starting position illustration -->
+      <img id="img_2" src="img/illustration_2.png" alt="Starting position illustration">
     <h2> Logging In </h2>
     <!-- TODO -->
     <p> There are a few restrictions on nicknames.</p>
@@ -56,13 +60,14 @@
     <p> A list of players who are currently online will appear. To challenge any
         of them to a game, simply click their name. They will receive an invite,
         which they can either decline or accept. If they accept, you two will be
-        redirected to the game room, where you can play. Currently, you can only
-        play one game at a time, though this may change in the future. </p>
+        redirected to the game room, where you can play. Colors will be assigned
+        randomly by the server. Currently, you can only play one game at a time,
+        though this may change in the future. </p>
     <h2> Game Buttons </h2>
     <!-- TODO -->
     <h3> Resign </h3>
     <p>This one's pretty self-explanatory, right?</p>
-    <h3> Propose Draw <h3>
+    <h3> Propose Draw </h3>
     <p> To prevent people from spamming draw proposals, once you propose a draw,
          you may not propose another a draw until you have made a move. </p>
     <h3> Return To Lobby </h3>
@@ -79,7 +84,8 @@
         wrecked by spambots. Before sending a bug report, make
         sure you have a thorough understanding of the rules of the game. All
         the code for this web application can be found on my Github page
-        <a href="https://github.com/RyanSharafuddin/Toroidal-Chess/tree/master">
+        <a href="https://github.com/RyanSharafuddin/Toroidal-Chess/tree/master"
+         target="_blank">
         here</a>.</p>
   </body>
 </html>

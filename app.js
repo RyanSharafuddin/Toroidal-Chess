@@ -24,7 +24,7 @@ app.get('/', function(req, res) {
   res.render('login', {unique: ""});
 });
 
-app.get('/rules', function(req, res) { //TODO once polished up rules page, include link to rules in login
+app.get('/rules', function(req, res) {
   res.render('rules');
 });
 
@@ -49,9 +49,15 @@ app.post('/gameStart', function(req, res) {
   res.render('board.ejs', {myName: req.body.myName, enemyName: req.body.enemyName, roomNamer: req.body.roomNamer});
 });
 
+app.post('/lobbyReturn', function(req, res) {
+  console.log("got post request for lobby return");
+  var user_nickname = req.body.myName;
+  res.render('lobby.ejs', {user_nickname: user_nickname});
+});
+
 
 //example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
-//var rooms = {};
+//var rooms = {}; //deprecated
 var onlinePlayers = {}; //{nickname: {id: id, inLobby: true or false, inGame: true or false, color: "white" or "black" or undefined}}
 //added attributes to socket: nickname, gameRoom (undefined when not in game), nickname always defined
 //lobby room name is lobby for now
@@ -138,6 +144,21 @@ io.on('connection', function(socket) {
 
     socket.on('drawResponse', function(answer) {
       socket.broadcast.to(socket.gameRoom).emit('drawReply', answer);
+    });
+
+    socket.on('lobbyReturn', function(data) {
+      var nickname = socket.nickname;
+      var id = socket.id;
+      if(!data.gameOver) {
+        socket.broadcast.to(socket.gameRoom).emit('oppLeft');
+      }
+      socket.leave(socket.gameRoom);
+      socket.gameRoom = undefined;
+      socket.hereFlag = true;
+      onlinePlayers[nickname]["inLobby"] = true;
+      onlinePlayers[nickname]["inGame"] = false;
+      onlinePlayers[nickname]["color"] = undefined;
+      console.log(nickname + " has gone from game to lobby");
     });
   //-----------------------------End Board Functions ------------------------------
 

@@ -5,3 +5,13 @@ h1 {
 h2 {
   text-align: center;
 }
+
+#img_1,#img_2 {
+  width: 40%;
+  height 40%;
+}
+
+#cylindrical,#toroidal {
+  height: 30%;
+  width: 40%;
+}

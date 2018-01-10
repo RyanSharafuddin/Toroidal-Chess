@@ -566,15 +566,54 @@ function proposeDraw() {
 
 function lobbyButton() {
   if(!gameLogic.gameOver) {
-    //dialog: are you sure you want to return? You'll lose.
+    var yesButton = {
+      text: "Yes",
+      click: function() {
+        $(this).dialog( "close" );
+        lobbyReturn();
+      }
+    };
+    var noButton = {
+      text: "No",
+      click: function() {
+        $(this).dialog( "close" );
+      }
+    };
+    var lobbyText = "Are you sure you want to return to the lobby?"
+    lobbyText += " If you return before the game is over, you will not be able"
+    lobbyText += " to come back to this game, and you will lose."
+    $("#resignText").html(lobbyText);
+    /* Note: To figure out how to hide the x button, see this site:
+    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+    $("#resignBox").dialog({
+      closeOnEscape: false,
+      open: function(event, ui) {
+        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+      },
+      modal: true,
+      buttons: [yesButton, noButton],
+      title: "Return To Lobby?"
+    });
+  }
+  else {
+    lobbyReturn();
   }
 }
 
 function lobbyReturn() {
-  if(!gameLogic.gameOver) {
-    //tell other player that you left
-    socket.emit('abandonGame');
-  }
+  socket.emit("lobbyReturn", {
+    gameOver: gameLogic.gameOver
+  });
+  $.ajax({
+    url: "lobbyReturn",
+    type: 'POST',
+    data: {myName: myName},
+    success: function(page) {
+      console.log("within success function");
+      document.open();
+      document.write(page);
+    }
+  });
 }
 
 //--------------------------- END BUTTON SETUP ---------------------------------
@@ -654,6 +693,7 @@ function TotalState(pos, state, turnString) {
 }
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
+$("#return").on('click', lobbyButton);
 var isBlack = false;
 var isWhite = false;
 var canProposeDraw = true; //renew ability to propose draw everytime you move
