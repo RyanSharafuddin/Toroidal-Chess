@@ -300,7 +300,7 @@ function addPiece(piece, square) {
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
-  sendMove(posObj, gameLogic, $("#Turn").text());
+  sendMove(posObj, gameLogic);
 }
 
 /* Returns true if piece at source threatens square in pos */
@@ -367,7 +367,6 @@ function check_mate_stale(whiteTurn, pos) {
   var checkString = "";
   if(inCheck(whiteTurn, pos)) {
     if(hasMoves(whiteTurn, pos)) {
-      $("#Turn").html(turnString + " - currently in check");
       gameLogic.moves[gameLogic.moves.length - 1] += "+";
       //white turn is in check
       if((whiteTurn && isWhite) || (!whiteTurn && isBlack)) {
@@ -379,7 +378,6 @@ function check_mate_stale(whiteTurn, pos) {
     }
     else {
       var color = (whiteTurn) ? "White" : "Black";
-      //$("#Turn").html("You checkmated " + color + "!"); //taken care of by finishGame
       (whiteTurn) ? gameLogic.whiteMated = true :   gameLogic.blackMated = true;
       gameLogic.moves[gameLogic.moves.length - 1] += "#"
       gameLogic.gameOver = true;
@@ -387,7 +385,6 @@ function check_mate_stale(whiteTurn, pos) {
     }
   }
   else if(!hasMoves(whiteTurn, pos)) {
-    //$("#Turn").html("Stalemate!"); //taken care of by finishGame
     gameLogic.stalemated = true;
     gameLogic.moves[gameLogic.moves.length - 1] += "SM"
     gameLogic.gameOver = true;
@@ -463,11 +460,10 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   gameLogic.whiteTurn = !gameLogic.whiteTurn;
   var moveString = source + "-" + target;
   var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
-  $("#Turn").html(turnString);
   var moveString = source + "-" + target;
   gameLogic.moves.push(moveString);
   if(!promoted) {
-    sendMove(newPos, gameLogic, $("#Turn").text());
+    sendMove(newPos, gameLogic);
   }
 };
 
@@ -501,13 +497,12 @@ var onMouseoutSquare = function(square, piece) {
 //--------------------------- END USER INTERACTION -----------------------------
 //--------------------------- BUTTON SETUP -------------------------------------
 
-function resetPosition() { //this function is not to be used in production
+function resetPosition() { //this function is not to be used in production //deprecated
   if(!isBlack && !isWhite) { //spectator?
     return;
   }
   board1.position(TOROIDAL_START);
   gameLogic.whiteTurn = true;
-  $("#Turn").html("Turn: White");
   gameLogic.gameOver = false;
   gameLogic.blackMated = false;
   gameLogic.whiteMated = false;
@@ -520,7 +515,7 @@ function resetPosition() { //this function is not to be used in production
       gameLogic.enpassants[square] = false;
     }
   }
-  sendMove(board1.position(), gameLogic, $("#Turn").text());
+  sendMove(board1.position(), gameLogic);
 };
 
 function resign() {
@@ -631,36 +626,63 @@ function lobbyReturn() {
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
                     reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
-  console.log("finishGame called");
+  console.log("finishGame called with reason: " + data.reason + " and winner: " + data.winner);
+  console.log((isWhite) ? "white" : "black");
   gameLogic.gameOver = true;
-  $("#Turn").text("");
   var reason = data.reason;
   var winner = data.winner;
   switch(reason) {
     case "checkmate":
       if(((winner == "white") && isWhite) || ((winner == "black") && isBlack)) {
-        $("#announceWinner").text("You checkmated '" + enemyName + "'!");
+        console.log("Setting myself as winner");
+        $("#myNameDisplay").html("WINNER *" + myName + "* WINNER!");
+        $("#myNameDisplay").removeClass("unHighlightedPlayerName");
+
+        $("#enemyNameDisplay").text(enemyName + " was checkmated!");
+        $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
       }
       else {
-        $("#announceWinner").text("You were checkmated by '" + enemyName + "'!");
+        $("#enemyNameDisplay").text("WINNER *" + enemyName + "* WINNER!");
+        $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
+
+        $("#myNameDisplay").text(myName + " was checkmated!");
+        $("#myNameDisplay").addClass("unHighlightedPlayerName");
       }
       break;
     case "stalemate":
-      $("#announceWinner").text("Stalemate!");
+      $("#myNameDisplay").text(myName + " - Stalemate!");
+      $("#enemyNameDisplay").text(enemyName + " - Stalemate!");
+      $("#myNameDisplay").addClass("unHighlightedPlayerName");
+      $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
       break;
     case "resign":
       if((isWhite && winner == "white") || (isBlack && winner == "black")) {
-          $("#announceWinner").text("'" + enemyName + "' resigned!'");
+        $("#myNameDisplay").text("WINNER *" + myName + "* WINNER!");
+        $("#myNameDisplay").removeClass("unHighlightedPlayerName");
+
+        $("#enemyNameDisplay").text(enemyName + " resigned!");
+        $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
       }
       else {
-        $("#announceWinner").text("You resigned!");
+        $("#enemyNameDisplay").text("WINNER *" + enemyName + "* WINNER!");
+        $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
+
+        $("#myNameDisplay").text(myName + " resigned!");
+        $("#myNameDisplay").addClass("unHighlightedPlayerName");
       }
       break;
     case "oppLeft":
-      $("#announceWinner").text("'" + enemyName + "' left!'");
+      $("#myNameDisplay").text("WINNER *" + myName + "* WINNER!");
+      $("#myNameDisplay").removeClass("unHighlightedPlayerName");
+
+      $("#enemyNameDisplay").text(enemyName + " left!");
+      $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
       break;
     case "drawAgreement":
-      $("#announceWinner").text("Draw by agreement!");
+      $("#myNameDisplay").text(myName + " - Draw by agreement.");
+      $("#enemyNameDisplay").text(enemyName + " - Draw by agreement.");
+      $("#myNameDisplay").addClass("unHighlightedPlayerName");
+      $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
       break;
   }
 }
@@ -696,10 +718,9 @@ var gameLogic = {
     h6: false
   }
 };
-function TotalState(pos, state, turnString, inCheck) {
+function TotalState(pos, state, inCheck) {
   this.position = pos;
   this.state = state;
-  this.turnString = turnString;
   this.inCheck = inCheck; //either the nickname of the player who's in check, or ""
 }
 $("#resign").on('click', resign);
@@ -728,30 +749,30 @@ socket.on('start', function(data) {
 });
 
 //to be used by addPiece and onDrop
-function sendMove(pos, state, turnString) {
+function sendMove(pos, state) {
   var inCheck = check_mate_stale(state.whiteTurn, pos);
-  if(inCheck == myName) {
-    $("#myNameDisplay").text(myName + " - in check");
+  if(!gameLogic.gameOver) { //if gameover, my display was already handled
+    if(inCheck == myName) {
+      $("#myNameDisplay").text(myName + " - in check");
+    }
+    if(inCheck == enemyName) {
+      $("#enemyNameDisplay").text(enemyName + " - in check");
+    }
+    if(inCheck == "") {
+      $("#myNameDisplay").text(myName);
+      $("#enemyNameDisplay").text(enemyName);
+    }
+    canProposeDraw = true;
+    $("#draw").removeClass("disabled");
+    $("#myNameDisplay").addClass("unHighlightedPlayerName");
+    $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
   }
-  if(inCheck == enemyName) {
-    $("#enemyNameDisplay").text(enemyName + " - in check");
-  }
-  if(inCheck == "") {
-    $("#myNameDisplay").text(myName);
-    $("#enemyNameDisplay").text(enemyName);
-  }
-  var turnString = $("#Turn").text();
-  canProposeDraw = true;
-  $("#draw").removeClass("disabled");
-  $("#myNameDisplay").addClass("unHighlightedPlayerName");
-  $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
-  socket.emit('move', new TotalState(pos, state, turnString, inCheck));
+  socket.emit('move', new TotalState(pos, state, inCheck));
 }
 
 socket.on('oppMove', function(totalState) {
   board1.position(totalState.position);
   gameLogic = totalState.state;
-  $("#Turn").text(totalState.turnString);
   $("#myNameDisplay").removeClass("unHighlightedPlayerName");
   $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
   var inCheck = totalState.inCheck;
