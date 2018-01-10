@@ -22,6 +22,7 @@
     "ejs": "^2.5.7",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.0.4",
+    "util": "^0.10.3"
   }
 }

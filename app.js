@@ -5,6 +5,7 @@ var io = require('socket.io')(http);
 var path = require('path');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var util = require('util'); //see nodejs.org documentation on this; very helpful
 var port = process.env.PORT || 8000;
 
 
@@ -39,17 +40,19 @@ app.post('/login', function(req, res, next) {
 });
 
 app.post('/gameStart', function(req, res) {
-  var roomNamer = (req.body.roomNamer) ? "roomNamer" : "";
-  res.render('board.ejs', {myName: req.body.myName, enemyName: req.body.enemyName, roomNamer: roomNamer});
+  //console.log("typeof req.body.roomNamer is: " + typeof(req.body.roomNamer)); //only takes strings for some reason
+  //roomNamer is either "0" or "1"
+  res.render('board.ejs', {myName: req.body.myName, enemyName: req.body.enemyName, roomNamer: req.body.roomNamer});
 });
 
 
 //example room format: {1: {hasBlack: false, hasWhite: false, fill: 0}}
-var rooms = {};
-var onlinePlayers = {}; //{nickname: {id: id, inLobby: true or false, inGame: true or false}}
+//var rooms = {};
+var onlinePlayers = {}; //{nickname: {id: id, inLobby: true or false, inGame: true or false, color: "white" or "black" or undefined}}
+//added attributes to socket: nickname, gameRoom (undefined when not in game), nickname always defined
 //lobby room name is lobby for now
 io.on('connection', function(socket) {
-
+    //-----------------------------Lobby Functions------------------------------
     socket.on('lobby', function(nickname) {
       console.log(nickname + " has joined the lobby");
       socket.join("lobby");
@@ -95,50 +98,42 @@ io.on('connection', function(socket) {
       var callerSocket = io.sockets.connected[onlinePlayers[callerNickName]["id"]];
       callerSocket.emit('challengeDeclined', {name: socket.nickname, reason: "busy"});
     });
-    /////////////////////////////////////////////////
-    socket.on('enter', function(requestedRoom) {
-      if((rooms[requestedRoom] == undefined) || (rooms[requestedRoom]["fill"] == 0)) {
-        console.log("A client has created room " + requestedRoom);
-        rooms[requestedRoom] = {hasBlack: false, hasWhite: true, fill: 1};
-        socket.join(requestedRoom);
-        var color = "white";
-        socket.emit('roomAssignment', {roomID: requestedRoom, color: color, full: false});
-        socket.roomID = requestedRoom;
-        socket.color = color;
-        console.log(JSON.stringify(rooms, null, 4));
-      }
-      else if (rooms[requestedRoom]["fill"] == 1) {
-          console.log("A client has joined room " + requestedRoom);
-          rooms[requestedRoom]["fill"] += 1;
-          socket.join(requestedRoom);
-          var color = rooms[requestedRoom]["hasWhite"] ? "black" : "white";
-          rooms[requestedRoom]["hasWhite"] = true;
-          rooms[requestedRoom]["hasBlack"] = true;
-          socket.emit('roomAssignment', {roomID: requestedRoom, color: color, fill: true});
-          socket.roomID = requestedRoom;
-          socket.color = color;
-          io.in(requestedRoom).emit('fullPresence', "dummy data"); //alert other player you've arrived
-          console.log(JSON.stringify(rooms, null, 4));
-          console.log("Sent fullPresence to everyone in room: " + requestedRoom);
-      }
-      else if(rooms[requestedRoom]["fill"] == 2) {
-        console.log("A client has attempted to join a full room: " + requestedRoom);
-        socket.emit('roomAssignment', null);
-        console.log(JSON.stringify(rooms, null, 4));
-      }
+      //-----------------------------End Lobby Functions------------------------------
+      //-----------------------------Board Functions ------------------------------
+    socket.on('startGame', function(gameParameters) {
+      var myName = gameParameters.myName;
+      var enemyName = gameParameters.enemyName;
+      var roomName = gameParameters.roomName;
+      //update id in onlinePlayers object
+      onlinePlayers[myName]["id"] = socket.id;
+      var enemyColor = onlinePlayers[enemyName]["color"];
+      var myColor = (enemyColor === undefined) ? ((Math.random() > .5) ? "white" : "black") : ((enemyColor === "white") ? "black" : "white");
+      //update color in onlinePlayers object
+      onlinePlayers[myName]["color"] = myColor;
+      socket.join(roomName);
+      console.log("onlinePlayers object:");
+      socket.gameRoom = roomName;
+      socket.nickname = myName;
+      console.log(JSON.stringify(onlinePlayers, null, 4));
+      socket.emit('start', {color: myColor});
     });
 
-   socket.on('move', function(totalState){
-     /* Remember, this could also be the reset button, so if reset on first move, don't
-         be alarmed by undefined */
-     console.log("Move made by " + socket.color + " in room " + socket.roomID);
-     console.log("Move is: " + totalState.state.moves[totalState.state.moves.length - 1]);
-     socket.broadcast.to(socket.roomID).emit('oppMove', totalState);
-   });
+    socket.on('move', function(totalState) {
+      console.log("Move made by " + socket.nickname + " in room " + socket.gameRoom);
+      console.log("Move is: " + totalState.state.moves[totalState.state.moves.length - 1]);
+      socket.broadcast.to(socket.gameRoom).emit('oppMove', totalState);
+    });
+  //-----------------------------End Board Functions ------------------------------
 
   socket.on('disconnect', function() { //only use this for xing out of site, not disconnects caused by switching pages
-    if((onlinePlayers[socket.nickname] == undefined) || socket.hereFlag) {
-      //login page
+    if(onlinePlayers[socket.nickname] == undefined) {
+      //for some reason, whenever someone leaves game, an unknown socket also leaves. . .
+      // console.log("logging before crash");
+      // console.log(util.inspect(socket, {colors: true}));
+      // throw "Socket left but has no data in onlinePlayers";
+    }
+    if(socket.hereFlag) {
+      //in order to prevent this function from activating upon moving from lobby to game or game to lobby
       return;
     }
     if(onlinePlayers[socket.nickname]["inLobby"]) {
@@ -151,26 +146,12 @@ io.on('connection', function(socket) {
       onlinePlayers[socket.nickname]["inGame"] = false;
       console.log(socket.nickname + " has left a game");
       //update the other player of that game
+      socket.broadcast.to(socket.gameRoom).emit('oppLeft');
     }
     if(!onlinePlayers[socket.nickname]["inGame"] && !onlinePlayers[socket.nickname]["inLobby"]) {
       delete onlinePlayers[socket.nickname];
     }
     console.log(JSON.stringify(onlinePlayers, null, 4));
-    //////////////////////////////////////////////////////////
-    if(socket.roomID == undefined) {
-      return;
-    }
-    console.log('A client has disconnected from room ' + socket.roomID);
-    if(rooms[socket.roomID] == undefined) {
-      return;
-    }
-    rooms[socket.roomID]["fill"] -= 1;
-    (socket.color == "white") ? rooms[socket.roomID]["hasWhite"] = false : rooms[socket.roomID]["hasBlack"] = false;
-    io.in(socket.roomID).emit('oppLeft', "dummy data");
-    if(rooms[socket.roomID]["fill"] == 0) {
-      delete(rooms[socket.roomID]);
-    }
-    console.log(JSON.stringify(rooms, null, 4));
   });
 });
 

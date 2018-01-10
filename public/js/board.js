@@ -376,17 +376,19 @@ function check_mate_stale(whiteTurn, pos) {
     }
     else {
       var color = (whiteTurn) ? "White" : "Black";
-      $("#Turn").html("You checkmated " + color + "!");
+      //$("#Turn").html("You checkmated " + color + "!"); //taken care of by finishGame
       (whiteTurn) ? gameLogic.whiteMated = true :   gameLogic.blackMated = true;
       gameLogic.moves[gameLogic.moves.length - 1] += "#"
       gameLogic.gameOver = true;
+      finishGame({winner: (gameLogic.whiteMated ? "black" : "white"), reason: "checkmate"});
     }
   }
   else if(!hasMoves(whiteTurn, pos)) {
-    $("#Turn").html("Stalemate!");
+    //$("#Turn").html("Stalemate!"); //taken care of by finishGame
     gameLogic.stalemated = true;
     gameLogic.moves[gameLogic.moves.length - 1] += "SM"
     gameLogic.gameOver = true;
+    finishGame({winner: "draw", reason: "stalemate"});
   }
 }
 
@@ -395,10 +397,8 @@ function check_mate_stale(whiteTurn, pos) {
    move black*/
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
-     (gameLogic.whiteTurn &&  piece.search(/^b/) !== -1) ||
-      (!gameLogic.whiteTurn &&  piece.search(/^w/) !== -1) ||
-      (gameLogic.whiteTurn && isBlack)  ||
-      (!gameLogic.whiteTurn && isWhite )) {
+     (gameLogic.whiteTurn &&  ((piece.search(/^b/) !== -1) || !isWhite)) ||
+      (!gameLogic.whiteTurn &&  ((piece.search(/^w/) !== -1) || !isBlack)) ) {
         return false;
       }
 };
@@ -521,6 +521,38 @@ var onMouseoutSquare = function(square, piece) {
   uncolor_squares();
 };
 
+function finishGame(data) {
+  /* data in form of {winner: "white" or "black" or "draw",
+                    reason: "checkmate", "stalemate", "oppResigned", "oppLeft", "drawAgreement"} */
+  console.log("finishGame called");
+  gameLogic.gameOver = true;
+  $("#Turn").text("");
+  var reason = data.reason;
+  var winner = data.winner;
+  switch(reason) {
+    case "checkmate":
+      if(((winner == "white") && isWhite) || ((winner == "black") && isBlack)) {
+        $("#announceWinner").text("You checkmated '" + enemyName + "'!");
+      }
+      else {
+        $("#announceWinner").text("You were checkmated by '" + enemyName + "'!");
+      }
+      break;
+    case "stalemate":
+      $("#announceWinner").text("Stalemate!");
+      break;
+    case "oppResigned":
+      $("#announceWinner").text("'" + enemyName + "' resigned!'");
+      break;
+    case "oppLeft":
+      $("#announceWinner").text("'" + enemyName + "' left!'");
+      break;
+    case "drawAgreement":
+      $("#announceWinner").text("Draw by agreement!");
+      break;
+  }
+}
+
 
 const TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
@@ -557,30 +589,35 @@ function TotalState(pos, state, turnString) {
   this.state = state;
   this.turnString = turnString;
 }
-var socket = io();
+
 var isBlack = false;
 var isWhite = false;
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
+var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
 
+//document.ready function not working for some reason
+// $( document ).ready(function() { //set up globals that depend on page
+//   myName = $("#myName").text();
+//   enemyName = $("#enemyName").text();
+//   //add X in case someone names themselves "lobby"
+//   roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
+//   console.log("inside document.ready");
+//   console.log("myName is " + myName);
+//   console.log("enemyName is " + enemyName);
+//   console.log("roomName is " + roomName);
+// });
+
+console.log("outside document.ready");
+console.log("myName is " + myName);
+console.log("enemyName is " + enemyName);
+console.log("roomName is " + roomName);
 
 //------------------------------------------------------------------------------
 // Connection stuff
 //------------------------------------------------------------------------------
-// function attempt_connection() {
-//   console.log("attempting connection");
-//   if(connected) {
-//     clearInterval(stopAttempting);
-//     return;
-//   }
-//   var roomID = prompt("What room would you like to enter?");
-//   if(roomID == null || roomID == "") {
-//     roomID = "" + Math.random();
-//   }
-//   socket.emit('enter', roomID);
-// }
-// attempt_connection();
-// var stopAttempting = setInterval(attempt_connection, 5000);
+var socket = io();
+socket.emit('startGame', {myName: myName, enemyName: enemyName, roomName: roomName});
 
 //to be used by addPiece and onDrop
 function sendMove(pos, state, turnString) {
@@ -588,42 +625,9 @@ function sendMove(pos, state, turnString) {
   socket.emit('move', new TotalState(pos, state, turnString));
 }
 
-
-socket.on('roomAssignment', function(assignment) {
-  console.log("received room assignment");
-  if(assignment == null) {
-    console.log("null room");
-    var laterStr = "The room you have requested is currently full. Please wait. In 5 ";
-    laterStr += "seconds, you will again be asked what room you would like to join."
-    $("#roomNum").text(laterStr);
-    return;
-  }
-  connected = true;
-  full = assignment.full;
-  roomID = assignment.roomID;
-  $("#roomNum").text("You are in room " + assignment.roomID + ". You are playing as " + assignment.color + ".");
-  var fullstr = (full) ? "Status: opponent present" : "Status: waiting for opponent to arrive.";
-  $("#wait").text(fullstr);
-  if(assignment.color == "white") {
-    isWhite = true;
-    board1.orientation('white');
-  }
-  else if(assignment.color == "black") {
-    isBlack = true;
-    board1.orientation('black');
-  }
-});
-
-socket.on('fullPresence', function(dummy) {
-  full = true;
-  $("#wait").text("Status: opponent present");
-});
-
-socket.on("oppLeft", function() {
-  full = false;
-  $("#wait").text("Status: waiting for new opponent to arrive");
-  resetPosition();
-  alert("Your opponent left, so the game was reset. You are now waiting for a new opponent.");
+socket.on('start', function(data) {
+  (data.color == "white") ? (isWhite = true) : (isBlack = true);
+  board1.orientation(data.color);
 });
 
 socket.on('oppMove', function(totalState) {
@@ -632,23 +636,20 @@ socket.on('oppMove', function(totalState) {
   $("#Turn").text(totalState.turnString);
   if(gameLogic.gameOver) {
     if(gameLogic.whiteMated) {
-      if(isWhite) {
-          $("#Turn").text("You have been checkmated!");
-      }
-      else {
-        $("#Turn").text("White has been checkmated!");
-      }
+      finishGame({winner: "black", reason: "checkmate"});
     }
     else if (gameLogic.blackMated) {
-      if(isBlack) {
-          $("#Turn").text("You have been checkmated!");
-      }
-      else {
-        $("#Turn").text("Black has been checkmated!");
-      }
+      finishGame({winner: "white", reason: "checkmate"});
     }
     else if (gameLogic.stalemated) {
-      $("#Turn").text("Stalemate!");
+      finishGame({winner: "draw", reason: "stalemate"});
     }
   }
+});
+
+socket.on("oppLeft", function() {
+  if(gameLogic.gameOver) { //don't do anything if game already over
+    return;
+  }
+  finishGame({winner: ((isWhite) ? "white" : "black"), reason: "oppLeft"});
 });

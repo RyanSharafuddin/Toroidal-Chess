@@ -3,6 +3,7 @@
   <head>
     <title>Toroidal Chess</title>
     <link rel="stylesheet" href="css/chessboard-0.3.0.min.css">
+    <link rel="stylesheet" href="css/board.css">
     <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
      rel = "stylesheet">
     <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
@@ -11,26 +12,26 @@
   </head>
 
   <body>
-    <h1> <span id="myName"><%= myName %></span> vs. <span id="enemyName>"><%= enemyName %></span></h1>
+    <h1 id="vs"> <span id="myName"><%= myName %></span> vs. <span id="enemyName"><%= enemyName %></span></h1>
 
-    <!-- <h2 id="wait"></h2> -->
-    <div id="<%=roomNamer%>"></div>
-    <div id="promotionBox"> <div id="promotionText"> </div> </div>
-    <div id="board1" style="width: 650px"></div>
-
-    <div>
-        <style scoped>
-            .button-reset,
-            .button-reset{
-                background: rgb(223, 117, 20); /* this is an orange */
-                font-size: 125%;
-            }
-        </style>
-        <button class="button-reset pure-button" id="reset"> Reset Position </button>
+    <div id="board_buttons">
+      <div id='<%= roomNamer %>'></div>
+      <div id="promotionBox"> <div id="promotionText"> </div> </div>
+      <p id="announceWinner"></p>
+      <div id="board1"></div>
+      <div>
+          <style scoped>
+              .button-reset,
+              .button-reset{
+                  background: rgb(223, 117, 20); /* this is an orange */
+                  font-size: 125%;
+              }
+          </style>
+          <button class="button-reset pure-button" id="reset"> Reset Position </button>
+      </div>
+      <p id="Turn">Turn: White</p>
     </div>
 
-
-    <p id="Turn">Turn: White</p>
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/board.js"></script>
   </body>

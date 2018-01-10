@@ -102,7 +102,7 @@ $( document ).ready(function() {
         $.ajax({
           url: "gameStart",
           type: 'POST',
-          data: {myName: myNickname, enemyName: challenge.challenger, roomNamer: false},
+          data: {myName: myNickname, enemyName: challenge.challenger, roomNamer: "0"},
           success: function(page) {
             document.write(page);
           }
@@ -188,7 +188,7 @@ $( document ).ready(function() {
     $.ajax({
       url: "gameStart",
       type: 'POST',
-      data: {myName: myNickname, enemyName: accepter, roomNamer: true},
+      data: {myName: myNickname, enemyName: accepter, roomNamer: "1"},
       success: function(page) {
         document.write(page);
       }

@@ -1,0 +1,14 @@
+#vs {
+  text-align: center;
+}
+
+/* For the div containing the board and the buttons */
+#board_buttons {
+  align-content: center;
+  margin: auto;
+  width: 50%;
+}
+
+#board1 {
+  width: 650px;
+}
