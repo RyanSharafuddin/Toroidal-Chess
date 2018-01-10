@@ -54,11 +54,24 @@ h1 {
   text-decoration: none;
 }
 
-/*------------------------ https://proto.io/freebies/onoff/ ------------------*/
+/*------------------ https://codepen.io/AllThingsSmitty/pen/MmxxOz -----------*/
+.sliderLabelContainer {
+  position: relative;
+}
+
+.sliderLabel {
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  margin: 0px;
+}
+
 .switch {
   display: inline-block;
   height: 34px;
-  position: relative;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
   width: 60px;
 }
 
@@ -106,5 +119,6 @@ input:checked + .slider:before {
 
 .container {
   margin: 0 auto;
+  position: relative;
 }
 /*-----------------------------------------------------------------------------*/
