@@ -75,8 +75,14 @@ io.on('connection', function(socket) {
 
     /* Every socket automatically joins a room that has the same name as its id, which
        is unique */
-    socket.on('send_challenge', function(nickname) {
-      socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {challenger: socket.nickname});
+    socket.on('send_challenge', function(data) {
+      var nickname = data.nickname;
+      var showValid = data.showValid;
+      var showThreat = data.showThreat;
+      socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {
+        challenger: socket.nickname,
+        showValid: showValid,
+        showThreat: showThreat});
     });
 
     socket.on('declineChallenge', function(challenger) {

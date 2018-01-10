@@ -25,7 +25,10 @@ function onLoad() {
   function challengePlayer(nickname) {
     busy = true;
     console.log("Currently busy");
-    socket.emit('send_challenge', nickname);
+    showValid = $("#validMovesSlide").prop("checked");
+    showThreat = $("#enemyThreatSlide").prop("checked");
+
+    socket.emit('send_challenge', {nickname: nickname, showValid: showValid, showThreat: showThreat});
     //put up a waiting for response dialogue
     var timeLeft = WAIT_TIME;
     var waitHTML = "Waiting for a response from '" + nickname + "'."
@@ -195,6 +198,8 @@ function onLoad() {
   });
 }
 
+var showValid;
+var showThreat; //global variables to be set everytime you challenge someone
 var loaded = false;
 var WAIT_TIME = 60; //how many seconds to wait for someone to reply to invitation
 /* how many seconds someone has to reply to an invitation.
