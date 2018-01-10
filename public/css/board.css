@@ -45,3 +45,11 @@
   background: #D00202;
   text-decoration: none;
 }
+
+.disabled {
+  background: #5b5e63;
+}
+
+.disabled:hover {
+  background: #5b5e63;
+}

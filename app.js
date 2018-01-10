@@ -127,6 +127,14 @@ io.on('connection', function(socket) {
     socket.on('resignation', function(resignData) {
       socket.broadcast.to(socket.gameRoom).emit('resigned', resignData);
     });
+
+    socket.on('drawProposal', function() {
+      socket.broadcast.to(socket.gameRoom).emit('drawOffer');
+    });
+
+    socket.on('drawResponse', function(answer) {
+      socket.broadcast.to(socket.gameRoom).emit('drawReply', answer);
+    });
   //-----------------------------End Board Functions ------------------------------
 
   socket.on('disconnect', function() { //only use this for xing out of site, not disconnects caused by switching pages

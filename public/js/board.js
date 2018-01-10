@@ -546,11 +546,23 @@ function resign() {
     buttons: [yesButton, noButton],
     title: "Resign?"
   });
-  console.log('About to call: $("#resignBox").dialog("open");');
-  $("#resignBox").dialog("open");
-
 }
 
+function proposeDraw() {
+  if(!canProposeDraw || gameLogic.gameOver) {
+    return;
+  }
+  canProposeDraw = false;
+  //TODO grey out draw proposal button
+  $("#draw").addClass("disabled");
+  $("#drawText").html("You have proposed a draw.");
+  $("#drawBox").dialog({
+    modal: false,
+    buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
+    title: "Draw Proposal Sent"
+  });
+  socket.emit('drawProposal');
+}
 //--------------------------- END BUTTON SETUP ---------------------------------
 //--------------------------- FINISH GAME PRETTIFYING --------------------------
 function finishGame(data) {
@@ -627,9 +639,10 @@ function TotalState(pos, state, turnString) {
   this.turnString = turnString;
 }
 $("#resign").on('click', resign);
-
+$("#draw").on('click', proposeDraw);
 var isBlack = false;
 var isWhite = false;
+var canProposeDraw = true; //renew ability to propose draw everytime you move
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
@@ -645,6 +658,10 @@ socket.emit('startGame', {myName: myName, enemyName: enemyName, roomName: roomNa
 //to be used by addPiece and onDrop
 function sendMove(pos, state, turnString) {
   check_mate_stale(state.whiteTurn, pos);
+  var turnString = $("#Turn").text();
+  canProposeDraw = true;
+  //TODO ungrey out button
+  $("#draw").removeClass("disabled");
   socket.emit('move', new TotalState(pos, state, turnString));
 }
 
@@ -679,4 +696,52 @@ socket.on("oppLeft", function() {
 
 socket.on('resigned', function(resignData) {
   finishGame({winner: resignData.winnerColor, reason: "resign"});
+});
+
+socket.on('drawOffer', function() {
+  var acceptButton = {
+    text: "Accept",
+    click: function() {
+      socket.emit("drawResponse", "yes");
+      finishGame({winner: "draw", reason: "drawAgreement"});
+      $(this).dialog("close");
+    }
+  };
+  var declineButton = {
+    text: "Decline",
+    click: function() {
+      socket.emit("drawResponse", "no");
+      $(this).dialog("close");
+    }
+  }
+  $("#drawText").html("'" + enemyName + "' has proposed a draw.");
+  $("#drawBox").dialog({
+    closeOnEscape: false,
+    open: function(event, ui) {
+      $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+    },
+    modal: true,
+    buttons: [acceptButton, declineButton],
+    title: "Draw Proposal"
+  });
+});
+
+socket.on('drawReply', function(reply) {
+  if(reply == "yes") {
+    $("#drawText").html("'" + enemyName + "' has accepted your draw proposal.");
+    $("#drawBox").dialog({
+      modal: false,
+      buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
+      title: "Draw Proposal Accepted"
+    });
+    finishGame({winner: "draw", reason: "drawAgreement"});
+  }
+  else if(reply == "no") {
+    $("#drawText").html("'" + enemyName + "' has rejected your draw proposal.");
+    $("#drawBox").dialog({
+      modal: false,
+      buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
+      title: "Draw Proposal Rejected"
+    });
+  }
 });
