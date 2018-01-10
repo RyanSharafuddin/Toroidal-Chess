@@ -3,6 +3,12 @@
 //Use bracket notation if you want to treat object as dictionary
 var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
+var ALL_SQUARES = [];
+for(var rank = 0; rank < 8; rank++) {
+  for(var file = 0; file < 8; file++) {
+    ALL_SQUARES.push(FILES[file] + RANKS[rank]);
+  }
+}
 
 /* Converts a filenum and rankNum to a string representing the algebraic
    position. For example, coord(2, 3) returns "c4" */
@@ -305,9 +311,32 @@ function addPiece(piece, square) {
 
 /* Returns true if piece at source threatens square in pos */
 function threatens(pos, piece, source, square) {
+  if(piece == "bQ" && source == "d6" && square == "d2") {
+    console.log("threatens()");
+    console.log("Checking if the " + piece + " at " + source + " threatens " + square);
+    console.log(JSON.stringify(pos));
+  }
   moves = validMoves(source, piece, pos);
+  if(piece == "bQ" && source == "d6" && square == "d2") {
+    console.log("moves are " + moves);
+  }
   return ($.inArray(square, moves) != -1);
 }
+
+/* Returns true if piece at source threatens would threaten square in pos if
+   . . . you get the idea , given king locations */
+function wouldThreatenIfOppositeKingWentThere(pos, piece, source, whiteKingLoc, blackKingLoc, square) {
+  var posCopy = Object.assign({}, pos); //okay because oldPos is not a nested object
+  var correctKingLoc = (piece.charAt(0) == 'w') ? blackKingLoc : whiteKingLoc;
+  var correctKing = (piece.charAt(0) == 'w') ?'bK' : 'wK';
+  console.log("Checking if the " + piece + " at " + source + " would threaten the " + correctKing + " if it moved from "
+    + correctKingLoc + " to " + square);
+  delete posCopy[correctKingLoc];
+  posCopy[square] = correctKing;
+  threatens(posCopy, piece, source, square) ? console.log("Yes it would.") : console.log("No, it wouldn't.");
+  return threatens(posCopy, piece, source, square);
+}
+
 
 /*returns true if making this move would not leave the moving player in check */
 function wouldNotCheck(oldPos, piece, source, target) {
@@ -408,6 +437,7 @@ var onDragStart = function(source, piece, position, orientation) {
 
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
+  uncolor_squares();
   var moves = validMoves(source, piece, oldPos).filter(partial(wouldNotCheck, oldPos, piece, source));
   if($.inArray(target, moves) === -1) {
     return 'snapback';
@@ -470,14 +500,23 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
 var onMouseoverSquare = function(square, piece, pos) {
-  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) || (!gameLogic.whiteTurn && !isBlack)) {
+  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) ||
+    (!gameLogic.whiteTurn && !isBlack)
+    || (!showValid && !showThreat) ) {
     return;
   }
+
   var myPiece = (piece.charAt(0) == 'w' && isWhite) || (piece.charAt(0) == 'b' && isBlack);
   var lightColor = (myPiece) ? LIGHT_GRAY : LIGHT_RED;
   var darkColor = (myPiece) ? DARK_GRAY : DARK_RED;
-  var highlights = (myPiece) ? validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square)) : validMoves(square, piece, pos);
-
+  var highlights = (myPiece) ? validMoves(square, piece, pos).filter(
+    partial(wouldNotCheck, pos, piece, square)) : ALL_SQUARES.filter(partial(
+      wouldThreatenIfOppositeKingWentThere, pos, piece, square, gameLogic.wKLoc, gameLogic.bKLoc));
+  //Get all squares. Filter by: for each square: if opposite king moved there, would piece at source in pos threaten it?
+  //TODO
+  if((!showValid && myPiece) || (!showThreat && !myPiece)) {
+    return;
+  }
   // exit if nothing to highlight
   if (highlights.length === 0) return;
 
@@ -558,7 +597,6 @@ function proposeDraw() {
     return;
   }
   canProposeDraw = false;
-  //TODO grey out draw proposal button
   $("#draw").addClass("disabled");
   $("#drawText").html("You have proposed a draw.");
   $("#drawBox").dialog({
@@ -687,14 +725,14 @@ function finishGame(data) {
   }
 }
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
-//--------------------------- GLOBALS AND SETUP varRUCTORS -------------------
+//--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
 var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
 var cfg = {
   position: TOROIDAL_START,
   draggable: true,
   onDragStart: onDragStart,
-//  onMouseoutSquare: onMouseoutSquare,
-//  onMouseoverSquare: onMouseoverSquare,
+  onMouseoutSquare: onMouseoutSquare,
+  onMouseoverSquare: onMouseoverSquare,
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
@@ -733,6 +771,11 @@ var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
 $("#vs").remove(); //needed to get info; don't want to display
+
+var showValid = (($("#showValidY").length > 0) ? true : false)
+var showThreat = (($("#showThreatY").length > 0) ? true : false)
+console.log("sv: " + showValid);
+console.log("st: " + showThreat);
 //----------------------- END GLOBALS AND SETUP varRUCTORS -------------------
 
 

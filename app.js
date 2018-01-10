@@ -52,8 +52,8 @@ app.post('/gameStart', function(req, res) {
   res.render('board.ejs', {myName: req.body.myName,
                           enemyName: req.body.enemyName,
                           roomNamer: req.body.roomNamer,
-                          showValid: req.body.showValid,
-                          showThreat: req.body.showThreat});
+                          showValid: req.body.showValid.charAt(0),
+                          showThreat: req.body.showThreat.charAt(0)}); //since Jquery apparently can't deal with periods in ids
 });
 
 app.post('/lobbyReturn', function(req, res) {
