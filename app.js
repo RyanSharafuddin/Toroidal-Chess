@@ -86,6 +86,10 @@ io.on('connection', function(socket) {
       var nickname = data.nickname;
       var showValid = data.showValid;
       var showThreat = data.showThreat;
+      if(onlinePlayers[nickname] == undefined) {
+        socket.emit('error');
+        return; //prevent crashing when people press back button and stuff
+      }
       socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {
         challenger: socket.nickname,
         showValid: showValid,

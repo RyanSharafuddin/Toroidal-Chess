@@ -25,7 +25,7 @@
         <img id="img_1" src="img/illustration_1.png" alt="Rules illustration">
     <p>Now, imagine further bending that cylinder into a torus (doughnut shape),
       so that the front and back edges are now connected, as in the image below:</p>
-       <!-- TODO include toroidal illustration -->
+       <!--  include toroidal illustration -->
        <img id="toroidal" src="img/toroidal.jpeg" alt="Toroidal Board">
       <p>This is toroidal chess. If represented by a square board,
       any piece that moves off the edge of the board
@@ -77,8 +77,18 @@
         not necessarily legal moves for the opponent; however, you cannot move
         your king into these squares, as doing so would leave you in check from
         the enemy piece in question. This also applies to both players.</p>
-    <h2> Game Buttons </h2>
+    <h2> Game Play </h2>
     <!-- TODO -->
+    <p> Simply drag and drop your pieces to make a move. If the move is legal,
+        it will be made. Otherwise, the piece will snap back to its original
+        location. When it's your turn, the bar containing your name will turn
+        green. If you are in check, the bar also notifies you of that. At the end
+        of the game, the bars display the win/loss status. Also, if the game ended
+        in checkmate or stalemate (as opposed to say, a resignation or a draw by
+        agreement), upon mousing over the squares, you can see the winning side's threats,
+        regardless of whether the show threat option was chosen. This is to help
+        players understand why situations are checkmate or stalemate.</p>
+    <h3> Game Buttons </h3>
     <h4> Resign </h4>
     <p>This one's pretty self-explanatory, right?</p>
     <h4> Propose Draw </h4>
@@ -105,11 +115,12 @@
     <p> Thanks to my cousin Siam for being the first person I ever played
         toroidal chess with. He beat me the first two times, but on this website,
         I shall defeat him! (Or possibly continue my losing streak; who knows?) </p>
-    <p> The website <a href="http://www.cssportal.com">http://www.cssportal.com</a>
+    <p> The website <a href="http://www.cssportal.com" target="_blank">http://www.cssportal.com</a>
         was quite helpful in creating several of the CSS
         templates used for this site. </p>
-    <p> The API provided by <a href="http://chessboardjs.com/">http://chessboardjs.com/</a>
-        was used for the chessboard (though not for the move validation or rules
-        implementing). </p> 
+    <p> The API provided by <a href="http://chessboardjs.com/" target="_blank">
+        http://chessboardjs.com/</a>
+        was used for the chessboard display (though not for the move validation or rules
+        implementing). </p>
   </body>
 </html>

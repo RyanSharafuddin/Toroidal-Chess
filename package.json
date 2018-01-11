@@ -1,7 +1,7 @@
 {
-  "name": "toroidal",
+  "name": "toroidal-chess",
   "version": "1.0.0",
-  "description": "",
+  "description": "Play Toroidal chess with other players over the web.",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"

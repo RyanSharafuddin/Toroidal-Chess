@@ -217,6 +217,12 @@ function onLoad() {
     });
     busy = false;
   });
+
+  socket.on('error', function() {
+    alert("There has been an error. The server does not recognize this nickname"
+   + "as being logged in. You must return to the login page at: https://toroidal-chess.herokuapp.com/"
+  + ". If this keeps happening, it is probably some sort of bug in the application");
+  });
 }
 
 var showValid;
