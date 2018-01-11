@@ -30,6 +30,10 @@ function partial(f) {
   }
 }
 
+function myTurn() {
+  return ((isWhite && gameLogic.whiteTurn) || (isBlack && !gameLogic.whiteTurn))
+}
+
 //from http://chessboardjs.com/examples#5003
 /*colors square in light_color if it's a white square, or
   dark_color if it's a black sqaure.
@@ -311,15 +315,7 @@ function addPiece(piece, square) {
 
 /* Returns true if piece at source threatens square in pos */
 function threatens(pos, piece, source, square) {
-  if(piece == "bQ" && source == "d6" && square == "d2") {
-    console.log("threatens()");
-    console.log("Checking if the " + piece + " at " + source + " threatens " + square);
-    console.log(JSON.stringify(pos));
-  }
   moves = validMoves(source, piece, pos);
-  if(piece == "bQ" && source == "d6" && square == "d2") {
-    console.log("moves are " + moves);
-  }
   return ($.inArray(square, moves) != -1);
 }
 
@@ -329,11 +325,8 @@ function wouldThreatenIfOppositeKingWentThere(pos, piece, source, whiteKingLoc, 
   var posCopy = Object.assign({}, pos); //okay because oldPos is not a nested object
   var correctKingLoc = (piece.charAt(0) == 'w') ? blackKingLoc : whiteKingLoc;
   var correctKing = (piece.charAt(0) == 'w') ?'bK' : 'wK';
-  console.log("Checking if the " + piece + " at " + source + " would threaten the " + correctKing + " if it moved from "
-    + correctKingLoc + " to " + square);
   delete posCopy[correctKingLoc];
   posCopy[square] = correctKing;
-  threatens(posCopy, piece, source, square) ? console.log("Yes it would.") : console.log("No, it wouldn't.");
   return threatens(posCopy, piece, source, square);
 }
 
@@ -499,24 +492,94 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   }
 };
 
+//returns a list of squares that piece at square threatens
+var threatenedSquares = function(square, piece, pos) {
+  //note that relies on gameLogic, so not robust
+  return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, pos, piece, square, gameLogic.wKLoc, gameLogic.bKLoc));
+}
+
+var legalSquares = function(square, piece, pos) {
+  return validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square));
+}
+
+function gameOverMouseOver(square, piece, pos) {
+  if((gameLogic.whiteMated && isBlack) || (gameLogic.blackMated && isWhite)) {
+    console.log("I am the mater; highlight my threats in red");
+    var myPieceHighlights = threatenedSquares;
+    var myLightHighCol = LIGHT_RED;
+    var myDarkHighCol = DARK_RED;
+    var enemyHighlights = legalSquares
+    var enemyLightHighCol = LIGHT_GRAY;
+    var enemyDarkHighCol = DARK_GRAY;
+  }
+  //I'm the matee -- default action
+  else if((gameLogic.whiteMated && isWhite) || (gameLogic.blackMated && isBlack)) {
+    var myPieceHighlights = legalSquares;
+    var enemyHighlights = threatenedSquares;
+    var myLightHighCol = LIGHT_GRAY;
+    var myDarkHighCol = DARK_GRAY;
+    var enemyLightHighCol = LIGHT_RED;
+    var enemyDarkHighCol = DARK_RED;
+  }
+  else if(gameLogic.stalemated) {
+    var myLightHighCol = LIGHT_RED;
+    var myDarkHighCol = DARK_RED;
+    var enemyLightHighCol = LIGHT_RED;
+    var enemyDarkHighCol = DARK_RED;
+    var enemyHighlights = threatenedSquares;
+    var myPieceHighlights = threatenedSquares;
+  }
+  else {
+    return; //game end by draw agreement or leaving or resign
+  }
+  var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
+  var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
+  var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
+  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos) : enemyHighlights(square, piece, pos);
+  console.log("game over highlights: " + highlights);
+  // exit if nothing to highlight
+  if (highlights.length === 0) return;
+
+  // highlight the square they moused over
+  color_square(square, lightColor, darkColor);
+
+  // highlight the possible squares for this piece
+  for (var i = 0; i < highlights.length; i++) {
+    color_square(highlights[i], lightColor, darkColor);
+  }
+}
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
+  //on game over by mate or stalemate, see threats of winning side
 var onMouseoverSquare = function(square, piece, pos) {
-  if(!piece || gameLogic.gameOver || (gameLogic.whiteTurn && !isWhite) ||
-    (!gameLogic.whiteTurn && !isBlack)
-    || (!showValid && !showThreat) ) {
+  if(gameLogic.gameOver) {
+    gameOverMouseOver(square, piece, pos);
+    return;
+  }
+  if(!piece || !myTurn() || (!showValid && !showThreat) ) {
     return;
   }
 
-  var myPiece = (piece.charAt(0) == 'w' && isWhite) || (piece.charAt(0) == 'b' && isBlack);
-  var lightColor = (myPiece) ? LIGHT_GRAY : LIGHT_RED;
-  var darkColor = (myPiece) ? DARK_GRAY : DARK_RED;
-  var highlights = (myPiece) ? validMoves(square, piece, pos).filter(
-    partial(wouldNotCheck, pos, piece, square)) : ALL_SQUARES.filter(partial(
+  var myPieceHighlights = function(square, piece, pos) {
+    //show where I can go, should be nowhere
+    return validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square));
+  };
+  var myLightHighCol = LIGHT_GRAY;
+  var myDarkHighCol = DARK_GRAY;
+  var enemyHighlights = function(square, piece, pos) {
+    return ALL_SQUARES.filter(partial(
       wouldThreatenIfOppositeKingWentThere, pos, piece, square, gameLogic.wKLoc, gameLogic.bKLoc));
-  //Get all squares. Filter by: for each square: if opposite king moved there, would piece at source in pos threaten it?
-  //TODO
-  if((!showValid && myPiece) || (!showThreat && !myPiece)) {
+  };
+  var enemyLightHighCol = LIGHT_RED;
+  var enemyDarkHighCol = DARK_RED;
+
+  var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
+  var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
+  var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
+  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos) : enemyHighlights(square, piece, pos);
+  console.log(highlights);
+
+  if(((!showValid && myPiece) || (!showThreat && !myPiece))) {
     return;
   }
   // exit if nothing to highlight
@@ -666,15 +729,12 @@ function lobbyReturn() {
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
                     reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
-  console.log("finishGame called with reason: " + data.reason + " and winner: " + data.winner);
-  console.log((isWhite) ? "white" : "black");
   gameLogic.gameOver = true;
   var reason = data.reason;
   var winner = data.winner;
   switch(reason) {
     case "checkmate":
       if(((winner == "white") && isWhite) || ((winner == "black") && isBlack)) {
-        console.log("Setting myself as winner");
         $("#myNameDisplay").html("WINNER *" + myName + "* WINNER!");
         $("#myNameDisplay").removeClass("unHighlightedPlayerName");
 
@@ -778,8 +838,6 @@ $("#vs").remove(); //needed to get info; don't want to display
 
 var showValid = (($("#showValidY").length > 0) ? true : false)
 var showThreat = (($("#showThreatY").length > 0) ? true : false)
-console.log("sv: " + showValid);
-console.log("st: " + showThreat);
 //----------------------- END GLOBALS AND SETUP varRUCTORS -------------------
 
 
