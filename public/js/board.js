@@ -916,9 +916,13 @@ $('#messageForm').submit(function(){
 
 socket.on('chatting', appendMessage);
 
+function hasWhiteSpace(s) {
+  return /\s/g.test(s);
+}
+
 function appendMessage(data) {
   var LIMIT = 38;
-  if (data.message.length > LIMIT) {
+  if ((data.message.length > LIMIT) && !hasWhiteSpace(data.message)) {
     var a = data.message.slice(0, LIMIT);
     $('#messages').append(messageMaker(data.color, data.sender, a));
     appendMessage({color: data.color, sender: data.sender, message: data.message.slice(LIMIT)});
