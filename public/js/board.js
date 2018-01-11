@@ -660,10 +660,12 @@ function resign() {
 function proposeDraw() {
   if(!canProposeDraw || gameLogic.gameOver) {
     return;
-  }
+
   canProposeDraw = false;
   $("#draw").addClass("disabled");
-  $("#drawText").html("You have proposed a draw.");
+  $("#drawText").html("You have proposed a draw. To prevent people from "
+                        + "spamming draw offers, you may not propose another "
+                        + "draw until you make a move.");
   $("#drawBox").dialog({
     modal: false,
     buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
