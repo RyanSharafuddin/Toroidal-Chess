@@ -419,6 +419,8 @@ function check_mate_stale(whiteTurn, pos) {
     gameLogic.gameOver = true;
     finishGame({winner: "draw", reason: "stalemate"});
   }
+  $('#moveHistory').append('<li>' + gameLogic.moves[gameLogic.moves.length - 1] + '</li>');
+  $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
   return checkString;
 }
 //--------------------------- END GAME RULES -----------------------------------
@@ -770,6 +772,8 @@ var canProposeDraw = true; //renew ability to propose draw everytime you move
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
+var whiteChat = "#7a04ef";
+var blackChat = "#ef8904";
 $("#vs").remove(); //needed to get info; don't want to display
 
 var showValid = (($("#showValidY").length > 0) ? true : false)
@@ -829,6 +833,8 @@ socket.on('oppMove', function(totalState) {
     $("#myNameDisplay").text(myName);
     $("#enemyNameDisplay").text(enemyName);
   }
+  $('#moveHistory').append('<li>' + gameLogic.moves[gameLogic.moves.length - 1] + '</li>');
+  $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
   if(gameLogic.gameOver) {
     if(gameLogic.whiteMated) {
       finishGame({winner: "black", reason: "checkmate"});
@@ -902,11 +908,28 @@ socket.on('drawReply', function(reply) {
 });
 //------------------------------Chat Stuff--------------------------------------
 $('#messageForm').submit(function(){
-  socket.emit('chatMessage', {message: $('#m').val(), sender: myName});
+  var color = (isWhite) ? whiteChat : blackChat;
+  socket.emit('chatMessage', {message: $('#m').val(), sender: myName, color: color});
   $('#m').val('');
   return false;
 });
 
-socket.on('chatting', function(data) {
-  $('#messages').append($('<li>').text(data.message));
-});
+socket.on('chatting', appendMessage);
+
+function appendMessage(data) {
+  var LIMIT = 38;
+  if (data.message.length > LIMIT) {
+    var a = data.message.slice(0, LIMIT);
+    $('#messages').append(messageMaker(data.color, data.sender, a));
+    appendMessage({color: data.color, sender: data.sender, message: data.message.slice(LIMIT)});
+  }
+  else {
+    $('#messages').append(messageMaker(data.color, data.sender, data.message));
+    $("#chatContainer").scrollTop($("#chatContainer")[0].scrollHeight);
+  }
+}
+function messageMaker(color, name, message) {
+  var HTMLstr = '<li><div class="messageContainer"><div class="nameTile" style="color: ' + color + ';"><strong>' + name;
+  HTMLstr += ': </strong></div><div class="messageTile"> ' + message + '</div></div></li>';
+  return HTMLstr;
+}

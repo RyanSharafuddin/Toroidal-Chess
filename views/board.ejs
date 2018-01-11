@@ -6,6 +6,7 @@
 <title>Toroidal Chess</title>
 <link rel="stylesheet" href="css/chessboard-0.3.0.min.css">
 <link rel="stylesheet" href="css/board.css">
+<link rel="stylesheet" href="css/chat.css">
 
 <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
 <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
@@ -21,14 +22,22 @@
 <body>
     <div id="wrapper">
         <div id="leftcolumn">
-          <!--  <p>USE THIS SPACE TO IMPLEMENT MOVE HISTORY IN THE FUTURE.
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.
-              Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis
-              sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper
-              porta. Mauris massa. Vestibulum lacinia arcu eget nulla.</p>
+          <h2 id="historyHeader"> Move History </h2>
+
+          <div id="historyContainer">
+            <ol id="moveHistory">
+
+            </ol>
+          </div>
+          <!--
+           <p>USE THIS SPACE TO IMPLEMENT MOVE HISTORY IN THE FUTURE.
+             TODO: <br> 1) Chat colors + bold. <br> 2) Separate column for
+             words and names. <br> 3) Scroll div and not page. <br>
+             4) Push to Github and see if it works <br>
+             5) do something else <br></p>
           -->
         </div>
+
         <div id="content">
 
           <h1 id="vs"> <span id="myName"><%= myName %></span> vs. <span id="enemyName"><%= enemyName %></span></h1>
@@ -49,13 +58,25 @@
                 <button class="gameButtons" id="return"> Return To Lobby </button>
             </div>
           </div>
-
        </div>
+
         <div id="rightcolumn">
+          <h2 id="messageHeader"> Messages </h2>
           <div id="chatContainer">
-            <ul id="messages"></ul>
+            <ul id="messages">
+
+          <!-- template for messages
+          <li>
+              <div class="messageContainer">
+                <div class="nameTile" style="color: #7a04ef;"><strong>aaaaaaaaaaaaaaa:</strong></div>
+                <div class="messageTile">Bunch 'o' content just tons of it wow so much that I wish the other two divs on the left would match my height (with extra extra extra extra extra padding at the bottom)</div>
+              </div>
+            </li>
+          -->
+
+        </ul>
             <form id="messageForm" action="">
-              <input id="m" autocomplete="off" /><button id="chatButton">Send</button>
+              <input id="m" autocomplete="off" /><button id="chatButton">Chat</button>
             </form>
           </div>
         </div>
