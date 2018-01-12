@@ -156,11 +156,10 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
-  board1.position(newPos); //need to do this to quickly display new pos to user who moved //TODO might get rid of? //No bug, but STILL SLOW //use position instant???
   updatePosAndStateGeneral(oldPos, gameLogic, source, target);
   canProposeDraw = true; //renew ability to propose draw everytime you move
   $("#draw").removeClass("disabled");
-  board1.position(oldPos); //need to do this to update in enpassant possibility
+  board1.position(oldPos); //need to do this to update in enpassant possibility //TODO: position instant
   var promoted = false;
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
