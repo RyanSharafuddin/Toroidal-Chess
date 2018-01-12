@@ -1,14 +1,15 @@
 /*PURPOSE:
-    construct an initial pos obj and state //TODO
+    construct an initial pos obj and state
     put in pos, state, and source, get all legal moves
     put in pos, state, and source, get all threats,
-    put in pos, state, and legal move, get back updated pos and state //TODO (will implement separation)
-    put in pos, state, and legal move, get back whether it's a promotion or not //TODO
-    put in pos, state, and promotion piece desire, get back updated pos and state //TODO (will implement) */
+    put in pos, state, and legal move, get back updated pos and state
+    put in pos, state, and legal move, get back whether it's a promotion or not
+    put in pos, state, and promotion piece desire, get back updated pos and state
 //DEPENDENCIES: NONE (once hardcode toroidal start posObj)
-/*NOTICE: I'm defining a valid move to be a move that the piece can make
+NOTICE: I'm defining a valid move to be a move that the piece can make
            without regards to check while a legal move is a valid move that
-           doesn't leave the mover in check                               */
+           doesn't leave the mover in check
+*/
 var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 var ALL_SQUARES = [];
@@ -345,43 +346,6 @@ function check_mate_stale(whiteTurn, pos, state) {
   return {inCheck: "", checkmated: "", stalemated: false};
 }
 
-function updatePawnPromotionPrelim(pos, state, source, target) {
-  //done for both pawn promotion before add piece AND regular moves
-  var moveString = source + "-" + target;
-  var piece = pos[source];
-  var targetPiece = pos[target];
-  delete pos[source];
-  pos[target] = piece;
-  state.moves.push(moveString);
-  var forward = (piece.charAt(0) == "w") ? 1 : -1;
-  //piece is pawn that moved columns to an empty square, so must have en passanted
-  if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) &&
-                                              (targetPiece == undefined)) { //TODO: not entering for some reason
-    console.log("Made en passant move!")
-    var backward = -1 * forward;
-    var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
-    console.log("eliminateSquare: " + eliminateSquare);
-    delete pos[eliminateSquare];
-  }
-  //reset enpassants
-  for(var square in state.enpassants) {
-    if(state.enpassants.hasOwnProperty(square)) {
-      state.enpassants[square] = false;
-    }
-  }
-  //set enpassant if this was moving up 2
-  if(piece.charAt(1) == "P" &&
-      (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
-    var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
-    state.enpassants[enable] = true;
-  }
-  //STUFF
-  if(piece.charAt(1) == "K") {
-    var kingField = piece.charAt(0) + "KLoc";
-    state[kingField] = target;
-  }
-}
-
 function getUpdatedPosAndStatePrelim(pos, state, source, target) {
   //done for both pawn promotion before add piece AND regular moves
   var posCopy = deepCopy(pos);
@@ -420,27 +384,6 @@ function getUpdatedPosAndStatePrelim(pos, state, source, target) {
     stateCopy[kingField] = target;
   }
   return {pos: posCopy, state: stateCopy};
-}
-
-function updatePawnPromotionFinal(pos, state) {
-  var source = null;
-  state.whiteTurn = !state.whiteTurn;
-  checkObj = check_mate_stale(state.whiteTurn, pos, state);
-  state.inCheck = checkObj.inCheck.length > 0;
-  state.gameOver = ((checkObj.checkmated.length > 0) || checkObj.stalemated)
-  state.whiteMated = (checkObj.checkmated == "w");
-  state.blackMated = (checkObj.checkmated == "b");
-  state.stalemated = checkObj.stalemated;
-
-  if(state.whiteMated || state.blackMated) {
-    state.moves[state.moves.length - 1] += "#";
-  }
-  if(state.inCheck) {
-    state.moves[state.moves.length - 1] += "+";
-  }
-  if(state.stalemated) {
-    state.moves[state.moves.length - 1] += "SM"
-  }
 }
 
 function getUpdatedPosAndStateFinal(pos, state) {
@@ -527,9 +470,24 @@ function InitGameState() {
 function deepCopy(data) {
   return JSON.parse(JSON.stringify(data)); //horribly inefficient, I know
 }
-//ONLY UPDATES POS, not state. modifies pos, so pass it a copy gotten from chessboard
-function promotePawnGetPos(piece, square, pos) { //should not expose this TODO
-    pos[square] = piece;
+
+function promotePawnGetUpdatedPosAndState(promoteTo, square, oldPos, oldState) {
+  //TODO change moves in stateCopy to reflect piece addition
+  console.log("promoteTo: " + promoteTo); //should be like "wQ"
+  var posCopy = deepCopy(oldPos);
+  var stateCopy = deepCopy(oldState);
+  switch(promoteTo.charAt(1)) {
+    case "Q": //TODO change stateCopy.moves
+      break;
+    case "N":
+      break;
+    case "B":
+      break;
+    case "R":
+      break;
+  }
+  posCopy[square] = promoteTo;
+  return  getUpdatedPosAndStateFinal(posCopy, stateCopy);
 }
 //returns whether or not this qualifies for pawn promotion
 function isPromotion(piece, source, target) {
@@ -545,29 +503,10 @@ var threatenedSquares = function(square, piece, pos, state) {
   return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, state, pos, piece, square));
 }
 
-//modifies pos and state, given that legal move
-//if source and target are null, that means pawn was promoted and this is called again
-function updatePosAndStateGeneral(pos, state, source, target) {
-  if(source == null) {
-    updatePawnPromotionFinal(pos, state);
-    return;
-  }
-  var piece = pos[source];
-  console.log("piece is: " + piece);
-  if(isPromotion(piece, source, target)) {
-    updatePawnPromotionPrelim(pos, state, source, target);
-    return;
-  }
-  updatePawnPromotionPrelim(pos, state, source, target);
-  updatePawnPromotionFinal(pos, state);
-}
 
 function getUpdatedPosAndState(pos, state, source, target) {
-  if(source == null) { //called from addPiece
-    return getUpdatedPosAndStateFinal(pos, state); //TODO implement
-  }
-  data = getUpdatedPosAndStatePrelim(pos, state, source, target); //TODO implement
-  if(isPromotion(piece, source, target)) {
+  data = getUpdatedPosAndStatePrelim(pos, state, source, target);
+  if(isPromotion(pos[source], source, target)) {
     return data;
   }
   return getUpdatedPosAndStateFinal(data.pos, data.state);

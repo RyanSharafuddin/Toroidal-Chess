@@ -1,7 +1,7 @@
 /*
 PURPOSE: controls the 3 buttons below the board. Resign, Propose Draw, Return To Lobby
 DEPENDENCIES: board.js
-GLOBALS USED: gameLogic,
+GLOBALS USED: gameLogic.gameOver,
               isWhite,
               canProposeDraw
               enemyName

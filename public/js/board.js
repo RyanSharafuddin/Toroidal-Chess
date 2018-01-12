@@ -1,9 +1,30 @@
+/*
+PURPOSE:
+  HIGH LEVEL: controls the board and display bars and move history
+
+  Disallow dragging enemy pieces or any pieces when it's not your turn (onDrag)
+  Disallow illegal moves (onDrop)
+  Update display and state when a legal move is made (onDrop)
+  Send move when a legal move is made (onDrop)
+  Update display and state when a move is received (socket.on("oppMove"))
+  Update display and state when a move ends the game (updateDisplay)
+  Have a finishGame function that buttons can use to draw/resign/etc. (finishGame)
+  end game if the opponent leaves (socket.on("oppLeft"))
+  have a mouseover/mouseout function that updates dispay on mousing over stuff
+
+DEPENDENCIES: toroidal.js - uses only the "exposed" functions
+*/
+
 //--------------------------- UTILITY STUFF ------------------------------------
-//TODO: consider having this file be only for the board and the bars
-//above and below the board, and have separate file for board buttons. list
-//purpose at top of all files.
 function myTurn(state) {
   return ((isWhite && state.whiteTurn) || (isBlack && !state.whiteTurn))
+}
+
+//only use this after a move has been made
+function setUpdatedStateAndPos(data, fromEnemy) {
+  var useAnimation = fromEnemy;
+  board1.position(data.pos, useAnimation);
+  gameLogic = data.state;
 }
 
 //from http://chessboardjs.com/examples#5003
@@ -31,7 +52,7 @@ var promotionButtons = function(color, square) {
   var queenButton = {
     text: "Queen",
     click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Queen"; //TODO: move this functionality into update pawn final. cuz gameLogic should be read only
+      gameLogic.moves[gameLogic.moves.length - 1] += " Queen"; //TODO: move this functionality into promote pawn. cuz gameLogic should be read only
       addPiece(color + "Q", square);
       $(this).dialog( "close" );
     }
@@ -72,13 +93,10 @@ var promotionButtons = function(color, square) {
 
 /* Only call this when promoting a pawn */
 function addPiece(piece, square) {
-  posObj = board1.position();
-  promotePawnGetPos(piece, square, posObj);
-  var useAnimation = false;
-  board1.position(posObj, useAnimation); //TODO: SET updated state and pos
-  updatePosAndStateGeneral(posObj, gameLogic, null, null);
-  updateDisplay(gameLogic, posObj);
-  sendMove(posObj, gameLogic);
+  var data = promotePawnGetUpdatedPosAndState(piece, square, board1.position(), gameLogic);
+  setUpdatedStateAndPos(data, false);
+  updateDisplay(gameLogic, board1.position());
+  sendMove(board1.position(), gameLogic);
 }
 
 //call when user promotes
@@ -157,20 +175,17 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
-  //TODO have separate GET updated and SET updated state and pos, which includes whether the move came from you or enemy
-  updatePosAndStateGeneral(oldPos, gameLogic, source, target);
+  var data = getUpdatedPosAndState(oldPos, gameLogic, source, target);
   canProposeDraw = true; //TODO: set UI state
   $("#draw").removeClass("disabled"); //TODO: put in update display, which includes whether move came from you or enemy
-  var useAnimation = false;
-  board1.position(oldPos, useAnimation); //see chessboard.js docs want do it instantly so it feels like you moved
-
+  setUpdatedStateAndPos(data, false);
   if (isPromotion(piece, source, target)) {
     var color = piece.charAt(0);
     displayPromotionButtons(color, target)
   }
   else {
     updateDisplay(gameLogic, oldPos);
-    sendMove(oldPos, gameLogic);
+    sendMove(data.pos, gameLogic);
   }
 };
 
@@ -324,7 +339,6 @@ function finishGame(data) {
 }
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
 //--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
-//TODO: have the TOROIDAL_START var and gameLogic start constructor be in toroidal.js
 var cfg = {
   position: TOROIDAL_START,
   draggable: true,
@@ -340,6 +354,7 @@ function TotalState(pos, state) {
   this.state = state;
 }
 //TODO: consider creating and documenting a User Interface state update (only needs to update canProposeDraw, as of now)
+//TODO: consider making an init function for the variables below
 var isBlack = false;
 var isWhite = false;
 var canProposeDraw = true;
@@ -372,10 +387,7 @@ function sendMove(pos, state) {
 }
 
 socket.on('oppMove', function(totalState) {
-  //TODO: setupdated state and pos,update UI state (comes from enemy)
-  var useAnimation = true;
-  board1.position(totalState.position, useAnimation);
-  gameLogic = totalState.state;
+  setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, true);
   updateDisplay(gameLogic, totalState.position);
 });
 
