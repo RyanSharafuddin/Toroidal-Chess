@@ -443,6 +443,29 @@ function updatePawnPromotionFinal(pos, state) {
   }
 }
 
+function getUpdatedPosAndStateFinal(pos, state) {
+  var posCopy = deepCopy(pos);
+  var stateCopy = deepCopy(state);
+  stateCopy.whiteTurn = !stateCopy.whiteTurn;
+  checkObj = check_mate_stale(stateCopy.whiteTurn, posCopy, stateCopy);
+  stateCopy.inCheck = checkObj.inCheck.length > 0;
+  stateCopy.gameOver = ((checkObj.checkmated.length > 0) || checkObj.stalemated)
+  stateCopy.whiteMated = (checkObj.checkmated == "w");
+  stateCopy.blackMated = (checkObj.checkmated == "b");
+  stateCopy.stalemated = checkObj.stalemated;
+
+  if(stateCopy.whiteMated || stateCopy.blackMated) {
+    stateCopy.moves[stateCopy.moves.length - 1] += "#";
+  }
+  if(stateCopy.inCheck) {
+    stateCopy.moves[stateCopy.moves.length - 1] += "+";
+  }
+  if(stateCopy.stalemated) {
+    stateCopy.moves[stateCopy.moves.length - 1] += "SM"
+  }
+  return {pos: posCopy, state: stateCopy};
+}
+
 //------------------------- FUNCTIONS TO EXPOSE TO OUTSIDE ---------------------
 //other javascript files should ONLY call these functions/use these globals, not any of the above functions
 
