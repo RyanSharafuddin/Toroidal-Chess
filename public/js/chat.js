@@ -5,8 +5,8 @@
       board.js
   GLOBALS FROM DEPENDENCIES USED:
     isWhite - whether that browser is the white player or not
-    myName  - nickname of that browser                                                      
-                                                                              */
+    myName  - nickname of that browser
+//TODO: modularize this file so that it can be used for lobby chat with no changes                                                                            */
 var WHITE_CHAT_COLOR = "#7a04ef"; //the color in which white's name appears in chat
 var BLACK_CHAT_COLOR = "#ef8904";
 $('#messageForm').submit(function(){
