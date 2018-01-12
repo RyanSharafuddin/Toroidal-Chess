@@ -341,26 +341,42 @@ function updatePawnPromotionPrelim(pos, state, source, target) {
   //done for both pawn promotion before add piece AND regular moves
   var moveString = source + "-" + target;
   var piece = pos[source];
+  var targetPiece = pos[target];
   delete pos[source];
   pos[target] = piece;
   state.moves.push(moveString);
-}
-
-function updatePawnPromotionFinal(pos, state) {
-  var source = null;
-  state.whiteTurn = !state.whiteTurn;
+  var forward = (piece.charAt(0) == "w") ? 1 : -1;
+  //piece is pawn that moved columns to an empty square, so must have en passanted
+  if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) &&
+                                              (targetPiece == undefined)) { //TODO: not entering for some reason
+    console.log("Made en passant move!")
+    var backward = -1 * forward;
+    var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
+    console.log("eliminateSquare: " + eliminateSquare);
+    delete pos[eliminateSquare];
+  }
   //reset enpassants
   for(var square in state.enpassants) {
     if(state.enpassants.hasOwnProperty(square)) {
       state.enpassants[square] = false;
     }
   }
-  //set enpassant if this was an enpassant move
-  if( (source != null) && piece.charAt(1) == "P" &&
+  //set enpassant if this was moving up 2
+  if(piece.charAt(1) == "P" &&
       (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
     var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
     state.enpassants[enable] = true;
   }
+  //STUFF
+  if(piece.charAt(1) == "K") {
+    var kingField = piece.charAt(0) + "KLoc";
+    state[kingField] = target;
+  }
+}
+
+function updatePawnPromotionFinal(pos, state) {
+  var source = null;
+  state.whiteTurn = !state.whiteTurn;
   checkObj = check_mate_stale(state.whiteTurn, pos, state);
   state.inCheck = checkObj.inCheck.length > 0;
   state.gameOver = ((checkObj.checkmated.length > 0) || checkObj.stalemated)
@@ -397,25 +413,12 @@ function updatePosAndStateGeneral(pos, state, source, target) {
     return;
   }
   var piece = pos[source];
+  console.log("piece is: " + piece);
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
     updatePawnPromotionPrelim(pos, state, source, target);
     return;
   }
-  var forward = (piece.charAt(0) == "w") ? 1 : -1;
   updatePawnPromotionPrelim(pos, state, source, target);
-  //STUFF
-  if(piece.charAt(1) == "K") {
-    var kingField = piece.charAt(0) + "KLoc";
-    state[kingField] = target;
-  }
-  //piece is pawn that moved columns to an empty square, so must have en passanted
-  if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) &&
-                                              (pos[target] == undefined)) {
-  //  console.log("Made en passant move!")
-    var backward = -1 * forward;
-    var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
-    delete pos[eliminateSquare];
-  }
   updatePawnPromotionFinal(pos, state);
 }

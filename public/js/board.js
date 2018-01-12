@@ -156,11 +156,14 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
+  //TODO: Somehow, oldPos already has pawn there.
+  console.log('oldPos: ' + target + ": " + oldPos[target]);
   updatePosAndStateGeneral(oldPos, gameLogic, source, target);
   canProposeDraw = true; //renew ability to propose draw everytime you move
   $("#draw").removeClass("disabled");
+  console.log(JSON.stringify(gameLogic.enpassants));
   board1.position(oldPos); //need to do this to update in enpassant possibility //TODO: position instant
-  var promoted = false;
+  var promoted = false;    //TODO: enpassants aren't working - fix that
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
     promoted = true;
