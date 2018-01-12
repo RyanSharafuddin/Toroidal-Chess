@@ -1,14 +1,13 @@
 //--------------------------- UTILITY STUFF ------------------------------------
-
+//TODO: consider having this file be only for the board and the bars
+//above and below the board, and have separate file for board buttons. list
+//purpose at top of all files.
 function myTurn(state) {
   return ((isWhite && state.whiteTurn) || (isBlack && !state.whiteTurn))
 }
 
 //from http://chessboardjs.com/examples#5003
-/*colors square in light_color if it's a white square, or
-  dark_color if it's a black sqaure.
-  light_color and dark_color must be hex strings in format
-  "#a9a9a9" */
+// light_color and dark_color are hex RGB strings for CSS use
 var color_square = function(square, light_color, dark_color) {
   var squareEl = $('#board1 .square-' + square);
   var background = light_color;
@@ -32,7 +31,7 @@ var promotionButtons = function(color, square) {
   var queenButton = {
     text: "Queen",
     click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Queen"; //TODO: move this functionality into update pawn final. cux gameLogic should be read only
+      gameLogic.moves[gameLogic.moves.length - 1] += " Queen"; //TODO: move this functionality into update pawn final. cuz gameLogic should be read only
       addPiece(color + "Q", square);
       $(this).dialog( "close" );
     }
@@ -70,6 +69,18 @@ var promotionButtons = function(color, square) {
   buttons.push(bishopButton);
   return buttons;
 }
+
+/* Only call this when promoting a pawn */
+function addPiece(piece, square) {
+  posObj = board1.position();
+  promotePawnGetPos(piece, square, posObj);
+  var useAnimation = false;
+  board1.position(posObj, useAnimation); //TODO: SET updated state and pos
+  updatePosAndStateGeneral(posObj, gameLogic, null, null);
+  updateDisplay(gameLogic, posObj);
+  sendMove(posObj, gameLogic);
+}
+
 //call when user promotes
 function displayPromotionButtons(color, target) {
   $("#promotionText").html("Promote pawn to:")
@@ -84,16 +95,6 @@ function displayPromotionButtons(color, target) {
     buttons: promotionButtons(color, target),
     title: "Pawn Promotion"
   });
-}
-
-/* Only call this when promoting a pawn */
-function addPiece(piece, square) {
-  posObj = board1.position(); //TODO: move functionality to toroidal.js?
-  posObj[square] = piece;
-  board1.position(posObj);
-  updatePosAndStateGeneral(posObj, gameLogic, null, null);
-  updateDisplay(gameLogic, posObj);
-  sendMove(posObj, gameLogic);
 }
 
 
@@ -151,25 +152,23 @@ var onDragStart = function(source, piece, position, orientation) {
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
   uncolor_squares();
-  var color = piece.charAt(0);
+  //TODO: make legal move function from source target, state, and oldpos public func in toroidal
   var moves = legalSquares(source, piece, oldPos, gameLogic);
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
-  console.log('oldPos: ' + target + ": " + oldPos[target]);
+  //TODO have separate GET updated and SET updated state and pos, which includes whether the move came from you or enemy
   updatePosAndStateGeneral(oldPos, gameLogic, source, target);
-  canProposeDraw = true; //renew ability to propose draw everytime you move
-  $("#draw").removeClass("disabled");
-  console.log(JSON.stringify(gameLogic.enpassants));
+  canProposeDraw = true; //TODO: set UI state
+  $("#draw").removeClass("disabled"); //TODO: put in update display, which includes whether move came from you or enemy
   var useAnimation = false;
   board1.position(oldPos, useAnimation); //see chessboard.js docs want do it instantly so it feels like you moved
-  var promoted = false;
-  var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
-  if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
-    promoted = true;
+
+  if (isPromotion(piece, source, target)) {
+    var color = piece.charAt(0);
     displayPromotionButtons(color, target)
   }
-  if(!promoted) {
+  else {
     updateDisplay(gameLogic, oldPos);
     sendMove(oldPos, gameLogic);
   }
@@ -270,116 +269,7 @@ var onMouseoutSquare = function(square, piece) {
 };
 
 //--------------------------- END USER INTERACTION -----------------------------
-//--------------------------- BUTTON SETUP -------------------------------------
 
-function resign() {
-  if(gameLogic.gameOver) { //resign button shouldn't do anything if already gameover
-    return;
-  }
-  var yesButton = {
-    text: "Yes",
-    click: function() {
-      gameLogic.gameOver = true;
-      var winnerColor = isWhite ? "black" : "white";
-      finishGame({winner: winnerColor, reason: "resign"});
-      socket.emit('resignation', {winnerColor: winnerColor});
-      $(this).dialog( "close" );
-    }
-  };
-  var noButton = {
-    text: "No",
-    click: function() {
-      $(this).dialog( "close" );
-    }
-  };
-  $("#resignText").html("Are you sure you want to resign?")
-
-  /* Note: To figure out how to hide the x button, see this site:
-  https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-  $("#resignBox").dialog({
-    closeOnEscape: false,
-    open: function(event, ui) {
-      $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-    },
-    modal: true,
-    buttons: [yesButton, noButton],
-    title: "Resign?"
-  });
-}
-
-function proposeDraw() {
-  console.log("proposeDraw() called!")
-  if(!canProposeDraw || gameLogic.gameOver) {
-    console.log("can't propose draw because of variable or gameOver");
-    return;
-  }
-
-  canProposeDraw = false;
-  $("#draw").addClass("disabled");
-  $("#drawText").html("You have proposed a draw. To prevent people from "
-                        + "spamming draw offers, you may not propose another "
-                        + "draw until you make a move.");
-  $("#drawBox").dialog({
-    modal: false,
-    buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
-    title: "Draw Proposal Sent"
-  });
-  socket.emit('drawProposal');
-}
-
-function lobbyButton() {
-  if(!gameLogic.gameOver) {
-    var yesButton = {
-      text: "Yes",
-      click: function() {
-        $(this).dialog( "close" );
-        lobbyReturn();
-      }
-    };
-    var noButton = {
-      text: "No",
-      click: function() {
-        $(this).dialog( "close" );
-      }
-    };
-    var lobbyText = "Are you sure you want to return to the lobby?"
-    lobbyText += " If you return before the game is over, you will not be able"
-    lobbyText += " to come back to this game, and you will lose."
-    $("#resignText").html(lobbyText);
-    /* Note: To figure out how to hide the x button, see this site:
-    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-    $("#resignBox").dialog({
-      closeOnEscape: false,
-      open: function(event, ui) {
-        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-      },
-      modal: true,
-      buttons: [yesButton, noButton],
-      title: "Return To Lobby?"
-    });
-  }
-  else {
-    lobbyReturn();
-  }
-}
-
-function lobbyReturn() {
-  socket.emit("lobbyReturn", {
-    gameOver: gameLogic.gameOver
-  });
-  $.ajax({
-    url: "lobbyReturn",
-    type: 'POST',
-    data: {myName: myName},
-    success: function(page) {
-      console.log("within success function");
-      document.open();
-      document.write(page);
-    }
-  });
-}
-
-//--------------------------- END BUTTON SETUP ---------------------------------
 //--------------------------- FINISH GAME PRETTIFYING --------------------------
 
 function setGameEndDisplay(data) {
@@ -434,7 +324,7 @@ function finishGame(data) {
 }
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
 //--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
-var TOROIDAL_START = "r1b2b1r/pp4pp/n1pqkp1n/3pp3/3PP3/N1PQKP1N/PP4PP/R1B2B1R";
+//TODO: have the TOROIDAL_START var and gameLogic start constructor be in toroidal.js
 var cfg = {
   position: TOROIDAL_START,
   draggable: true,
@@ -444,42 +334,18 @@ var cfg = {
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
-var gameLogic = { //TODO: make this object only writable by toroidal.js
-  whiteTurn: true,
-  inCheck: false, //only set to true if inCheck and not in mate. Applies to side of whiteTurn
-  gameOver: false,
-  blackMated: false,
-  whiteMated: false,
-  stalemated: false,
-  wKLoc: "e3",
-  bKLoc: "e6",
-  moves: [],
-  enpassants: {
-    a3: false,
-    b3: false,
-    g3: false,
-    h3: false,
-    a6: false,
-    b6: false,
-    g6: false,
-    h6: false
-  }
-};
+var gameLogic = new InitGameState();
 function TotalState(pos, state) {
   this.position = pos;
   this.state = state;
 }
-$("#resign").on('click', resign);
-$("#draw").on('click', proposeDraw);
-$("#return").on('click', lobbyButton);
+//TODO: consider creating and documenting a User Interface state update (only needs to update canProposeDraw, as of now)
 var isBlack = false;
 var isWhite = false;
 var canProposeDraw = true;
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
-var whiteChat = "#7a04ef";
-var blackChat = "#ef8904";
 $("#vs").remove(); //needed to get info; don't want to display
 
 var showValid = (($("#showValidY").length > 0) ? true : false)
@@ -497,6 +363,7 @@ socket.on('start', function(data) {
   (data.color == "white") ? (isWhite = true) : (isBlack = true);
   isWhite ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
   board1.orientation(data.color);
+  console.log(JSON.stringify(board1.position()));
 });
 
 //to be used by addPiece and onDrop
@@ -505,6 +372,7 @@ function sendMove(pos, state) {
 }
 
 socket.on('oppMove', function(totalState) {
+  //TODO: setupdated state and pos,update UI state (comes from enemy)
   var useAnimation = true;
   board1.position(totalState.position, useAnimation);
   gameLogic = totalState.state;
@@ -517,86 +385,3 @@ socket.on("oppLeft", function() {
   }
   finishGame({winner: ((isWhite) ? "white" : "black"), reason: "oppLeft"});
 });
-
-socket.on('resigned', function(resignData) {
-  finishGame({winner: resignData.winnerColor, reason: "resign"});
-});
-
-socket.on('drawOffer', function() {
-  var acceptButton = {
-    text: "Accept",
-    click: function() {
-      socket.emit("drawResponse", "yes");
-      finishGame({winner: "draw", reason: "drawAgreement"});
-      $(this).dialog("close");
-    }
-  };
-  var declineButton = {
-    text: "Decline",
-    click: function() {
-      socket.emit("drawResponse", "no");
-      $(this).dialog("close");
-    }
-  }
-  $("#drawText").html("'" + enemyName + "' has proposed a draw.");
-  $("#drawBox").dialog({
-    closeOnEscape: false,
-    open: function(event, ui) {
-      $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-    },
-    modal: true,
-    buttons: [acceptButton, declineButton],
-    title: "Draw Proposal"
-  });
-});
-
-socket.on('drawReply', function(reply) {
-  if(reply == "yes") {
-    $("#drawText").html("'" + enemyName + "' has accepted your draw proposal.");
-    $("#drawBox").dialog({
-      modal: false,
-      buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
-      title: "Draw Proposal Accepted"
-    });
-    finishGame({winner: "draw", reason: "drawAgreement"});
-  }
-  else if(reply == "no") {
-    $("#drawText").html("'" + enemyName + "' has rejected your draw proposal.");
-    $("#drawBox").dialog({
-      modal: false,
-      buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
-      title: "Draw Proposal Rejected"
-    });
-  }
-});
-//------------------------------Chat Stuff--------------------------------------
-$('#messageForm').submit(function(){
-  var color = (isWhite) ? whiteChat : blackChat;
-  socket.emit('chatMessage', {message: $('#m').val(), sender: myName, color: color});
-  $('#m').val('');
-  return false;
-});
-
-socket.on('chatting', appendMessage);
-
-function hasWhiteSpace(s) {
-  return /\s/g.test(s);
-}
-
-function appendMessage(data) {
-  var LIMIT = 38;
-  if ((data.message.length > LIMIT) && !hasWhiteSpace(data.message)) {
-    var a = data.message.slice(0, LIMIT);
-    $('#messages').append(messageMaker(data.color, data.sender, a));
-    appendMessage({color: data.color, sender: data.sender, message: data.message.slice(LIMIT)});
-  }
-  else {
-    $('#messages').append(messageMaker(data.color, data.sender, data.message));
-    $("#chatContainer").scrollTop($("#chatContainer")[0].scrollHeight);
-  }
-}
-function messageMaker(color, name, message) {
-  var HTMLstr = '<li><div class="messageContainer"><div class="nameTile" style="color: ' + color + ';"><strong>' + name;
-  HTMLstr += ': </strong></div><div class="messageTile"> ' + message + '</div></div></li>';
-  return HTMLstr;
-}
