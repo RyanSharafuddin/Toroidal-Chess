@@ -1,37 +1,7 @@
 //--------------------------- UTILITY STUFF ------------------------------------
-//Notes: don't call anything "location".
-//Use bracket notation if you want to treat object as dictionary
-var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
-var ALL_SQUARES = [];
-for(var rank = 0; rank < 8; rank++) {
-  for(var file = 0; file < 8; file++) {
-    ALL_SQUARES.push(FILES[file] + RANKS[rank]);
-  }
-}
 
-/* Converts a filenum and rankNum to a string representing the algebraic
-   position. For example, coord(2, 3) returns "c4" */
-var coord = function(fileNum, rankNum) {
-  var f = FILES[fileNum];
-  var rank = RANKS[rankNum];
-  return (f + rank);
-};
-
-function mod(n, m) {
-  return ((n % m) + m) % m;
-}
-
-function partial(f) {
-  var args = Array.prototype.slice.call(arguments, 1)
-  return function() {
-    var remainingArgs = Array.prototype.slice.call(arguments)
-    return f.apply(null, args.concat(remainingArgs))
-  }
-}
-
-function myTurn() {
-  return ((isWhite && gameLogic.whiteTurn) || (isBlack && !gameLogic.whiteTurn))
+function myTurn(state) {
+  return ((isWhite && state.whiteTurn) || (isBlack && !state.whiteTurn))
 }
 
 //from http://chessboardjs.com/examples#5003
@@ -56,215 +26,11 @@ var DARK_GRAY = '#696969';
 var LIGHT_RED = '#DB3C3C';
 var DARK_RED = '#972B2B';
 //--------------------------- END UTILITY STUFF --------------------------------
-//--------------------------- GAME RULES ---------------------------------------
-
-/* Returns an array of validMoves for the piece at source with position oldPos
-   Does not take check into account */
-var validMoves = function(source, piece, oldPos) {
-  var file = source.charAt(0);
-  var rank = source.charAt(1);
-
-  var fileNum = $.inArray(file, FILES);
-  var rankNum = $.inArray(rank, RANKS);
-
-  switch (piece) {
-    case "wR":
-    case "bR":
-      return rookMoves(piece.charAt(0), fileNum, rankNum, oldPos);
-    case "wB":
-    case "bB":
-      return bishopMoves(piece.charAt(0), fileNum, rankNum, oldPos);
-    case "wQ":
-    case "bQ":
-      return queenMoves(piece.charAt(0), fileNum, rankNum, oldPos);
-    case "wK":
-    case "bK":
-      return kingMoves(piece.charAt(0), fileNum, rankNum, oldPos);
-    case "wN":
-    case "bN":
-      return knightMoves(piece.charAt(0), fileNum, rankNum, oldPos);
-    case "wP":
-    case "bP":
-      return pawnMoves(piece.charAt(0), fileNum, rankNum, oldPos);
-    default:
-      return [];
-  }
-};
-
-var rookMoves = function(color, fileNum, rankNum, oldPos) {
-  var moves = [];
-  //down
-  var down;
-  for(down = 1; down <= 7; down++) {
-    var currRankNum = mod(rankNum - down, 8);
-    var square = coord(fileNum, currRankNum);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  //up
-  for(var up = 1; up <= 7 - down; up++) {
-    var currRankNum = mod(rankNum + up, 8);
-    var square = coord(fileNum, currRankNum);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  //left
-  var left;
-  for(left = 1; left <= 7; left++) {
-    var currFileNum = mod(fileNum - left, 8);
-    var square = coord(currFileNum, rankNum);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  //right
-  for(var right = 1; right <= 7 - left; right++) {
-    var currFileNum = mod(fileNum + right, 8);
-    var square = coord(currFileNum, rankNum);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  return moves;
-};
-
-var bishopMoves = function(color, fileNum, rankNum, oldPos) {
-  //console.log("Bishop moves called with color: " + color + " fileNum: " + fileNum + " rankNum: " + rankNum);
-  var moves = [];
-  //upleft
-  var upLeft;
-  for(upLeft = 1; upLeft <= 7; upLeft++) {
-    //console.log("Going upleft");
-    var currFileNum = mod(fileNum - upLeft, 8);
-    var currRankNum = mod(rankNum + upLeft, 8);
-    var square = coord(currFileNum, currRankNum);
-    //console.log("Testing square " + square);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  //downright
-  for(var downRight = 1; downRight <= 7 - upLeft; downRight++) {
-  //  console.log("Going downright");
-    var currFileNum = mod(fileNum + downRight, 8);
-    var currRankNum = mod(rankNum - downRight, 8);
-    var square = coord(currFileNum, currRankNum);
-  //  console.log("Testing square " + square);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  var upRight;
-  for(upRight = 1; upRight <= 7; upRight++) {
-  //  console.log("Going upright");
-    var currFileNum = mod(fileNum + upRight, 8);
-    var currRankNum = mod(rankNum + upRight, 8);
-    var square = coord(currFileNum, currRankNum);
-  //  console.log("Testing square " + square);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  //downleft
-  for(var downLeft = 1; downLeft <= 7 - upRight; downLeft++) {
-  //  console.log("Going downleft");
-    var currFileNum = mod(fileNum - downLeft, 8);
-    var currRankNum = mod(rankNum - downLeft, 8);
-    var square = coord(currFileNum, currRankNum);
-  //  console.log("Testing square " + square);
-    if(updateMoves(moves, square, oldPos, color) == -1) {
-      break;
-    }
-  }
-  return moves;
-}
-
-var queenMoves = function(color, fileNum, rankNum, oldPos) {
-  //since a queen is a combination of rook and bishop
-  return (rookMoves(color, fileNum, rankNum, oldPos).concat(bishopMoves(color, fileNum, rankNum, oldPos)))
-}
-
-var kingMoves = function(color, fileNum, rankNum, oldPos) {
-  var moves = [];
-  for(var fileChange = -1; fileChange <= 1; fileChange++) {
-    for(var rankChange = -1; rankChange <= 1; rankChange++) {
-      var square = coord(mod(fileNum + fileChange, 8), mod(rankNum + rankChange, 8));
-      updateMoves(moves, square, oldPos, color);
-    }
-  }
-  return moves;
-}
-
-var knightMoves = function(color, fileNum, rankNum, oldPos) {
-  var moves = [];
-  updateMoves(moves, coord(mod(fileNum + 2, 8), mod(rankNum + 1, 8)), oldPos, color);
-  updateMoves(moves, coord(mod(fileNum + 2, 8), mod(rankNum - 1, 8)), oldPos, color);
-
-  updateMoves(moves, coord(mod(fileNum + 1, 8), mod(rankNum + 2, 8)), oldPos, color);
-  updateMoves(moves, coord(mod(fileNum + 1, 8), mod(rankNum - 2, 8)), oldPos, color);
-
-  updateMoves(moves, coord(mod(fileNum - 2, 8), mod(rankNum + 1, 8)), oldPos, color);
-  updateMoves(moves, coord(mod(fileNum - 2, 8), mod(rankNum - 1, 8)), oldPos, color);
-
-  updateMoves(moves, coord(mod(fileNum - 1, 8), mod(rankNum + 2, 8)), oldPos, color);
-  updateMoves(moves, coord(mod(fileNum - 1, 8), mod(rankNum - 2, 8)), oldPos, color);
-  return moves;
-}
-
-var pawnMoves = function(color, fileNum, rankNum, oldPos) {
-  var forward = (color == "w") ? 1 : -1;
-  var moves = [];
-  var oneAhead = coord(fileNum, rankNum + forward); //no need to mod because pawns don't occur on first or last ranks
-
-  if(oldPos[oneAhead] == undefined) {
-    moves.push(oneAhead);
-    var upTwo = (color == "w") ? ["a2", "b2", "g2", "h2"] : ["a7", "b7", "g7", "h7"]; //pawns here may be able to move forward 2 spaces
-    if($.inArray(coord(fileNum, rankNum), upTwo) != -1) {
-      var twoAhead = coord(fileNum, rankNum + (2 * forward));
-      if(oldPos[twoAhead] == undefined) {
-        moves.push(twoAhead);
-      }
-    }
-  }
-  var forwardLeft = coord(mod(fileNum - 1, 8), rankNum + forward);
-  var forwardRight = coord(mod(fileNum + 1, 8), rankNum + forward);
-
-  if(oldPos[forwardLeft] != undefined && oldPos[forwardLeft].charAt(0) != color) {
-    moves.push(forwardLeft);
-  }
-  else if(oldPos[forwardLeft] == undefined && (gameLogic["enpassants"][forwardLeft] == true)) {
-    moves.push(forwardLeft); //can enpassant by going forwardLeft
-  }
-  if(oldPos[forwardRight] != undefined && oldPos[forwardRight].charAt(0) != color) {
-    moves.push(forwardRight);
-  }
-  else if(oldPos[forwardRight] == undefined && (gameLogic["enpassants"][forwardRight] == true)) {
-    moves.push(forwardRight); //can enpassant by going forwardLeft
-  }
-  return moves;
-}
-
-//update moves list and return 0 to keep going, -1 to break
-var updateMoves = function(moves, square, oldPos, color) {
-  if(oldPos[square] == undefined) {
-    moves.push(square);
-    return 0;
-  }
-  else {
-    if(oldPos[square].charAt(0) != color) {
-      moves.push(square);
-    }
-    return -1;
-  }
-}
 
 var promotionButtons = function(color, square) {
   var buttons = [];
   var queenButton = {
     text: "Queen",
-    icon: "img/chesspieces/wikipedia/" + color + "Q.png", //Not working??
     click: function() {
       gameLogic.moves[gameLogic.moves.length - 1] += " Queen";
       addPiece(color + "Q", square);
@@ -304,120 +70,80 @@ var promotionButtons = function(color, square) {
   buttons.push(bishopButton);
   return buttons;
 }
+//call when user promotes
+function displayPromotionButtons(color, target) {
+  $("#promotionText").html("Promote pawn to:")
+  /* Note: To figure out how to hide the x button, see this site:
+  https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+  $("#promotionBox").dialog({
+    closeOnEscape: false,
+    open: function(event, ui) {
+      $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+    },
+    modal: true,
+    buttons: promotionButtons(color, target),
+    title: "Pawn Promotion"
+  });
+}
 
 /* Only call this when promoting a pawn */
 function addPiece(piece, square) {
   posObj = board1.position();
   posObj[square] = piece;
   board1.position(posObj);
+  updatePosAndStateGeneral(posObj, gameLogic, null, null);
+  updateDisplay(gameLogic, posObj);
   sendMove(posObj, gameLogic);
 }
 
-/* Returns true if piece at source threatens square in pos */
-function threatens(pos, piece, source, square) {
-  moves = validMoves(source, piece, pos);
-  return ($.inArray(square, moves) != -1);
-}
 
-/* Returns true if piece at source threatens would threaten square in pos if
-   . . . you get the idea , given king locations */
-function wouldThreatenIfOppositeKingWentThere(pos, piece, source, whiteKingLoc, blackKingLoc, square) {
-  var posCopy = Object.assign({}, pos); //okay because oldPos is not a nested object
-  var correctKingLoc = (piece.charAt(0) == 'w') ? blackKingLoc : whiteKingLoc;
-  var correctKing = (piece.charAt(0) == 'w') ?'bK' : 'wK';
-  delete posCopy[correctKingLoc];
-  posCopy[square] = correctKing;
-  return threatens(posCopy, piece, source, square);
-}
-
-
-/*returns true if making this move would not leave the moving player in check */
-function wouldNotCheck(oldPos, piece, source, target) {
-  var color = piece.charAt(0);
-  var myKingLoc = (piece.charAt(1) == "K") ? (target) : ((color == "w") ? (gameLogic.wKLoc) : (gameLogic.bKLoc));
-  var posCopy = Object.assign({}, oldPos); //okay because oldPos is not a nested object
-
-  delete posCopy[source];
-  posCopy[target] = piece;
-
-  for(var square in posCopy) {
-    if(posCopy.hasOwnProperty(square)) {
-      if((posCopy[square] != undefined) && (posCopy[square].charAt(0) != color)) {
-        if(threatens(posCopy, posCopy[square], square, myKingLoc)) {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-
-function inCheck(whiteTurn, pos) {
-  var kingLoc = (whiteTurn) ? gameLogic.wKLoc : gameLogic.bKLoc;
-  var color = (whiteTurn) ? "w" : "b";
-  for(var square in pos) {
-    if(pos.hasOwnProperty(square)) {
-      if((pos[square] != undefined) && (pos[square].charAt(0) != color)) {
-        if(threatens(pos, pos[square], square, kingLoc)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-function hasMoves(whiteTurn, pos) {
-  var color = (whiteTurn) ? "w" : "b";
-  for(var square in pos) {
-    if(pos.hasOwnProperty(square)) {
-      if((pos[square] != undefined) && (pos[square].charAt(0) == color)) {
-        var moves = validMoves(square, pos[square], pos).filter(partial(wouldNotCheck, pos, pos[square], square));
-        if(moves.length > 0) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-//takes care of in check, checkmate, or stalemate, returns name of player in check
-//or "" if no one is in check. (Note: just check, not checkmate)
-function check_mate_stale(whiteTurn, pos) {
-  var turnString = (whiteTurn) ? "Turn: White" : "Turn: Black";
-  var checkString = "";
-  if(inCheck(whiteTurn, pos)) {
-    if(hasMoves(whiteTurn, pos)) {
-      gameLogic.moves[gameLogic.moves.length - 1] += "+";
-      //white turn is in check
-      if((whiteTurn && isWhite) || (!whiteTurn && isBlack)) {
-        checkString = myName;
-      }
-      else {
-        checkString = enemyName;
-      }
-    }
-    else {
-      var color = (whiteTurn) ? "White" : "Black";
-      (whiteTurn) ? gameLogic.whiteMated = true :   gameLogic.blackMated = true;
-      gameLogic.moves[gameLogic.moves.length - 1] += "#"
-      gameLogic.gameOver = true;
-      finishGame({winner: (gameLogic.whiteMated ? "black" : "white"), reason: "checkmate"});
-    }
-  }
-  else if(!hasMoves(whiteTurn, pos)) {
-    gameLogic.stalemated = true;
-    gameLogic.moves[gameLogic.moves.length - 1] += "SM"
-    gameLogic.gameOver = true;
-    finishGame({winner: "draw", reason: "stalemate"});
-  }
-  $('#moveHistory').append('<li>' + gameLogic.moves[gameLogic.moves.length - 1] + '</li>');
-  $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
-  return checkString;
-}
 //--------------------------- END GAME RULES -----------------------------------
 //--------------------------- USER INTERACTION ---------------------------------
+//only to be used when a move happens
+function updateDisplay(state, pos) {
+  if(!state.moves) {
+    state.moves = [];
+  }
+  $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
+  $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
+  var checkObj = check_mate_stale(state.whiteTurn, pos, state);
+  var checkString = "";
+  if(checkObj.inCheck.length > 0) {
+    if((state.whiteTurn && isWhite) || (!state.whiteTurn && isBlack)) {
+      checkString = myName;
+    }
+    else {
+      checkString = enemyName;
+    }
+  }
+  if(checkObj.checkmated.length > 0) {
+    finishGame({winner: (state.whiteMated ? "black" : "white"), reason: "checkmate"});
+    return;
+  }
+  if(checkObj.stalemate) {
+    finishGame({winner: "draw", reason: "stalemate"});
+    return;
+  }
+  if(checkString == myName) {
+    $("#myNameDisplay").text(myName + " - in check");
+  }
+  if(inCheck == enemyName) {
+    $("#enemyNameDisplay").text(enemyName + " - in check");
+  }
+  if(inCheck == "") {
+    $("#myNameDisplay").text(myName);
+    $("#enemyNameDisplay").text(enemyName);
+  }
+  if(myTurn(state)) {
+    console.log("MY TURN!");
+    $("#myNameDisplay").removeClass("unHighlightedPlayerName");
+    $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+  }
+  else {
+    $("#myNameDisplay").addClass("unHighlightedPlayerName");
+    $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
+  }
+}
 
 /* Don't allow player to drag wrong color pieces or after game is over
    Also, only player 1 can move white pieces; only player 2 can
@@ -433,82 +159,46 @@ var onDragStart = function(source, piece, position, orientation) {
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
   uncolor_squares();
-  var moves = validMoves(source, piece, oldPos).filter(partial(wouldNotCheck, oldPos, piece, source));
+  var moves = legalSquares(source, piece, oldPos, gameLogic);
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
-  var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
+  updatePosAndStateGeneral(oldPos, gameLogic, source, target);
+  board1.position(oldPos);
+  canProposeDraw = true;
+  $("#draw").removeClass("disabled");
   var promoted = false;
-
+  var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
-    //pawn promotion here
     promoted = true;
-    $("#promotionText").html("Promote pawn to:")
-    /* Note: To figure out how to hide the x button, see this site:
-    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-    $("#promotionBox").dialog({
-      closeOnEscape: false,
-      open: function(event, ui) {
-        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-      },
-      modal: true,
-      buttons: promotionButtons(piece.charAt(0), target),
-      title: "Pawn Promotion"
-    });
+    displayPromotionButtons(color, target)
   }
-  var forward = (piece.charAt(0) == "w") ? 1 : -1;
-  //piece is pawn that moved columns to an empty square, so must have en passanted
-  if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) && (oldPos[target] == undefined)) {
-  //  console.log("Made en passant move!")
-    var backward = -1 * forward;
-    var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
-    posObj = board1.position();
-    delete posObj[eliminateSquare];
-    board1.position(posObj);
-  }
-  //reset enpassants
-  for(var square in gameLogic.enpassants) {
-    if(gameLogic.enpassants.hasOwnProperty(square)) {
-      gameLogic.enpassants[square] = false;
-    }
-  }
-  //set enpassant if this was an enpassant move
-  if(piece.charAt(1) == "P" && (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
-    var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
-    gameLogic.enpassants[enable] = true;
-  }
-
-  if(piece.charAt(1) == "K") {
-    var kingField = piece.charAt(0) + "KLoc";
-    gameLogic[kingField] = target;
-  }
-  gameLogic.whiteTurn = !gameLogic.whiteTurn;
-  var moveString = source + "-" + target;
-  var turnString = (gameLogic.whiteTurn) ? "Turn: White" : "Turn: Black";
-  var moveString = source + "-" + target;
-  gameLogic.moves.push(moveString);
   if(!promoted) {
-    sendMove(newPos, gameLogic);
+    updateDisplay(gameLogic, oldPos);
+    sendMove(oldPos, gameLogic);
   }
 };
 
-//returns a list of squares that piece at square threatens
-var threatenedSquares = function(square, piece, pos) {
-  //note that relies on gameLogic, so not robust
-  return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, pos, piece, square, gameLogic.wKLoc, gameLogic.bKLoc));
-}
+function highlightList(square, highlights, lightColor, darkColor) {
+  // exit if nothing to highlight
+  if (highlights.length === 0) return;
 
-var legalSquares = function(square, piece, pos) {
-  return validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square));
+  // highlight the square they moused over
+  color_square(square, lightColor, darkColor);
+
+  // highlight the possible squares for this piece
+  for (var i = 0; i < highlights.length; i++) {
+    color_square(highlights[i], lightColor, darkColor);
+  }
 }
 
 function gameOverMouseOver(square, piece, pos) {
   if((gameLogic.whiteMated && isBlack) || (gameLogic.blackMated && isWhite)) {
     console.log("I am the mater; highlight my threats in red");
-    var myPieceHighlights = threatenedSquares;
+    var myPieceHighlights = threatenedSquares; //from toroidal.js
     var myLightHighCol = LIGHT_RED;
     var myDarkHighCol = DARK_RED;
-    var enemyHighlights = legalSquares
+    var enemyHighlights = legalSquares //from toroidal.js
     var enemyLightHighCol = LIGHT_GRAY;
     var enemyDarkHighCol = DARK_GRAY;
   }
@@ -535,18 +225,9 @@ function gameOverMouseOver(square, piece, pos) {
   var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
   var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
   var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
-  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos) : enemyHighlights(square, piece, pos);
+  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos, gameLogic) : enemyHighlights(square, piece, pos, gameLogic);
   console.log("game over highlights: " + highlights);
-  // exit if nothing to highlight
-  if (highlights.length === 0) return;
-
-  // highlight the square they moused over
-  color_square(square, lightColor, darkColor);
-
-  // highlight the possible squares for this piece
-  for (var i = 0; i < highlights.length; i++) {
-    color_square(highlights[i], lightColor, darkColor);
-  }
+  highlightList(square, highlights, lightColor, darkColor);
 }
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
@@ -556,42 +237,27 @@ var onMouseoverSquare = function(square, piece, pos) {
     gameOverMouseOver(square, piece, pos);
     return;
   }
-  if(!piece || !myTurn() || (!showValid && !showThreat) ) {
+  if(!piece || !myTurn(gameLogic) || (!showValid && !showThreat) ) {
     return;
   }
 
-  var myPieceHighlights = function(square, piece, pos) {
-    //show where I can go, should be nowhere
-    return validMoves(square, piece, pos).filter(partial(wouldNotCheck, pos, piece, square));
-  };
+  var myPieceHighlights = legalSquares;
   var myLightHighCol = LIGHT_GRAY;
   var myDarkHighCol = DARK_GRAY;
-  var enemyHighlights = function(square, piece, pos) {
-    return ALL_SQUARES.filter(partial(
-      wouldThreatenIfOppositeKingWentThere, pos, piece, square, gameLogic.wKLoc, gameLogic.bKLoc));
-  };
+  var enemyHighlights = threatenedSquares;
   var enemyLightHighCol = LIGHT_RED;
   var enemyDarkHighCol = DARK_RED;
 
   var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
   var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
   var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
-  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos) : enemyHighlights(square, piece, pos);
+  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos, gameLogic) : enemyHighlights(square, piece, pos, gameLogic);
   console.log(highlights);
 
   if(((!showValid && myPiece) || (!showThreat && !myPiece))) {
     return;
   }
-  // exit if nothing to highlight
-  if (highlights.length === 0) return;
-
-  // highlight the square they moused over
-  color_square(square, lightColor, darkColor);
-
-  // highlight the possible squares for this piece
-  for (var i = 0; i < highlights.length; i++) {
-    color_square(highlights[i], lightColor, darkColor);
-  }
+  highlightList(square, highlights, lightColor, darkColor);
 };
 
 var onMouseoutSquare = function(square, piece) {
@@ -600,27 +266,6 @@ var onMouseoutSquare = function(square, piece) {
 
 //--------------------------- END USER INTERACTION -----------------------------
 //--------------------------- BUTTON SETUP -------------------------------------
-
-function resetPosition() { //this function is not to be used in production //deprecated
-  if(!isBlack && !isWhite) { //spectator?
-    return;
-  }
-  board1.position(TOROIDAL_START);
-  gameLogic.whiteTurn = true;
-  gameLogic.gameOver = false;
-  gameLogic.blackMated = false;
-  gameLogic.whiteMated = false;
-  gameLogic.stalemated = false;
-  gameLogic.moves = [];
-  gameLogic.wKLoc = "e3";
-  gameLogic.bKLoc = "e6";
-  for(var square in gameLogic.enpassants) { //rest enpassants
-    if(gameLogic.enpassants.hasOwnProperty(square)) {
-      gameLogic.enpassants[square] = false;
-    }
-  }
-  sendMove(board1.position(), gameLogic);
-};
 
 function resign() {
   if(gameLogic.gameOver) { //resign button shouldn't do anything if already gameover
@@ -672,6 +317,7 @@ function proposeDraw() {
     title: "Draw Proposal Sent"
   });
   socket.emit('drawProposal');
+  }
 }
 
 function lobbyButton() {
@@ -728,6 +374,19 @@ function lobbyReturn() {
 
 //--------------------------- END BUTTON SETUP ---------------------------------
 //--------------------------- FINISH GAME PRETTIFYING --------------------------
+
+function setGameEndDisplay(data) {
+  //data in form of {winner: nickname or "", in case of draw. nonwinners: [], nonwinnerDisplayString: "resigned" or "left" etc.}
+  var winnerDisplayID = (data.winner == myName) ? "#myNameDisplay" : "#enemyNameDisplay";
+  var nonwinnerDisplayIDs = (data.winner.length == 0) ? ["#myNameDisplay", "#enemyNameDisplay"] : ((data.winner == enemyName) ? "#myNameDisplay" : "#enemyNameDisplay");
+  $(winnerDisplayID).html("WINNER *" + data.winner + "* WINNER!");
+  $(winnerDisplayID).removeClass("unHighlightedPlayerName");
+
+  for (var i = 0; i < data.nonwinners.length; i++) {
+    $(nonwinnerDisplayIDs[i]).html(data.nonwinners[i] + data.nonwinnerDisplayString);
+    $(nonwinnerDisplayIDs[i]).addClass("unHighlightedPlayerName");
+  }
+}
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
                     reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
@@ -737,54 +396,28 @@ function finishGame(data) {
   switch(reason) {
     case "checkmate":
       if(((winner == "white") && isWhite) || ((winner == "black") && isBlack)) {
-        $("#myNameDisplay").html("WINNER *" + myName + "* WINNER!");
-        $("#myNameDisplay").removeClass("unHighlightedPlayerName");
-
-        $("#enemyNameDisplay").text(enemyName + " was checkmated!");
-        $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+        setGameEndDisplay({winner: myName, nonwinners: [enemyName], nonwinnerDisplayString: " was checkmated!"});
       }
       else {
-        $("#enemyNameDisplay").text("WINNER *" + enemyName + "* WINNER!");
-        $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
-
-        $("#myNameDisplay").text(myName + " was checkmated!");
-        $("#myNameDisplay").addClass("unHighlightedPlayerName");
+        setGameEndDisplay({winner: enemyName, nonwinners: [myName], nonwinnerDisplayString: " was checkmated!"});
       }
       break;
     case "stalemate":
-      $("#myNameDisplay").text(myName + " - Stalemate!");
-      $("#enemyNameDisplay").text(enemyName + " - Stalemate!");
-      $("#myNameDisplay").addClass("unHighlightedPlayerName");
-      $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+      setGameEndDisplay({winner: "", nonwinners: [myName, enemyName], nonwinnerDisplayString: " stalemated!"});
       break;
     case "resign":
       if((isWhite && winner == "white") || (isBlack && winner == "black")) {
-        $("#myNameDisplay").text("WINNER *" + myName + "* WINNER!");
-        $("#myNameDisplay").removeClass("unHighlightedPlayerName");
-
-        $("#enemyNameDisplay").text(enemyName + " resigned!");
-        $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+        setGameEndDisplay({winner: myName, nonwinners: [enemyName], nonwinnerDisplayString: " resigned!"});
       }
       else {
-        $("#enemyNameDisplay").text("WINNER *" + enemyName + "* WINNER!");
-        $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
-
-        $("#myNameDisplay").text(myName + " resigned!");
-        $("#myNameDisplay").addClass("unHighlightedPlayerName");
+        setGameEndDisplay({winner: enemyName, nonwinners: [myName], nonwinnerDisplayString: " resigned!"});
       }
       break;
     case "oppLeft":
-      $("#myNameDisplay").text("WINNER *" + myName + "* WINNER!");
-      $("#myNameDisplay").removeClass("unHighlightedPlayerName");
-
-      $("#enemyNameDisplay").text(enemyName + " left!");
-      $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+      setGameEndDisplay({winner: myName, nonwinners: [enemyName], nonwinnerDisplayString: " left!"});
       break;
     case "drawAgreement":
-      $("#myNameDisplay").text(myName + " - Draw by agreement.");
-      $("#enemyNameDisplay").text(enemyName + " - Draw by agreement.");
-      $("#myNameDisplay").addClass("unHighlightedPlayerName");
-      $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
+      setGameEndDisplay({winner: "", nonwinners: [myName, enemyName], nonwinnerDisplayString: " - Draw by agreement."});
       break;
   }
 }
@@ -820,10 +453,9 @@ var gameLogic = {
     h6: false
   }
 };
-function TotalState(pos, state, inCheck) {
+function TotalState(pos, state) {
   this.position = pos;
   this.state = state;
-  this.inCheck = inCheck; //either the nickname of the player who's in check, or ""
 }
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
@@ -840,7 +472,7 @@ $("#vs").remove(); //needed to get info; don't want to display
 
 var showValid = (($("#showValidY").length > 0) ? true : false)
 var showThreat = (($("#showThreatY").length > 0) ? true : false)
-//----------------------- END GLOBALS AND SETUP varRUCTORS -------------------
+//----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
 
 
 //------------------------------------------------------------------------------
@@ -857,55 +489,13 @@ socket.on('start', function(data) {
 
 //to be used by addPiece and onDrop
 function sendMove(pos, state) {
-  var inCheck = check_mate_stale(state.whiteTurn, pos);
-  if(!gameLogic.gameOver) { //if gameover, my display was already handled
-    if(inCheck == myName) {
-      $("#myNameDisplay").text(myName + " - in check");
-    }
-    if(inCheck == enemyName) {
-      $("#enemyNameDisplay").text(enemyName + " - in check");
-    }
-    if(inCheck == "") {
-      $("#myNameDisplay").text(myName);
-      $("#enemyNameDisplay").text(enemyName);
-    }
-    canProposeDraw = true;
-    $("#draw").removeClass("disabled");
-    $("#myNameDisplay").addClass("unHighlightedPlayerName");
-    $("#enemyNameDisplay").removeClass("unHighlightedPlayerName");
-  }
-  socket.emit('move', new TotalState(pos, state, inCheck));
+  socket.emit('move', new TotalState(pos, state));
 }
 
 socket.on('oppMove', function(totalState) {
   board1.position(totalState.position);
   gameLogic = totalState.state;
-  $("#myNameDisplay").removeClass("unHighlightedPlayerName");
-  $("#enemyNameDisplay").addClass("unHighlightedPlayerName");
-  var inCheck = totalState.inCheck;
-  if(inCheck == myName) {
-    $("#myNameDisplay").text(myName + " - in check");
-  }
-  if(inCheck == enemyName) {
-    $("#enemyNameDisplay").text(enemyName + " - in check");
-  }
-  if(inCheck == "") {
-    $("#myNameDisplay").text(myName);
-    $("#enemyNameDisplay").text(enemyName);
-  }
-  $('#moveHistory').append('<li>' + gameLogic.moves[gameLogic.moves.length - 1] + '</li>');
-  $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
-  if(gameLogic.gameOver) {
-    if(gameLogic.whiteMated) {
-      finishGame({winner: "black", reason: "checkmate"});
-    }
-    else if (gameLogic.blackMated) {
-      finishGame({winner: "white", reason: "checkmate"});
-    }
-    else if (gameLogic.stalemated) {
-      finishGame({winner: "draw", reason: "stalemate"});
-    }
-  }
+  updateDisplay(board1.position(), gameLogic);
 });
 
 socket.on("oppLeft", function() {
