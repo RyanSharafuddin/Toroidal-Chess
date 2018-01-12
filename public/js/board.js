@@ -101,38 +101,30 @@ function addPiece(piece, square) {
 //--------------------------- USER INTERACTION ---------------------------------
 //only to be used when a move happens
 function updateDisplay(state, pos) {
-  if(!state.moves) {
-    state.moves = [];
+  if(state.moves == undefined) {
+    console.log("state.moves is undefined!!");
+    console.trace();
+    throw "ERR";
   }
   $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
   $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
-  var checkObj = check_mate_stale(state.whiteTurn, pos, state);
-  var checkString = "";
-  if(checkObj.inCheck.length > 0) {
-    if((state.whiteTurn && isWhite) || (!state.whiteTurn && isBlack)) {
-      checkString = myName;
-    }
-    else {
-      checkString = enemyName;
-    }
-  }
-  if(checkObj.checkmated.length > 0) {
+  var checkString = (state.inCheck) ? (myTurn(state) ? myName : enemyName) : "";
+  if(state.blackMated || state.whiteMated) {
     finishGame({winner: (state.whiteMated ? "black" : "white"), reason: "checkmate"});
     return;
   }
-  if(checkObj.stalemate) {
+  if(state.stalemated) {
     finishGame({winner: "draw", reason: "stalemate"});
     return;
   }
+  //by default
+  $("#myNameDisplay").text(myName);
+  $("#enemyNameDisplay").text(enemyName);
   if(checkString == myName) {
     $("#myNameDisplay").text(myName + " - in check");
   }
-  if(inCheck == enemyName) {
+  if(checkString == enemyName) {
     $("#enemyNameDisplay").text(enemyName + " - in check");
-  }
-  if(inCheck == "") {
-    $("#myNameDisplay").text(myName);
-    $("#enemyNameDisplay").text(enemyName);
   }
   if(myTurn(state)) {
     console.log("MY TURN!");
@@ -159,14 +151,15 @@ var onDragStart = function(source, piece, position, orientation) {
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
   uncolor_squares();
+  var color = piece.charAt(0);
   var moves = legalSquares(source, piece, oldPos, gameLogic);
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
   updatePosAndStateGeneral(oldPos, gameLogic, source, target);
-  board1.position(oldPos);
-  canProposeDraw = true;
+  canProposeDraw = true; //renew ability to propose draw everytime you move
   $("#draw").removeClass("disabled");
+  board1.position(oldPos);
   var promoted = false;
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
@@ -222,7 +215,14 @@ function gameOverMouseOver(square, piece, pos) {
   else {
     return; //game end by draw agreement or leaving or resign
   }
-  var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
+  try {
+    var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
+  }
+  catch (e) {
+    console.log("piece is " + piece);
+    console.log(e);
+    console.trace();
+  }
   var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
   var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
   var highlights = (myPiece) ? myPieceHighlights(square, piece, pos, gameLogic) : enemyHighlights(square, piece, pos, gameLogic);
@@ -233,14 +233,16 @@ function gameOverMouseOver(square, piece, pos) {
   and highlight in red the squares enemy pieces threaten*/
   //on game over by mate or stalemate, see threats of winning side
 var onMouseoverSquare = function(square, piece, pos) {
+  if(!piece) {
+    return;
+  }
   if(gameLogic.gameOver) {
     gameOverMouseOver(square, piece, pos);
     return;
   }
-  if(!piece || !myTurn(gameLogic) || (!showValid && !showThreat) ) {
+  if(!myTurn(gameLogic) || (!showValid && !showThreat) ) {
     return;
   }
-
   var myPieceHighlights = legalSquares;
   var myLightHighCol = LIGHT_GRAY;
   var myDarkHighCol = DARK_GRAY;
@@ -303,8 +305,11 @@ function resign() {
 }
 
 function proposeDraw() {
+  console.log("proposeDraw() called!")
   if(!canProposeDraw || gameLogic.gameOver) {
+    console.log("can't propose draw because of variable or gameOver");
     return;
+  }
 
   canProposeDraw = false;
   $("#draw").addClass("disabled");
@@ -317,7 +322,6 @@ function proposeDraw() {
     title: "Draw Proposal Sent"
   });
   socket.emit('drawProposal');
-  }
 }
 
 function lobbyButton() {
@@ -378,11 +382,14 @@ function lobbyReturn() {
 function setGameEndDisplay(data) {
   //data in form of {winner: nickname or "", in case of draw. nonwinners: [], nonwinnerDisplayString: "resigned" or "left" etc.}
   var winnerDisplayID = (data.winner == myName) ? "#myNameDisplay" : "#enemyNameDisplay";
-  var nonwinnerDisplayIDs = (data.winner.length == 0) ? ["#myNameDisplay", "#enemyNameDisplay"] : ((data.winner == enemyName) ? "#myNameDisplay" : "#enemyNameDisplay");
+  var nonwinnerDisplayIDs = (data.winner.length == 0) ? ["#myNameDisplay", "#enemyNameDisplay"] : ((data.winner == enemyName) ? ["#myNameDisplay"] : ["#enemyNameDisplay"]);
   $(winnerDisplayID).html("WINNER *" + data.winner + "* WINNER!");
   $(winnerDisplayID).removeClass("unHighlightedPlayerName");
-
+  console.log("SET END GAME DISPLAY!");
+  console.log("nonwinnerDisplayIDs: " + nonwinnerDisplayIDs);
+  console.log("data: " + JSON.stringify(data));
   for (var i = 0; i < data.nonwinners.length; i++) {
+
     $(nonwinnerDisplayIDs[i]).html(data.nonwinners[i] + data.nonwinnerDisplayString);
     $(nonwinnerDisplayIDs[i]).addClass("unHighlightedPlayerName");
   }
@@ -393,6 +400,7 @@ function finishGame(data) {
   gameLogic.gameOver = true;
   var reason = data.reason;
   var winner = data.winner;
+  console.log("finishGame!! " + reason);
   switch(reason) {
     case "checkmate":
       if(((winner == "white") && isWhite) || ((winner == "black") && isBlack)) {
@@ -435,6 +443,7 @@ var cfg = {
 var board1 = ChessBoard('board1', cfg);
 var gameLogic = {
   whiteTurn: true,
+  inCheck: false, //only set to true if inCheck and not in mate. Applies to side of whiteTurn
   gameOver: false,
   blackMated: false,
   whiteMated: false,
@@ -462,7 +471,7 @@ $("#draw").on('click', proposeDraw);
 $("#return").on('click', lobbyButton);
 var isBlack = false;
 var isWhite = false;
-var canProposeDraw = true; //renew ability to propose draw everytime you move
+var canProposeDraw = true;
 var myName = $("#myName").text();
 var enemyName = $("#enemyName").text();
 var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
@@ -495,7 +504,7 @@ function sendMove(pos, state) {
 socket.on('oppMove', function(totalState) {
   board1.position(totalState.position);
   gameLogic = totalState.state;
-  updateDisplay(board1.position(), gameLogic);
+  updateDisplay(gameLogic, totalState.position);
 });
 
 socket.on("oppLeft", function() {

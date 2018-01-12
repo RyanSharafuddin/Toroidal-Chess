@@ -64,7 +64,7 @@ var validMoves = function(source, piece, pos, state) {
     case "bP":
       return pawnMoves(color, fileNum, rankNum, pos, state);
     default:
-      throw ("unrecognized piece name" + piece);
+      throw ("unrecognized piece name " + piece);
   }
 };
 
@@ -266,11 +266,23 @@ function inCheck(whiteTurn, pos, state) {
   var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
     if(pos.hasOwnProperty(square)) {
-      if((pos[square] != undefined) && (pos[square].charAt(0) != color)) {
-        if(threatens(pos, pos[square], square, kingLoc, state)) {
-          return true;
+      try {
+        if(pos[square] == 'e4-d5+') {
+          throw "WTF?"
+        }
+        if((pos[square] != undefined) && ((pos[square]).charAt(0) != color)) {
+          if(threatens(pos, pos[square], square, kingLoc, state)) {
+            return true;
+          }
         }
       }
+      catch(e) {
+        console.log("Square is " + square);
+        console.log(("pos[square] is " + pos[square]));
+        console.log(e);
+        console.trace();
+      }
+
     }
   }
   return false;
@@ -331,6 +343,7 @@ function check_mate_stale(whiteTurn, pos, state) {
   else if(!hasMoves(whiteTurn, pos, state)) {
     return {inCheck: "", checkmated: "", stalemated: true};
   }
+  return {inCheck: "", checkmated: "", stalemated: false};
 }
 
 function updatePawnPromotionPrelim(pos, state, source, target) {
@@ -358,6 +371,7 @@ function updatePawnPromotionFinal(pos, state) {
     state.enpassants[enable] = true;
   }
   checkObj = check_mate_stale(state.whiteTurn, pos, state);
+  state.inCheck = checkObj.inCheck.length > 0;
   state.gameOver = ((checkObj.checkmated.length > 0) || checkObj.stalemated)
   state.whiteMated = (checkObj.checkmated == "w");
   state.blackMated = (checkObj.checkmated == "b");
@@ -366,7 +380,7 @@ function updatePawnPromotionFinal(pos, state) {
   if(state.whiteMated || state.blackMated) {
     state.moves[state.moves.length - 1] += "#";
   }
-  if(inCheck(state.whiteTurn, pos, state)) {
+  if(state.inCheck) {
     state.moves[state.moves.length - 1] += "+";
   }
   if(state.stalemated) {
