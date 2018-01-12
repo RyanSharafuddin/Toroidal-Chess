@@ -32,7 +32,7 @@ var promotionButtons = function(color, square) {
   var queenButton = {
     text: "Queen",
     click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Queen";
+      gameLogic.moves[gameLogic.moves.length - 1] += " Queen"; //TODO: move this functionality into update pawn final. cux gameLogic should be read only
       addPiece(color + "Q", square);
       $(this).dialog( "close" );
     }
@@ -88,7 +88,7 @@ function displayPromotionButtons(color, target) {
 
 /* Only call this when promoting a pawn */
 function addPiece(piece, square) {
-  posObj = board1.position();
+  posObj = board1.position(); //TODO: move functionality to toroidal.js?
   posObj[square] = piece;
   board1.position(posObj);
   updatePosAndStateGeneral(posObj, gameLogic, null, null);
@@ -156,10 +156,11 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   if($.inArray(target, moves) === -1) {
     return 'snapback';
   }
+  board1.position(newPos); //need to do this to quickly display new pos to user who moved //TODO might get rid of? //No bug, but STILL SLOW //use position instant???
   updatePosAndStateGeneral(oldPos, gameLogic, source, target);
   canProposeDraw = true; //renew ability to propose draw everytime you move
   $("#draw").removeClass("disabled");
-  board1.position(oldPos);
+  board1.position(oldPos); //need to do this to update in enpassant possibility
   var promoted = false;
   var promotionRank = (piece.charAt(0) == "w") ? "8" : "1";
   if(piece.charAt(1) == "P" && target.charAt(1) == promotionRank) {
@@ -441,7 +442,7 @@ var cfg = {
   onDrop: onDrop
 };
 var board1 = ChessBoard('board1', cfg);
-var gameLogic = {
+var gameLogic = { //TODO: make this object only writable by toroidal.js
   whiteTurn: true,
   inCheck: false, //only set to true if inCheck and not in mate. Applies to side of whiteTurn
   gameOver: false,

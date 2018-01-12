@@ -303,15 +303,6 @@ function wouldNotCheck(state, oldPos, piece, source, target) {
   return !(inCheck((color == "w"), posCopy, stateCopy));
 }
 
-var legalSquares = function(square, piece, pos, state) {
-  return validMoves(square, piece, pos, state).filter(partial(wouldNotCheck, state, pos, piece, square));
-}
-
-//returns a list of squares that piece at square threatens
-var threatenedSquares = function(square, piece, pos, state) {
-  return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, state, pos, piece, square));
-}
-
 function hasMoves(whiteTurn, pos, state) {
   var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
@@ -386,6 +377,17 @@ function updatePawnPromotionFinal(pos, state) {
   if(state.stalemated) {
     state.moves[state.moves.length - 1] += "SM"
   }
+}
+
+//------------------------- FUNCTIONS TO EXPOSE TO OUTSIDE ---------------------
+//other javascript files should ONLY call these 3 functions, not any of the above functions
+var legalSquares = function(square, piece, pos, state) {
+  return validMoves(square, piece, pos, state).filter(partial(wouldNotCheck, state, pos, piece, square));
+}
+
+//returns a list of squares that piece at square threatens
+var threatenedSquares = function(square, piece, pos, state) {
+  return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, state, pos, piece, square));
 }
 //modifies pos and state, given that legal move
 //if source and target are null, that means pawn was promoted and this is called again
