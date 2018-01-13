@@ -20,13 +20,6 @@ function myTurn(state) {
   return ((UIState.isWhite && state.whiteTurn) || (UIState.isBlack && !state.whiteTurn))
 }
 
-//only use this after a move has been made
-function setUpdatedStateAndPos(data, fromEnemy) {
-  var useAnimation = fromEnemy;
-  board1.position(data.pos, useAnimation);
-  gameLogic = data.state;
-}
-
 //from http://chessboardjs.com/examples#5003
 // light_color and dark_color are hex RGB strings for CSS use
 var color_square = function(square, light_color, dark_color) {
@@ -41,12 +34,29 @@ var color_square = function(square, light_color, dark_color) {
 var uncolor_squares = function() {
   $('#board1 .square-55d63').css('background', '');
 }
+
+/*
+Used to highlight valid moves and threats. Given a square and a list
+of squares, highlights all those squares in the list, and the original square
+*/
+function highlightList(square, highlights, lightColor, darkColor) {
+  if (highlights.length === 0) {
+    return;
+  }
+  color_square(square, lightColor, darkColor);
+  for (var i = 0; i < highlights.length; i++) {
+    color_square(highlights[i], lightColor, darkColor);
+  }
+}
+
 var LIGHT_GRAY = '#a9a9a9';
 var DARK_GRAY = '#696969';
 var LIGHT_RED = '#DB3C3C';
 var DARK_RED = '#972B2B';
-//--------------------------- END UTILITY STUFF --------------------------------
 
+/*
+Return an array of buttons. Each button corresponds to a pawn promotion
+*/
 var promotionButtons = function(color, square) {
   function buttonFunctionMaker(pieceLetter, square, color) {
     return (function() {
@@ -63,40 +73,34 @@ var promotionButtons = function(color, square) {
   }
   return buttons;
 }
+//--------------------------- END UTILITY STUFF --------------------------------
+
 
 /* Only call this when promoting a pawn */
 function addPiece(piece, square) {
+  var fromEnemy = false;
   var data = promotePawnGetUpdatedPosAndState(piece, square, board1.position(), gameLogic);
   setUpdatedStateAndPos(data, false);
-  updateDisplay(gameLogic, board1.position());
+  updateDisplay(gameLogic, board1.position(). fromEnemy);
   sendMove(board1.position(), gameLogic);
 }
 
 //call when user promotes
 function displayPromotionButtons(color, target) {
-  $("#promotionText").html("Promote pawn to:")
-  /* Note: To figure out how to hide the x button, see this site:
-  https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-  $("#promotionBox").dialog({
-    closeOnEscape: false,
-    open: function(event, ui) {
-      $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-    },
-    modal: true,
-    buttons: promotionButtons(color, target),
-    title: "Pawn Promotion"
-  });
+  prettyAlert("Pawn Promotion", "Promote pawn to:", promotionButtons(color, target), true);
 }
 
 
-//--------------------------- END GAME RULES -----------------------------------
 //--------------------------- USER INTERACTION ---------------------------------
 //only to be used when a move happens
-function updateDisplay(state, pos) {
+function updateDisplay(state, pos, fromEnemy) {
   if(state.moves == undefined) {
     console.log("state.moves is undefined!!");
     console.trace();
     throw "ERR";
+  }
+  if(!fromEnemy) {
+    $("#draw").removeClass("disabled");
   }
   $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
   $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
@@ -129,6 +133,13 @@ function updateDisplay(state, pos) {
   }
 }
 
+//only use this after a move has been made and gotten updated move and state
+function setUpdatedStateAndPos(data, fromEnemy) {
+  var useAnimation = fromEnemy;
+  board1.position(data.pos, useAnimation);
+  gameLogic = data.state;
+}
+
 /* Don't allow player to drag wrong color pieces or after game is over
    Also, only player 1 can move white pieces; only player 2 can
    move black*/
@@ -148,30 +159,17 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   }
   var data = getUpdatedPosAndState(oldPos, gameLogic, source, target);
   UIState.canProposeDraw = true; //TODO: set UI state
-  $("#draw").removeClass("disabled"); //TODO: put in update display, which includes whether move came from you or enemy
   setUpdatedStateAndPos(data, false);
   if (isPromotion(piece, source, target)) {
     var color = piece.charAt(0);
     displayPromotionButtons(color, target)
   }
   else {
-    updateDisplay(gameLogic, oldPos);
+    var fromEnemy = false;
+    updateDisplay(gameLogic, oldPos, fromEnemy);
     sendMove(data.pos, gameLogic);
   }
 };
-
-function highlightList(square, highlights, lightColor, darkColor) {
-  // exit if nothing to highlight
-  if (highlights.length === 0) return;
-
-  // highlight the square they moused over
-  color_square(square, lightColor, darkColor);
-
-  // highlight the possible squares for this piece
-  for (var i = 0; i < highlights.length; i++) {
-    color_square(highlights[i], lightColor, darkColor);
-  }
-}
 
 function gameOverMouseOver(square, piece, pos) {
   if((gameLogic.whiteMated && UIState.isBlack) || (gameLogic.blackMated && UIState.isWhite)) {
@@ -273,6 +271,120 @@ function setGameEndDisplay(data) {
     $(nonwinnerDisplayIDs[i]).addClass("unHighlightedPlayerName");
   }
 }
+
+//--------------------------- END FINISH GAME PRETTIFYING ----------------------
+//--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
+var cfg = {
+  position: TOROIDAL_START,
+  draggable: true,
+  onDragStart: onDragStart,
+  onMouseoutSquare: onMouseoutSquare,
+  onMouseoverSquare: onMouseoverSquare,
+  onDrop: onDrop
+};
+var board1 = ChessBoard('board1', cfg);
+var gameLogic = new InitGameState();
+var UIState = new InitUIState(); //will be inited in socket.on("start")
+console.log("UIState is " + JSON.stringify(UIState));
+function TotalState(pos, state) {
+  this.position = pos;
+  this.state = state;
+}
+//TODO: consider creating and documenting a User Interface state update (only needs to update canProposeDraw, as of now)
+function InitUIState(data) {
+  this.isBlack = false;
+  this.isWhite = false;
+  if(data !== undefined) {
+    (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
+  }
+  this.canProposeDraw = true;
+  this.myName = ($("#myName").text()) ? $("#myName").text() : this.myName;
+  this.enemyName = ($("#enemyName").text()) ? $("#enemyName").text() : this.enemyName;
+  this.roomName = "X" + (($("#1").length > 0) ? this.myName : this.enemyName);
+  $("#vs").hide(); //needed to get info; don't want to display
+  this.showValid = (($("#showValidY").length > 0) ? true : false);
+  this.showThreat = (($("#showThreatY").length > 0) ? true : false);
+}
+//color is either "white" or "black"
+function InitUIDisplay(color) {
+  (color == "white") ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
+  board1.orientation(color);
+}
+//----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
+
+
+//------------------------------------------------------------------------------
+// Connection stuff
+//------------------------------------------------------------------------------
+var socket = io();
+socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
+
+socket.on('start', function(data) {
+  UIState = new InitUIState(data); //TODO for below 2 lines: make init display function
+  InitUIDisplay(data.color);
+});
+
+//to be used by addPiece and onDrop
+function sendMove(pos, state) {
+  socket.emit('move', new TotalState(pos, state));
+}
+
+socket.on('oppMove', function(totalState) {
+  var fromEnemy = true;
+  setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
+  updateDisplay(gameLogic, totalState.position, fromEnemy);
+});
+
+socket.on("oppLeft", function() {
+  if(gameLogic.gameOver) { //don't do anything if game already over
+    return;
+  }
+  finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
+});
+
+socket.on('disconnect', function() {
+  if(!gameLogic.gameOver) {
+    finishGame({winner: "draw", reason: "connectError"});
+  }
+  prettyAlert("Connection Lost", "The connection has been lost. "
+      + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
+      + "This could just be bad luck. However, if it keeps happening, "
+      + " it is probably a bug.", [OK_BUTTON], true);
+});
+
+socket.on('nameNotFound', function() {
+  if(!gameLogic.gameOver) {
+    finishGame({winner: "draw", reason: "connectError"});
+  }
+  prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname"
+ + "as being logged in. You should probably return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>."
++ ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true);
+});
+//------------------------------ FUNCTIONS TO EXPOSE TO OUTSIDE-----------------
+function getGameOver() {
+  return gameLogic.gameOver;
+}
+
+function getIsWhite() {
+  return UIState.isWhite;
+}
+
+function getCanProposeDraw() {
+  return UIState.canProposeDraw;
+}
+
+function setCanProposeDraw(can) {
+  UIState.canProposeDraw = can;
+}
+
+function getMyName() {
+  return UIState.myName;
+}
+
+function getEnemyName() {
+  return UIState.enemyName;
+}
+//This function sets the state and display after it has been determined that a game is over MUST set gameOver to true
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
                     reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
@@ -306,72 +418,8 @@ function finishGame(data) {
     case "drawAgreement":
       setGameEndDisplay({winner: "", nonwinners: [UIState.myName, UIState.enemyName], nonwinnerDisplayString: " - Draw by agreement."});
       break;
+    case "connectError":
+      setGameEndDisplay({winner: "", nonwinners: [UIState.myName, UIState.enemyName], nonwinnerDisplayString: " - connection error"});
+      break;
   }
 }
-//--------------------------- END FINISH GAME PRETTIFYING ----------------------
-//--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
-var cfg = {
-  position: TOROIDAL_START,
-  draggable: true,
-  onDragStart: onDragStart,
-  onMouseoutSquare: onMouseoutSquare,
-  onMouseoverSquare: onMouseoverSquare,
-  onDrop: onDrop
-};
-var board1 = ChessBoard('board1', cfg);
-var gameLogic = new InitGameState();
-var UIState = new InitUIState(); //will be inited in socket.on("start")
-console.log("UIState is " + JSON.stringify(UIState));
-console.log("myName gotten directly from the page" + $("#myName").text());
-function TotalState(pos, state) {
-  this.position = pos;
-  this.state = state;
-}
-//TODO: consider creating and documenting a User Interface state update (only needs to update canProposeDraw, as of now)
-//TODO: TEST to see if you messed up with InitUIState
-function InitUIState(data) {
-  this.isBlack = false;
-  this.isWhite = false;
-  if(data !== undefined) {
-    (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
-  }
-  this.canProposeDraw = true;
-  this.myName = ($("#myName").text()) ? $("#myName").text() : this.myName;
-  this.enemyName = ($("#enemyName").text()) ? $("#enemyName").text() : this.enemyName;
-  this.roomName = "X" + (($("#1").length > 0) ? this.myName : this.enemyName);
-  $("#vs").hide(); //needed to get info; don't want to display
-  this.showValid = (($("#showValidY").length > 0) ? true : false);
-  this.showThreat = (($("#showThreatY").length > 0) ? true : false);
-}
-//----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
-
-
-//------------------------------------------------------------------------------
-// Connection stuff
-//------------------------------------------------------------------------------
-var socket = io();
-socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
-
-socket.on('start', function(data) {
-  UIState = new InitUIState(data); //TODO for below 2 lines: make init display function
-  UIState.isWhite ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
-  board1.orientation(data.color);
-  console.log(JSON.stringify(board1.position()));
-});
-
-//to be used by addPiece and onDrop
-function sendMove(pos, state) {
-  socket.emit('move', new TotalState(pos, state));
-}
-
-socket.on('oppMove', function(totalState) {
-  setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, true);
-  updateDisplay(gameLogic, totalState.position);
-});
-
-socket.on("oppLeft", function() {
-  if(gameLogic.gameOver) { //don't do anything if game already over
-    return;
-  }
-  finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
-});

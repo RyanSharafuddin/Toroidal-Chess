@@ -218,10 +218,10 @@ function onLoad() {
     busy = false;
   });
 
-  socket.on('error', function() {
-    alert("There has been an error. The server does not recognize this nickname"
-   + "as being logged in. You must return to the login page at: https://toroidal-chess.herokuapp.com/"
-  + ". If this keeps happening, it is probably some sort of bug in the application");
+  socket.on('nameNotFound', function() {
+    prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
+   + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
+  + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true);
   });
 }
 

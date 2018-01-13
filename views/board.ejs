@@ -29,13 +29,6 @@
 
             </ol>
           </div>
-          <!--
-           <p>USE THIS SPACE TO IMPLEMENT MOVE HISTORY IN THE FUTURE.
-             TODO: <br> 1) Chat colors + bold. <br> 2) Separate column for
-             words and names. <br> 3) Scroll div and not page. <br>
-             4) Push to Github and see if it works <br>
-             5) do something else <br></p>
-          -->
         </div>
 
         <div id="content">
@@ -49,6 +42,7 @@
             <div id="promotionBox"> <div id="promotionText"> </div> </div>
             <div id="resignBox"> <div id="resignText"> </div> </div>
             <div id="drawBox"> <div id="drawText"> </div> </div>
+            <div id="prettyAlertBox"><div id="prettyAlertText"></div></div>
             <div id="enemyNameDisplay" class="highlightedPlayerName"><%= enemyName %></div>
             <div id="board1"></div>
             <div id="myNameDisplay" class="highlightedPlayerName"><%= myName %></div>
@@ -84,9 +78,10 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/chessboard-0.3.0.min.js"></script>
+    <script src="js/prettyDialog.js"></script>
     <script src="js/toroidal.js"></script>
     <script src="js/board.js"></script>
-    <script src="js/gameButtons.js"></script>
     <script src="js/chat.js"></script>
+    <script src="js/gameButtons.js"></script>
 </body>
 </html>
