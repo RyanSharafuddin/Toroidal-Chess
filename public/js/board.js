@@ -17,7 +17,7 @@ DEPENDENCIES: toroidal.js - uses only the "exposed" functions
 
 //--------------------------- UTILITY STUFF ------------------------------------
 function myTurn(state) {
-  return ((isWhite && state.whiteTurn) || (isBlack && !state.whiteTurn))
+  return ((UIState.isWhite && state.whiteTurn) || (UIState.isBlack && !state.whiteTurn))
 }
 
 //only use this after a move has been made
@@ -100,7 +100,7 @@ function updateDisplay(state, pos) {
   }
   $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
   $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
-  var checkString = (state.inCheck) ? (myTurn(state) ? myName : enemyName) : "";
+  var checkString = (state.inCheck) ? (myTurn(state) ? UIState.myName : UIState.enemyName) : "";
   if(state.blackMated || state.whiteMated) {
     finishGame({winner: (state.whiteMated ? "black" : "white"), reason: "checkmate"});
     return;
@@ -110,13 +110,13 @@ function updateDisplay(state, pos) {
     return;
   }
   //by default
-  $("#myNameDisplay").text(myName);
-  $("#enemyNameDisplay").text(enemyName);
-  if(checkString == myName) {
-    $("#myNameDisplay").text(myName + " - in check");
+  $("#myNameDisplay").text(UIState.myName);
+  $("#enemyNameDisplay").text(UIState.enemyName);
+  if(checkString == UIState.myName) {
+    $("#myNameDisplay").text(UIState.myName + " - in check");
   }
-  if(checkString == enemyName) {
-    $("#enemyNameDisplay").text(enemyName + " - in check");
+  if(checkString == UIState.enemyName) {
+    $("#enemyNameDisplay").text(UIState.enemyName + " - in check");
   }
   if(myTurn(state)) {
     console.log("MY TURN!");
@@ -134,8 +134,8 @@ function updateDisplay(state, pos) {
    move black*/
 var onDragStart = function(source, piece, position, orientation) {
   if(gameLogic.gameOver ||
-     (gameLogic.whiteTurn &&  ((piece.search(/^b/) !== -1) || !isWhite)) ||
-      (!gameLogic.whiteTurn &&  ((piece.search(/^w/) !== -1) || !isBlack)) ) {
+     (gameLogic.whiteTurn &&  ((piece.search(/^b/) !== -1) || !UIState.isWhite)) ||
+      (!gameLogic.whiteTurn &&  ((piece.search(/^w/) !== -1) || !UIState.isBlack)) ) {
         return false;
       }
 };
@@ -143,13 +143,11 @@ var onDragStart = function(source, piece, position, orientation) {
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
   uncolor_squares();
-  //TODO: make legal move function from source target, state, and oldpos public func in toroidal
-  var moves = legalSquares(source, piece, oldPos, gameLogic);
-  if($.inArray(target, moves) === -1) {
+  if(!isLegalMove(oldPos, gameLogic, source, target)) {
     return 'snapback';
   }
   var data = getUpdatedPosAndState(oldPos, gameLogic, source, target);
-  canProposeDraw = true; //TODO: set UI state
+  UIState.canProposeDraw = true; //TODO: set UI state
   $("#draw").removeClass("disabled"); //TODO: put in update display, which includes whether move came from you or enemy
   setUpdatedStateAndPos(data, false);
   if (isPromotion(piece, source, target)) {
@@ -176,7 +174,7 @@ function highlightList(square, highlights, lightColor, darkColor) {
 }
 
 function gameOverMouseOver(square, piece, pos) {
-  if((gameLogic.whiteMated && isBlack) || (gameLogic.blackMated && isWhite)) {
+  if((gameLogic.whiteMated && UIState.isBlack) || (gameLogic.blackMated && UIState.isWhite)) {
     console.log("I am the mater; highlight my threats in red");
     var myPieceHighlights = threatenedSquares; //from toroidal.js
     var myLightHighCol = LIGHT_RED;
@@ -186,7 +184,7 @@ function gameOverMouseOver(square, piece, pos) {
     var enemyDarkHighCol = DARK_GRAY;
   }
   //I'm the matee -- default action
-  else if((gameLogic.whiteMated && isWhite) || (gameLogic.blackMated && isBlack)) {
+  else if((gameLogic.whiteMated && UIState.isWhite) || (gameLogic.blackMated && UIState.isBlack)) {
     var myPieceHighlights = legalSquares;
     var enemyHighlights = threatenedSquares;
     var myLightHighCol = LIGHT_GRAY;
@@ -206,7 +204,7 @@ function gameOverMouseOver(square, piece, pos) {
     return; //game end by draw agreement or leaving or resign
   }
   try {
-    var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
+    var myPiece = ((piece.charAt(0) == 'w') && UIState.isWhite) || ((piece.charAt(0) == 'b') && UIState.isBlack);
   }
   catch (e) {
     console.log("piece is " + piece);
@@ -230,7 +228,7 @@ var onMouseoverSquare = function(square, piece, pos) {
     gameOverMouseOver(square, piece, pos);
     return;
   }
-  if(!myTurn(gameLogic) || (!showValid && !showThreat) ) {
+  if(!myTurn(gameLogic) || (!UIState.showValid && !UIState.showThreat) ) {
     return;
   }
   var myPieceHighlights = legalSquares;
@@ -240,13 +238,13 @@ var onMouseoverSquare = function(square, piece, pos) {
   var enemyLightHighCol = LIGHT_RED;
   var enemyDarkHighCol = DARK_RED;
 
-  var myPiece = ((piece.charAt(0) == 'w') && isWhite) || ((piece.charAt(0) == 'b') && isBlack);
+  var myPiece = ((piece.charAt(0) == 'w') && UIState.isWhite) || ((piece.charAt(0) == 'b') && UIState.isBlack);
   var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
   var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
   var highlights = (myPiece) ? myPieceHighlights(square, piece, pos, gameLogic) : enemyHighlights(square, piece, pos, gameLogic);
   console.log(highlights);
 
-  if(((!showValid && myPiece) || (!showThreat && !myPiece))) {
+  if(((!UIState.showValid && myPiece) || (!UIState.showThreat && !myPiece))) {
     return;
   }
   highlightList(square, highlights, lightColor, darkColor);
@@ -262,8 +260,8 @@ var onMouseoutSquare = function(square, piece) {
 
 function setGameEndDisplay(data) {
   //data in form of {winner: nickname or "", in case of draw. nonwinners: [], nonwinnerDisplayString: "resigned" or "left" etc.}
-  var winnerDisplayID = (data.winner == myName) ? "#myNameDisplay" : "#enemyNameDisplay";
-  var nonwinnerDisplayIDs = (data.winner.length == 0) ? ["#myNameDisplay", "#enemyNameDisplay"] : ((data.winner == enemyName) ? ["#myNameDisplay"] : ["#enemyNameDisplay"]);
+  var winnerDisplayID = (data.winner == UIState.myName) ? "#myNameDisplay" : "#enemyNameDisplay";
+  var nonwinnerDisplayIDs = (data.winner.length == 0) ? ["#myNameDisplay", "#enemyNameDisplay"] : ((data.winner == UIState.enemyName) ? ["#myNameDisplay"] : ["#enemyNameDisplay"]);
   $(winnerDisplayID).html("WINNER *" + data.winner + "* WINNER!");
   $(winnerDisplayID).removeClass("unHighlightedPlayerName");
   console.log("SET END GAME DISPLAY!");
@@ -284,29 +282,29 @@ function finishGame(data) {
   console.log("finishGame!! " + reason);
   switch(reason) {
     case "checkmate":
-      if(((winner == "white") && isWhite) || ((winner == "black") && isBlack)) {
-        setGameEndDisplay({winner: myName, nonwinners: [enemyName], nonwinnerDisplayString: " was checkmated!"});
+      if(((winner == "white") && UIState.isWhite) || ((winner == "black") && UIState.isBlack)) {
+        setGameEndDisplay({winner: UIState.myName, nonwinners: [UIState.enemyName], nonwinnerDisplayString: " was checkmated!"});
       }
       else {
-        setGameEndDisplay({winner: enemyName, nonwinners: [myName], nonwinnerDisplayString: " was checkmated!"});
+        setGameEndDisplay({winner: UIState.enemyName, nonwinners: [UIState.myName], nonwinnerDisplayString: " was checkmated!"});
       }
       break;
     case "stalemate":
-      setGameEndDisplay({winner: "", nonwinners: [myName, enemyName], nonwinnerDisplayString: " stalemated!"});
+      setGameEndDisplay({winner: "", nonwinners: [UIState.myName, UIState.enemyName], nonwinnerDisplayString: " stalemated!"});
       break;
     case "resign":
-      if((isWhite && winner == "white") || (isBlack && winner == "black")) {
-        setGameEndDisplay({winner: myName, nonwinners: [enemyName], nonwinnerDisplayString: " resigned!"});
+      if((UIState.isWhite && winner == "white") || (UIState.isBlack && winner == "black")) {
+        setGameEndDisplay({winner: UIState.myName, nonwinners: [UIState.enemyName], nonwinnerDisplayString: " resigned!"});
       }
       else {
-        setGameEndDisplay({winner: enemyName, nonwinners: [myName], nonwinnerDisplayString: " resigned!"});
+        setGameEndDisplay({winner: UIState.enemyName, nonwinners: [UIState.myName], nonwinnerDisplayString: " resigned!"});
       }
       break;
     case "oppLeft":
-      setGameEndDisplay({winner: myName, nonwinners: [enemyName], nonwinnerDisplayString: " left!"});
+      setGameEndDisplay({winner: UIState.myName, nonwinners: [UIState.enemyName], nonwinnerDisplayString: " left!"});
       break;
     case "drawAgreement":
-      setGameEndDisplay({winner: "", nonwinners: [myName, enemyName], nonwinnerDisplayString: " - Draw by agreement."});
+      setGameEndDisplay({winner: "", nonwinners: [UIState.myName, UIState.enemyName], nonwinnerDisplayString: " - Draw by agreement."});
       break;
   }
 }
@@ -322,22 +320,25 @@ var cfg = {
 };
 var board1 = ChessBoard('board1', cfg);
 var gameLogic = new InitGameState();
+var UIState; //will be inited in socket.on("start")
 function TotalState(pos, state) {
   this.position = pos;
   this.state = state;
 }
 //TODO: consider creating and documenting a User Interface state update (only needs to update canProposeDraw, as of now)
-//TODO: consider making an init function for the variables below
-var isBlack = false;
-var isWhite = false;
-var canProposeDraw = true;
-var myName = $("#myName").text();
-var enemyName = $("#enemyName").text();
-var roomName = "X" + (($("#1").length > 0) ? myName : enemyName);
-$("#vs").remove(); //needed to get info; don't want to display
-
-var showValid = (($("#showValidY").length > 0) ? true : false)
-var showThreat = (($("#showThreatY").length > 0) ? true : false)
+//TODO: TEST to see if you messed up with InitUIState
+function InitUIState(data) {
+  this.isBlack = false;
+  this.isWhite = false;
+  (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
+  this.canProposeDraw = true;
+  this.myName = $("#myName").text();
+  this.enemyName = $("#enemyName").text();
+  this.roomName = "X" + (($("#1").length > 0) ? this.myName : this.enemyName);
+  $("#vs").remove(); //needed to get info; don't want to display
+  this.showValid = (($("#showValidY").length > 0) ? true : false);
+  this.showThreat = (($("#showThreatY").length > 0) ? true : false);
+}
 //----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
 
 
@@ -345,11 +346,11 @@ var showThreat = (($("#showThreatY").length > 0) ? true : false)
 // Connection stuff
 //------------------------------------------------------------------------------
 var socket = io();
-socket.emit('startGame', {myName: myName, enemyName: enemyName, roomName: roomName});
+socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
 
 socket.on('start', function(data) {
-  (data.color == "white") ? (isWhite = true) : (isBlack = true);
-  isWhite ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
+  UIState = InitUIState(data); //TODO for below 2 lines: make init display function
+  UIState.isWhite ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
   board1.orientation(data.color);
   console.log(JSON.stringify(board1.position()));
 });
@@ -368,5 +369,5 @@ socket.on("oppLeft", function() {
   if(gameLogic.gameOver) { //don't do anything if game already over
     return;
   }
-  finishGame({winner: ((isWhite) ? "white" : "black"), reason: "oppLeft"});
+  finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
 });

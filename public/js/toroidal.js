@@ -508,6 +508,11 @@ var legalSquares = function(square, piece, pos, state) {
   return validMoves(square, piece, pos, state).filter(partial(wouldNotCheck, state, pos, piece, square));
 }
 
+function isLegalMove(pos, state, source, target) {
+  var moves = legalSquares(source, pos[source], pos, state);
+  return (!($.inArray(target, moves) === -1));
+}
+
 //returns a list of squares that piece at square threatens
 var threatenedSquares = function(square, piece, pos, state) {
   return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, state, pos, piece, square));
