@@ -147,7 +147,7 @@ io.on('connection', function(socket) {
         return; //prevent crashing when people press back button and stuff
       }
       //update id in onlinePlayers object
-      console.log("myName in startGame received: " + myName);
+      console.log("startGame received from: " + myName);
       onlinePlayers[myName]["id"] = socket.id;
       var enemyColor = onlinePlayers[enemyName]["color"];
       var myColor = (enemyColor === undefined) ? ((Math.random() > .5) ? "white" : "black") : ((enemyColor === "white") ? "black" : "white");

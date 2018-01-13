@@ -65,6 +65,7 @@ function lobbyButton() {
 }
 
 function lobbyReturn() {
+  socket.inGame = false;
   socket.emit("lobbyReturn", {
     gameOver: getGameOver()
   });
@@ -84,35 +85,37 @@ $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
 $("#return").on('click', lobbyButton);
 
-socket.on('resigned', function(resignData) {
-  finishGame({winner: resignData.winnerColor, reason: "resign"});
-});
+if(numTimes < 2) { //depends on board.js
+  socket.on('resigned', function(resignData) {
+    finishGame({winner: resignData.winnerColor, reason: "resign"});
+  });
 
-socket.on('drawOffer', function() {
-  var acceptButton = {
-    text: "Accept",
-    click: function() {
-      socket.emit("drawResponse", "yes");
+  socket.on('drawOffer', function() {
+    var acceptButton = {
+      text: "Accept",
+      click: function() {
+        socket.emit("drawResponse", "yes");
+        finishGame({winner: "draw", reason: "drawAgreement"});
+        $(this).dialog("close");
+      }
+    };
+    var declineButton = {
+      text: "Decline",
+      click: function() {
+        socket.emit("drawResponse", "no");
+        $(this).dialog("close");
+      }
+    }
+    prettyAlert("Draw Proposal", "'" + getEnemyName() + "' has proposed a draw.", [acceptButton, declineButton], true, "drawOffered")
+  });
+
+  socket.on('drawReply', function(reply) {
+    if(reply == "yes") {
+      prettyAlert("Draw Proposal Accepted", "'" + getEnemyName() + "' has accepted your draw proposal.", [OK_BUTTON], false, "drawReply")
       finishGame({winner: "draw", reason: "drawAgreement"});
-      $(this).dialog("close");
     }
-  };
-  var declineButton = {
-    text: "Decline",
-    click: function() {
-      socket.emit("drawResponse", "no");
-      $(this).dialog("close");
+    else if(reply == "no") {
+      prettyAlert("Draw Proposal Rejected", "'" + getEnemyName() + "' has rejected your draw proposal.", [OK_BUTTON], false, "drawReply")
     }
-  }
-  prettyAlert("Draw Proposal", "'" + getEnemyName() + "' has proposed a draw.", [acceptButton, declineButton], true, "drawOffered")
-});
-
-socket.on('drawReply', function(reply) {
-  if(reply == "yes") {
-    prettyAlert("Draw Proposal Accepted", "'" + getEnemyName() + "' has accepted your draw proposal.", [OK_BUTTON], false, "drawReply")
-    finishGame({winner: "draw", reason: "drawAgreement"});
-  }
-  else if(reply == "no") {
-    prettyAlert("Draw Proposal Rejected", "'" + getEnemyName() + "' has rejected your draw proposal.", [OK_BUTTON], false, "drawReply")
-  }
-});
+  });
+}

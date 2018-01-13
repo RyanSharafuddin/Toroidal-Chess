@@ -279,7 +279,7 @@ var board1;
 var gameLogic;
 var UIState
 function initEverything() {
-  console.log("You've been here " + numTimes + " times");
+  console.log("This is visit number: " + numTimes + " from you");
   var cfg = {
     position: TOROIDAL_START,
     draggable: true,
@@ -320,55 +320,44 @@ function InitUIDisplay(color) {
 }
 //----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
 
-
-//------------------------------------------------------------------------------
-// Connection stuff
-//------------------------------------------------------------------------------
-var socket = io();
-initEverything();
-socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
-
-socket.on('start', function(data) {
-  UIState = new InitUIState(data); //TODO for below 2 lines: make init display function
-  InitUIDisplay(data.color);
-});
-
 //to be used by addPiece and onDrop
 function sendMove(pos, state) {
   socket.emit('move', new TotalState(pos, state));
 }
+//------------------------------------------------------------------------------
+// Connection stuff
+//------------------------------------------------------------------------------
+var socket;
+if(socket === undefined) {
+  //this should never happen, because the socket from the lobby is stil there
+  socket = io();
+}
+socket.inGame = true;
+//so only define this stuff if you haven't before.
+if(numTimes < 2) {
+  socket.on('start', function(data) {
+    UIState = new InitUIState(data); //TODO for below 2 lines: make init display function
+    InitUIDisplay(data.color);
+    console.log("receieved start");
+    console.log(JSON.stringify(UIState));
+  });
 
-socket.on('oppMove', function(totalState) {
-  var fromEnemy = true;
-  setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
-  updateDisplay(gameLogic, totalState.position, fromEnemy);
-});
+  socket.on('oppMove', function(totalState) {
+    var fromEnemy = true;
+    setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
+    updateDisplay(gameLogic, totalState.position, fromEnemy);
+  });
 
-socket.on("oppLeft", function() {
-  if(gameLogic.gameOver) { //don't do anything if game already over
-    return;
-  }
-  finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
-});
+  socket.on("oppLeft", function() {
+    if(gameLogic.gameOver) { //don't do anything if game already over
+      return;
+    }
+    finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
+  });
+}
+initEverything();
+socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
 
-socket.on('disconnect', function() {
-  if(!gameLogic.gameOver) {
-    finishGame({winner: "draw", reason: "connectError"});
-  }
-  prettyAlert("Connection Lost", "FROM BOARD The connection has been lost. " //TODO erase FROM BOARD
-      + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
-      + "This could just be bad luck. However, if it keeps happening, "
-      + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
-});
-
-socket.on('nameNotFound', function() {
-  if(!gameLogic.gameOver) {
-    finishGame({winner: "draw", reason: "connectError"});
-  }
-  prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
- + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
-+ ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
-});
 
 //------------------------------ FUNCTIONS TO EXPOSE TO OUTSIDE-----------------
 function getGameOver() {

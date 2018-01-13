@@ -2,7 +2,177 @@ var socket;
 function onLoad() {
   if(socket === undefined) {
     socket = io(); //only make one socket
-  }
+    if(definedDisconnect === undefined) {
+      socket.on('disconnect', function() {
+        if(socket.inGame && !getGameOver()) {
+          finishGame({winner: "draw", reason: "connectError"});
+        }
+        prettyAlert("Connection Lost", "The connection has been lost. "
+            + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
+            + "This could just be bad luck. However, if it keeps happening, "
+            + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
+      });
+
+      socket.on('nameNotFound', function() {
+        if(socket.inGame && !getGameOver()) {
+          finishGame({winner: "draw", reason: "connectError"});
+        }
+        prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
+       + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
+      + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
+      });
+      definedDisconnect = true;
+    }
+    socket.on('lobby_enter', function(nickname) { //upon other people entering lobby
+      addPlayer(nickname);
+      console.log(nickname + " entered");
+    });
+
+    //when first enter lobby, find out who's here
+    socket.on('currentNicks', function(onlinePlayers) {
+      console.log("Players already here: ")
+      console.log(JSON.stringify(onlinePlayers, null, 4));
+      for(var player in onlinePlayers) {
+        if(onlinePlayers.hasOwnProperty(player)) {
+          if(onlinePlayers[player]["inLobby"] && (player != myNickname)) {
+            addPlayer(player);
+          }
+        }
+      }
+    });
+    //when other people leave the lobby
+    socket.on('lobby_leave', function(nickname) {
+      console.log(nickname + " left");
+      $("#player" + nickname).remove();
+    });
+
+    socket.on('challenged', function(challenge) {
+      if(busy) {
+        //emit busy tone & return
+        socket.emit('busyTone', challenge.challenger);
+        return;
+      }
+      var timeLeft = INVITE_TIME;
+      var offerValid = challenge.showValid
+      var offerThreat = challenge.showThreat;
+      var offerValidStr = (offerValid) ? "Yes." : "No.";
+      var offerThreatStr = (offerThreat) ? "Yes." : "No.";
+      var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
+      challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
+      challengeHTML += "Show valid moves: " + offerValidStr;
+      challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
+      challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
+      console.log(challengeHTML);
+      busy = true;
+      console.log("busy now");
+      var buttons = [];
+      var acceptButton = {
+        text: "Accept",
+        click: function() {
+          clearInterval(closeInvitation);
+          socket.inLobby = false;
+          $(this).dialog( "close" );
+          //emit to challenger that you've accepted the challenge
+          socket.emit('acceptChallenge', challenge.challenger);
+          //make POST request
+          $.ajax({
+            url: "gameStart",
+            type: 'POST',
+            data: {myName: myNickname,
+              enemyName: challenge.challenger,
+              roomNamer: "0",
+              showValid: offerValidStr,
+              showThreat: offerThreatStr},
+            success: function(page) {
+              //necessary to open document before write
+              document.open();
+              document.write(page);
+            }
+          });
+          console.log("Have accepted the challenge!");
+          busy = false;
+        }
+      };
+      var declineButton = {
+        text: "Decline",
+        click: function() {
+          clearInterval(closeInvitation);
+          //emit that you've declined
+          socket.emit('declineChallenge', challenge.challenger);
+          busy = false;
+          console.log("Free again");
+          $(this).dialog( "close" );
+        }
+      };
+      buttons.push(acceptButton);
+      buttons.push(declineButton);
+      $("#challengeText").text(challengeHTML);
+      /* Note: To figure out how to hide the x button, see this site:
+      https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
+      $("#challengeBox").dialog({
+        closeOnEscape: false,
+        open: function(event, ui) {
+          $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+        },
+        modal: true, //ditto from above
+        buttons: buttons,
+        title: "Challenge!"
+      });
+      var decrementTime = function() {
+        timeLeft -= 1;
+        var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
+        challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
+        challengeHTML += "Show valid moves: " + offerValidStr;
+        challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
+        challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
+        $("#challengeText").html(challengeHTML);
+        if(timeLeft == 0) {
+          clearInterval(closeInvitation);
+          busy = false;
+          console.log("Free again");
+          $("#challengeBox").dialog("close");
+        }
+      }
+      closeInvitation = setInterval(decrementTime, 1000);
+    });
+
+    socket.on('challengeDeclined', function(decliner) {
+      clearInterval(closeInvitation);
+      $("#waitBox").dialog("close"); //necessary
+      var reasonStr = (decliner.reason == "busy") ? " is currently busy deciding on another invitation." : " has declined your challenge.";
+      prettyAlert("Declined", "'" + decliner.name + "'" + reasonStr, [OK_BUTTON], false, "challengeDeclined");
+      busy = false;
+      console.log("Free again");
+    });
+
+    socket.on('challengeAccepted', function(accepter) {
+      var offerValidStr = (showValid) ? "Yes." : "No.";
+      var offerThreatStr = (showThreat) ? "Yes." : "No.";
+      console.log(accepter + " has accepted your challenge!");
+      socket.inLobby = false;
+      $("#waitBox").dialog("close");
+      clearInterval(closeInvitation);
+      //make POST request
+      //data that needs to be included: myName, enemyName, challenge parameters such as show moves, threats, time
+      $.ajax({
+        url: "gameStart",
+        type: 'POST',
+        data: {myName: myNickname,
+          enemyName: accepter,
+          roomNamer: "1",
+          showValid: offerValidStr,
+          showThreat: offerThreatStr},
+        success: function(page) {
+          document.open();
+          document.write(page);
+        }
+      });
+      busy = false;
+    });
+
+  } //END SOCKET DEFINITIONS----------------------------------------------------
+
+
   var myNickname = $("#nickname").text();
   socket.emit('lobby', myNickname);
   socket.inLobby = true;
@@ -58,176 +228,6 @@ function onLoad() {
     }
     closeInvitation = setInterval(decrementTime, 1000);
   }
-
-  socket.on('lobby_enter', function(nickname) { //upon other people entering lobby
-    addPlayer(nickname);
-    console.log(nickname + " entered");
-  });
-
-  //when first enter lobby, find out who's here
-  socket.on('currentNicks', function(onlinePlayers) {
-    console.log("Players already here: ")
-    console.log(JSON.stringify(onlinePlayers, null, 4));
-    for(var player in onlinePlayers) {
-      if(onlinePlayers.hasOwnProperty(player)) {
-        if(onlinePlayers[player]["inLobby"] && (player != myNickname)) {
-          addPlayer(player);
-        }
-      }
-    }
-  });
-  //when other people leave the lobby
-  socket.on('lobby_leave', function(nickname) {
-    console.log(nickname + " left");
-    $("#player" + nickname).remove();
-  });
-
-  socket.on('challenged', function(challenge) {
-    if(busy) {
-      //emit busy tone & return
-      socket.emit('busyTone', challenge.challenger);
-      return;
-    }
-    var timeLeft = INVITE_TIME;
-    var offerValid = challenge.showValid
-    var offerThreat = challenge.showThreat;
-    var offerValidStr = (offerValid) ? "Yes." : "No.";
-    var offerThreatStr = (offerThreat) ? "Yes." : "No.";
-    var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
-    challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
-    challengeHTML += "Show valid moves: " + offerValidStr;
-    challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
-    challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
-    console.log(challengeHTML);
-    busy = true;
-    console.log("busy now");
-    var buttons = [];
-    var acceptButton = {
-      text: "Accept",
-      click: function() {
-        clearInterval(closeInvitation);
-        socket.inLobby = false;
-        $(this).dialog( "close" );
-        //emit to challenger that you've accepted the challenge
-        socket.emit('acceptChallenge', challenge.challenger);
-        //make POST request
-        $.ajax({
-          url: "gameStart",
-          type: 'POST',
-          data: {myName: myNickname,
-            enemyName: challenge.challenger,
-            roomNamer: "0",
-            showValid: offerValidStr,
-            showThreat: offerThreatStr},
-          success: function(page) {
-            //necessary to open document before write
-            document.open();
-            document.write(page);
-          }
-        });
-        console.log("Have accepted the challenge!");
-        busy = false;
-      }
-    };
-    var declineButton = {
-      text: "Decline",
-      click: function() {
-        clearInterval(closeInvitation);
-        //emit that you've declined
-        socket.emit('declineChallenge', challenge.challenger);
-        busy = false;
-        console.log("Free again");
-        $(this).dialog( "close" );
-      }
-    };
-    buttons.push(acceptButton);
-    buttons.push(declineButton);
-    $("#challengeText").text(challengeHTML);
-    /* Note: To figure out how to hide the x button, see this site:
-    https://stackoverflow.com/questions/896777/how-to-remove-close-button-on-the-jquery-ui-dialog */
-    $("#challengeBox").dialog({
-      closeOnEscape: false,
-      open: function(event, ui) {
-        $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-      },
-      modal: true, //ditto from above
-      buttons: buttons,
-      title: "Challenge!"
-    });
-    var decrementTime = function() {
-      timeLeft -= 1;
-      var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
-      challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
-      challengeHTML += "Show valid moves: " + offerValidStr;
-      challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
-      challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
-      $("#challengeText").html(challengeHTML);
-      if(timeLeft == 0) {
-        clearInterval(closeInvitation);
-        busy = false;
-        console.log("Free again");
-        $("#challengeBox").dialog("close");
-      }
-    }
-    closeInvitation = setInterval(decrementTime, 1000);
-  });
-
-  socket.on('challengeDeclined', function(decliner) {
-    clearInterval(closeInvitation);
-    $("#waitBox").dialog("close"); //necessary
-    var reasonStr = (decliner.reason == "busy") ? " is currently busy deciding on another invitation." : " has declined your challenge.";
-    prettyAlert("Declined", "'" + decliner.name + "'" + reasonStr, [OK_BUTTON], false, "challengeDeclined");
-    busy = false;
-    console.log("Free again");
-  });
-
-  socket.on('challengeAccepted', function(accepter) {
-    var offerValidStr = (showValid) ? "Yes." : "No.";
-    var offerThreatStr = (showThreat) ? "Yes." : "No.";
-    console.log(accepter + " has accepted your challenge!");
-    socket.inLobby = false;
-    $("#waitBox").dialog("close");
-    clearInterval(closeInvitation);
-    //make POST request
-    //data that needs to be included: myName, enemyName, challenge parameters such as show moves, threats, time
-    $.ajax({
-      url: "gameStart",
-      type: 'POST',
-      data: {myName: myNickname,
-        enemyName: accepter,
-        roomNamer: "1",
-        showValid: offerValidStr,
-        showThreat: offerThreatStr},
-      success: function(page) {
-        document.open();
-        document.write(page);
-      }
-    });
-    busy = false;
-  });
-
-  if(definedDisconnect === undefined) {
-    socket.on('disconnect', function() {
-      if(!socket.inLobby) {
-        return;
-      }
-      prettyAlert("Connection Lost", "FROM LOBBY The connection has been lost. " //TODO erase FROM BOARD
-          + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
-          + "This could just be bad luck. However, if it keeps happening, "
-          + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
-    });
-
-    socket.on('nameNotFound', function() {
-      if(!socket.inLobby) {
-        return;
-      }
-      prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
-     + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
-    + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
-    });
-    definedDisconnect = true;
-  }
-
 }
 
 var definedDisconnect;

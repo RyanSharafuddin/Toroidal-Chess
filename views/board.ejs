@@ -79,9 +79,9 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/chessboard-0.3.0.min.js"></script>
     <script src="js/prettyDialog.js"></script>
-    <script src="js/toroidal.js"></script>
-    <script src="js/board.js"></script>
-    <script src="js/chat.js"></script>
+    <script src="js/toroidal.js"></script> <!-- depends on prettydialog and chessboard and sockets -->
+    <script src="js/board.js"></script> <!-- depends on toroidal.js -->
+    <script src="js/chat.js"></script> <!-- depends on board.js -->
     <script src="js/gameButtons.js"></script>
 </body>
 </html>
