@@ -81,7 +81,7 @@ function addPiece(piece, square) {
   var fromEnemy = false;
   var data = promotePawnGetUpdatedPosAndState(piece, square, board1.position(), gameLogic);
   setUpdatedStateAndPos(data, false);
-  updateDisplay(gameLogic, board1.position(). fromEnemy);
+  updateDisplay(gameLogic, board1.position(), fromEnemy);
   sendMove(board1.position(), gameLogic);
 }
 
@@ -274,18 +274,26 @@ function setGameEndDisplay(data) {
 
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
 //--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
-var cfg = {
-  position: TOROIDAL_START,
-  draggable: true,
-  onDragStart: onDragStart,
-  onMouseoutSquare: onMouseoutSquare,
-  onMouseoverSquare: onMouseoverSquare,
-  onDrop: onDrop
-};
-var board1 = ChessBoard('board1', cfg);
-var gameLogic = new InitGameState();
-var UIState = new InitUIState(); //will be inited in socket.on("start")
-console.log("UIState is " + JSON.stringify(UIState));
+var numTimes = (numTimes === undefined) ? 1 : numTimes + 1;
+var board1;
+var gameLogic;
+var UIState
+function initEverything() {
+  console.log("You've been here " + numTimes + " times");
+  var cfg = {
+    position: TOROIDAL_START,
+    draggable: true,
+    onDragStart: onDragStart,
+    onMouseoutSquare: onMouseoutSquare,
+    onMouseoverSquare: onMouseoverSquare,
+    onDrop: onDrop
+  };
+  board1 = ChessBoard('board1', cfg);
+  gameLogic = new InitGameState();
+  UIState = new InitUIState(); //will be inited in socket.on("start")
+  console.log("UIState is " + JSON.stringify(UIState));
+}
+
 function TotalState(pos, state) {
   this.position = pos;
   this.state = state;
@@ -317,6 +325,7 @@ function InitUIDisplay(color) {
 // Connection stuff
 //------------------------------------------------------------------------------
 var socket = io();
+initEverything();
 socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
 
 socket.on('start', function(data) {
@@ -346,7 +355,7 @@ socket.on('disconnect', function() {
   if(!gameLogic.gameOver) {
     finishGame({winner: "draw", reason: "connectError"});
   }
-  prettyAlert("Connection Lost", "FROM BOARD The connection has been lost. " //TODO erase FROM BOARD
+  prettyAlert("Connection Lost", "FROM LOBBY The connection has been lost. " //TODO erase FROM BOARD
       + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
       + "This could just be bad luck. However, if it keeps happening, "
       + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
@@ -356,10 +365,11 @@ socket.on('nameNotFound', function() {
   if(!gameLogic.gameOver) {
     finishGame({winner: "draw", reason: "connectError"});
   }
-  prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname"
- + "as being logged in. You should probably return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>."
+  prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
+ + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
 + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
 });
+
 //------------------------------ FUNCTIONS TO EXPOSE TO OUTSIDE-----------------
 function getGameOver() {
   return gameLogic.gameOver;
