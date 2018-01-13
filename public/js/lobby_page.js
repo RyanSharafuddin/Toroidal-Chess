@@ -1,12 +1,11 @@
+var socket;
 function onLoad() {
-  if(loaded) {
-    return;
+  if(socket === undefined) {
+    socket = io(); //only make one socket
   }
-  loaded = true;
-  var socket = io();
   var myNickname = $("#nickname").text();
   socket.emit('lobby', myNickname);
-
+  socket.inLobby = true;
   //to be used when someone enters the lobby
   function addPlayer(nickname) {
       /* what the button HTML should come out to be in the end
@@ -107,6 +106,7 @@ function onLoad() {
       text: "Accept",
       click: function() {
         clearInterval(closeInvitation);
+        socket.inLobby = false;
         $(this).dialog( "close" );
         //emit to challenger that you've accepted the challenge
         socket.emit('acceptChallenge', challenge.challenger);
@@ -185,6 +185,7 @@ function onLoad() {
     var offerValidStr = (showValid) ? "Yes." : "No.";
     var offerThreatStr = (showThreat) ? "Yes." : "No.";
     console.log(accepter + " has accepted your challenge!");
+    socket.inLobby = false;
     $("#waitBox").dialog("close");
     clearInterval(closeInvitation);
     //make POST request
@@ -205,20 +206,31 @@ function onLoad() {
     busy = false;
   });
 
-  socket.on('disconnect', function() {
-    prettyAlert("Connection Lost", "FROM LOBBY The connection has been lost. " //TODO erase FROM BOARD
-        + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
-        + "This could just be bad luck. However, if it keeps happening, "
-        + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
-  });
+  if(definedDisconnect === undefined) {
+    socket.on('disconnect', function() {
+      if(!socket.inLobby) {
+        return;
+      }
+      prettyAlert("Connection Lost", "FROM LOBBY The connection has been lost. " //TODO erase FROM BOARD
+          + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
+          + "This could just be bad luck. However, if it keeps happening, "
+          + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
+    });
 
-  socket.on('nameNotFound', function() {
-    prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
-   + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
-  + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
-  });
+    socket.on('nameNotFound', function() {
+      if(!socket.inLobby) {
+        return;
+      }
+      prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
+     + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
+    + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
+    });
+    definedDisconnect = true;
+  }
+
 }
 
+var definedDisconnect;
 var showValid;
 var showThreat; //global variables to be set everytime you challenge someone
 var loaded = false;
@@ -228,7 +240,4 @@ Should be slightly less than WAIT_TIME, to ensure this times out first */
 var INVITE_TIME = WAIT_TIME - 2;
 var closeInvitation;  //set up a 'global' variable for future use
 var busy = false; //waiting on invitation or have standing invitation
-// $( document ).ready(function() { //don't need document.ready b/c script at bottom
-//   onLoad();
-// });
 onLoad();

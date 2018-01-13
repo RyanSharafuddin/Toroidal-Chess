@@ -355,7 +355,7 @@ socket.on('disconnect', function() {
   if(!gameLogic.gameOver) {
     finishGame({winner: "draw", reason: "connectError"});
   }
-  prettyAlert("Connection Lost", "FROM LOBBY The connection has been lost. " //TODO erase FROM BOARD
+  prettyAlert("Connection Lost", "FROM BOARD The connection has been lost. " //TODO erase FROM BOARD
       + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
       + "This could just be bad luck. However, if it keeps happening, "
       + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
