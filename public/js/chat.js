@@ -17,9 +17,6 @@ $('#messageForm').submit(function(){
   return false;
 });
 
-if(numTimes < 2) { //depends on board.js
-  socket.on('chatting', appendMessage);
-}
 function hasWhiteSpace(s) {
   return /\s/g.test(s);
 }

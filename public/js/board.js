@@ -275,10 +275,7 @@ function setGameEndDisplay(data) {
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
 //--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
 var numTimes = (numTimes === undefined) ? 1 : numTimes + 1;
-var board1;
-var gameLogic;
-var UIState
-function initEverything() {
+function initEverythingBoard() {
   console.log("This is visit number: " + numTimes + " from you");
   var cfg = {
     position: TOROIDAL_START,
@@ -325,39 +322,35 @@ function sendMove(pos, state) {
   socket.emit('move', new TotalState(pos, state));
 }
 //------------------------------------------------------------------------------
-// Connection stuff
-//------------------------------------------------------------------------------
-var socket;
-if(socket === undefined) {
-  //this should never happen, because the socket from the lobby is stil there
-  socket = io();
+// Connection stuff - what to do on socket events
+
+function gameReady(data) {
+  UIState = new InitUIState(data);
+  InitUIDisplay(data.color);
+  console.log("receieved start");
+  console.log(JSON.stringify(UIState));
 }
+
+function receivedOpponentMove(totalState) {
+  var fromEnemy = true;
+  setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
+  updateDisplay(gameLogic, totalState.position, fromEnemy);
+}
+
+function opponentLeft(){
+  if(getGameOver()) { //don't do anything if game already over
+    return;
+  }
+  finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
+}
+//---------------------------- Main --------------------------------------------
+var board1;
+var gameLogic;
+var UIState;
 socket.inGame = true;
-//so only define this stuff if you haven't before.
-if(numTimes < 2) {
-  socket.on('start', function(data) {
-    UIState = new InitUIState(data); //TODO for below 2 lines: make init display function
-    InitUIDisplay(data.color);
-    console.log("receieved start");
-    console.log(JSON.stringify(UIState));
-  });
-
-  socket.on('oppMove', function(totalState) {
-    var fromEnemy = true;
-    setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
-    updateDisplay(gameLogic, totalState.position, fromEnemy);
-  });
-
-  socket.on("oppLeft", function() {
-    if(gameLogic.gameOver) { //don't do anything if game already over
-      return;
-    }
-    finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
-  });
-}
-initEverything();
+initEverythingBoard();
 socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
-
+// ways to leave the board - click the return to lobby button, in gameButtons.js
 
 //------------------------------ FUNCTIONS TO EXPOSE TO OUTSIDE-----------------
 function getGameOver() {
