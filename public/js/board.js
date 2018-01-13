@@ -87,7 +87,7 @@ function addPiece(piece, square) {
 
 //call when user promotes
 function displayPromotionButtons(color, target) {
-  prettyAlert("Pawn Promotion", "Promote pawn to:", promotionButtons(color, target), true);
+  prettyAlert("Pawn Promotion", "Promote pawn to:", promotionButtons(color, target), true, "promotions");
 }
 
 
@@ -346,10 +346,10 @@ socket.on('disconnect', function() {
   if(!gameLogic.gameOver) {
     finishGame({winner: "draw", reason: "connectError"});
   }
-  prettyAlert("Connection Lost", "The connection has been lost. "
+  prettyAlert("Connection Lost", "FROM BOARD The connection has been lost. " //TODO erase FROM BOARD
       + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
       + "This could just be bad luck. However, if it keeps happening, "
-      + " it is probably a bug.", [OK_BUTTON], true);
+      + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
 });
 
 socket.on('nameNotFound', function() {
@@ -358,7 +358,7 @@ socket.on('nameNotFound', function() {
   }
   prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname"
  + "as being logged in. You should probably return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>."
-+ ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true);
++ ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
 });
 //------------------------------ FUNCTIONS TO EXPOSE TO OUTSIDE-----------------
 function getGameOver() {

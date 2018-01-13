@@ -3,13 +3,17 @@ This is just a function that takes in a string and makes a pretty
 modal alert appear. It looks nicer than the standard window.alert() function,
 though it serves the same purpose.
 It assumes the line
-<div id="prettyAlertBox"><div id="prettyAlertText"></div></div>
+<div id="prettyAlertBox"></div>
 is somewhere on the page.
 */
 var OK_BUTTON = {text: "OK", click: function() {$(this).dialog( "close" );}} //text OK, closes the dialogue
-function prettyAlert(title, message, buttons, modal) {
-  $("#prettyAlertText").html(message);
-  $("#prettyAlertBox").dialog({
+function prettyAlert(title, message, buttons, modal, divID) { //can make multiple dialogs without interfering with each other
+  $("#prettyAlertBox").append("<div id ='" + divID + "Box'><div id = '" + divID + "Text'></div></div>" );
+  var divIDText = divID + "Text";
+  var divIDBox = divID + "Box";
+
+  $("#" + divIDText).html(message);
+  $("#" + divIDBox).dialog({
     closeOnEscape: false,
     open: function(event, ui) {
       $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();

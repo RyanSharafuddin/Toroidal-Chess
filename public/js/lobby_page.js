@@ -41,7 +41,7 @@ function onLoad() {
       open: function(event, ui) {
         $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
       },
-      modal: true,
+      modal: true, //be careful when converting to pretty dialog function. The timer function needs to match up
       buttons: [],
       title: "Waiting . . ."
     });
@@ -150,7 +150,7 @@ function onLoad() {
       open: function(event, ui) {
         $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
       },
-      modal: true,
+      modal: true, //ditto from above
       buttons: buttons,
       title: "Challenge!"
     });
@@ -173,23 +173,10 @@ function onLoad() {
   });
 
   socket.on('challengeDeclined', function(decliner) {
-    var buttons = [];
-    var ok = {
-      text: "OK",
-      click: function() {
-        $(this).dialog( "close" );
-      }
-    };
-    buttons.push(ok);
     clearInterval(closeInvitation);
-    $("#waitBox").dialog("close");
+    $("#waitBox").dialog("close"); //necessary
     var reasonStr = (decliner.reason == "busy") ? " is currently busy deciding on another invitation." : " has declined your challenge.";
-    $("#declineBox").text("'" + decliner.name + "'" + reasonStr);
-    $("#declineBox").dialog({
-      modal: true,
-      buttons: buttons,
-      title: "Declined"
-    });
+    prettyAlert("Declined", "'" + decliner.name + "'" + reasonStr, [OK_BUTTON], false, "challengeDeclined");
     busy = false;
     console.log("Free again");
   });
@@ -218,10 +205,17 @@ function onLoad() {
     busy = false;
   });
 
+  socket.on('disconnect', function() {
+    prettyAlert("Connection Lost", "FROM LOBBY The connection has been lost. " //TODO erase FROM BOARD
+        + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
+        + "This could just be bad luck. However, if it keeps happening, "
+        + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
+  });
+
   socket.on('nameNotFound', function() {
     prettyAlert("Error", "There has been some sort of error. The server does not recognize this nickname "
    + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
-  + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true);
+  + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
   });
 }
 

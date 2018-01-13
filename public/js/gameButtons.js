@@ -22,7 +22,7 @@ function resign() {
       $(this).dialog( "close" );
     }
   };
-  prettyAlert("Resign?", "Are you sure you want to resign?", [yesButton, noButton], true)
+  prettyAlert("Resign?", "Are you sure you want to resign?", [yesButton, noButton], true, "resign")
 }
 
 function proposeDraw() {
@@ -35,7 +35,7 @@ function proposeDraw() {
   setCanProposeDraw(false);
   prettyAlert("Draw Proposal Sent", "You have proposed a draw. To prevent people from "
                         + "spamming draw offers, you may not propose another "
-                        + "draw until you make a move.", [OK_BUTTON], false)
+                        + "draw until you make a move.", [OK_BUTTON], false, "proposeDraw")
   socket.emit('drawProposal');
 }
 
@@ -57,7 +57,7 @@ function lobbyButton() {
     var lobbyText = "Are you sure you want to return to the lobby?"
     lobbyText += " If you return before the game is over, you will not be able"
     lobbyText += " to come back to this game, and you will lose."
-    prettyAlert("Return To Lobby?", lobbyText, [yesButton, noButton], true)
+    prettyAlert("Return To Lobby?", lobbyText, [yesButton, noButton], true, "lobbyReturn")
   }
   else {
     lobbyReturn();
@@ -104,15 +104,15 @@ socket.on('drawOffer', function() {
       $(this).dialog("close");
     }
   }
-  prettyAlert("Draw Proposal", "'" + getEnemyName() + "' has proposed a draw.", [acceptButton, declineButton], true)
+  prettyAlert("Draw Proposal", "'" + getEnemyName() + "' has proposed a draw.", [acceptButton, declineButton], true, "drawOffered")
 });
 
 socket.on('drawReply', function(reply) {
   if(reply == "yes") {
-    prettyAlert("Draw Proposal Accepted", "'" + getEnemyName() + "' has accepted your draw proposal.", [OK_BUTTON], false)
+    prettyAlert("Draw Proposal Accepted", "'" + getEnemyName() + "' has accepted your draw proposal.", [OK_BUTTON], false, "drawReply")
     finishGame({winner: "draw", reason: "drawAgreement"});
   }
   else if(reply == "no") {
-    prettyAlert("Draw Proposal Rejected", "'" + getEnemyName() + "' has rejected your draw proposal.", [OK_BUTTON], false)
+    prettyAlert("Draw Proposal Rejected", "'" + getEnemyName() + "' has rejected your draw proposal.", [OK_BUTTON], false, "drawReply")
   }
 });
