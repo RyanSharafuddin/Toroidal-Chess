@@ -4,12 +4,16 @@
     put in pos, state, and source, get all threats,
     put in pos, state, and legal move, get back updated pos and state
     put in pos, state, and legal move, get back whether it's a promotion or not
-    put in pos, state, and promotion piece desire, get back updated pos and state
-//DEPENDENCIES: NONE (once hardcode toroidal start posObj)
+    put in pos, state, square, and promotion piece desire, get back updated pos and state
+//DEPENDENCIES: NONE
 NOTICE: I'm defining a valid move to be a move that the piece can make
            without regards to check while a legal move is a valid move that
            doesn't leave the mover in check
 */
+var CHECKMATE_SYMBOL = "#";
+var STALEMATE_SYMBOL = "SM";
+var CHECK_SYMBOL = "+";
+
 var FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 var RANKS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 var ALL_SQUARES = [];
@@ -20,6 +24,9 @@ for(var rank = 0; rank < 8; rank++) {
   }
 }
 
+function deepCopy(data) {
+  return JSON.parse(JSON.stringify(data)); //horribly inefficient, I know
+}
 /* Converts a filenum and rankNum to a string representing the algebraic
    position. For example, coord(2, 3) returns "c4" */
 function coord(fileNum, rankNum) {
@@ -253,7 +260,7 @@ function threatens(pos, piece, source, square, state) {
 }
 
 /* Returns true if piece at source would threaten square in pos if
-   . . . you get the idea , given king locations */
+   . . . you get the idea  */
 function wouldThreatenIfOppositeKingWentThere(state, pos, piece, source, square) {
   var posCopy = Object.assign({}, pos); //okay because oldPos is not a nested object
   var stateCopy = Object.assign({}, state); //okay because only writing king locs, not writing to nested objects
@@ -291,7 +298,6 @@ function inCheck(whiteTurn, pos, state) {
         console.log(e);
         console.trace();
       }
-
     }
   }
   return false;
@@ -346,6 +352,22 @@ function check_mate_stale(whiteTurn, pos, state) {
   return {inCheck: "", checkmated: "", stalemated: false};
 }
 
+function setEnpassants(piece, source, target, state) {
+  var forward = (piece.charAt(0) == "w") ? 1 : -1;
+  //reset them all to false
+  for(var square in state.enpassants) {
+    if(state.enpassants.hasOwnProperty(square)) {
+      state.enpassants[square] = false;
+    }
+  }
+  //set enpassant if this was a pawn moving up 2
+  if(piece.charAt(1) == "P" &&
+      (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
+    var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
+    state.enpassants[enable] = true;
+  }
+}
+
 function getUpdatedPosAndStatePrelim(pos, state, source, target) {
   //done for both pawn promotion before add piece AND regular moves
   var posCopy = deepCopy(pos);
@@ -353,32 +375,21 @@ function getUpdatedPosAndStatePrelim(pos, state, source, target) {
   var moveString = source + "-" + target;
   var piece = posCopy[source];
   var targetPiece = posCopy[target];
+  var forward = (piece.charAt(0) == "w") ? 1 : -1;
   delete posCopy[source];
   posCopy[target] = piece;
   stateCopy.moves.push(moveString);
-  var forward = (piece.charAt(0) == "w") ? 1 : -1;
   //piece is pawn that moved columns to an empty square, so must have en passanted
   if((piece.charAt(1) == "P") && (target.charAt(0) != source.charAt(0)) &&
-                                              (targetPiece == undefined)) {
-    console.log("Made en passant move!")
+                                              (targetPiece === undefined)) {
+    console.log("Made en passant move!");
     var backward = -1 * forward;
     var eliminateSquare = target.charAt(0) + (parseInt(target.charAt(1)) + backward);
     console.log("eliminateSquare: " + eliminateSquare);
     delete posCopy[eliminateSquare];
   }
-  //reset enpassants
-  for(var square in stateCopy.enpassants) {
-    if(stateCopy.enpassants.hasOwnProperty(square)) {
-      stateCopy.enpassants[square] = false;
-    }
-  }
-  //set enpassant if this was moving up 2
-  if(piece.charAt(1) == "P" &&
-      (parseInt(target.charAt(1)) - parseInt(source.charAt(1)) == (forward * 2))) {
-    var enable = source.charAt(0) + (parseInt(source.charAt(1)) + forward);
-    stateCopy.enpassants[enable] = true;
-  }
-  //STUFF
+  setEnpassants(piece, source, target, stateCopy);
+  console.log("en passants set. They are: " + JSON.stringify(stateCopy.enpassants));
   if(piece.charAt(1) == "K") {
     var kingField = piece.charAt(0) + "KLoc";
     stateCopy[kingField] = target;
@@ -398,13 +409,13 @@ function getUpdatedPosAndStateFinal(pos, state) {
   stateCopy.stalemated = checkObj.stalemated;
 
   if(stateCopy.whiteMated || stateCopy.blackMated) {
-    stateCopy.moves[stateCopy.moves.length - 1] += "#";
+    stateCopy.moves[stateCopy.moves.length - 1] += CHECKMATE_SYMBOL;
   }
   if(stateCopy.inCheck) {
-    stateCopy.moves[stateCopy.moves.length - 1] += "+";
+    stateCopy.moves[stateCopy.moves.length - 1] += CHECK_SYMBOL;
   }
   if(stateCopy.stalemated) {
-    stateCopy.moves[stateCopy.moves.length - 1] += "SM"
+    stateCopy.moves[stateCopy.moves.length - 1] += STALEMATE_SYMBOL;
   }
   return {pos: posCopy, state: stateCopy};
 }
@@ -467,23 +478,22 @@ function InitGameState() {
     h6: false
   }
 }
-function deepCopy(data) {
-  return JSON.parse(JSON.stringify(data)); //horribly inefficient, I know
-}
 
 function promotePawnGetUpdatedPosAndState(promoteTo, square, oldPos, oldState) {
-  //TODO change moves in stateCopy to reflect piece addition
-  console.log("promoteTo: " + promoteTo); //should be like "wQ"
   var posCopy = deepCopy(oldPos);
   var stateCopy = deepCopy(oldState);
   switch(promoteTo.charAt(1)) {
-    case "Q": //TODO change stateCopy.moves
+    case "Q":
+      stateCopy.moves[stateCopy.moves.length - 1] += "=Q";
       break;
     case "N":
+      stateCopy.moves[stateCopy.moves.length - 1] += "=N";
       break;
     case "B":
+      stateCopy.moves[stateCopy.moves.length - 1] += "=B";
       break;
     case "R":
+      stateCopy.moves[stateCopy.moves.length - 1] += "=R";
       break;
   }
   posCopy[square] = promoteTo;
@@ -502,7 +512,6 @@ var legalSquares = function(square, piece, pos, state) {
 var threatenedSquares = function(square, piece, pos, state) {
   return ALL_SQUARES.filter(partial(wouldThreatenIfOppositeKingWentThere, state, pos, piece, square));
 }
-
 
 function getUpdatedPosAndState(pos, state, source, target) {
   data = getUpdatedPosAndStatePrelim(pos, state, source, target);

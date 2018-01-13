@@ -48,46 +48,19 @@ var DARK_RED = '#972B2B';
 //--------------------------- END UTILITY STUFF --------------------------------
 
 var promotionButtons = function(color, square) {
+  function buttonFunctionMaker(pieceLetter, square, color) {
+    return (function() {
+      addPiece(color + pieceLetter, square);
+      $(this).dialog( "close" );
+    });
+  }
   var buttons = [];
-  var queenButton = {
-    text: "Queen",
-    click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Queen"; //TODO: move this functionality into promote pawn. cuz gameLogic should be read only
-      addPiece(color + "Q", square);
-      $(this).dialog( "close" );
-    }
-  }
-  buttons.push(queenButton);
+  var PIECES_TEXT = ["Queen", "Knight", "Rook", "Bishop"];
+  var CORRESPONDING_LETTER = ["Q", "N", "R", "B"];
 
-  var knightButton = {
-    text: "Knight",
-    click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Knight";
-      addPiece(color + "N", square);
-      $(this).dialog( "close" );
-    }
+  for(var i = 0; i < PIECES_TEXT.length; i++) {
+    buttons.push({text: PIECES_TEXT[i], click: buttonFunctionMaker(CORRESPONDING_LETTER[i], square, color)});
   }
-  buttons.push(knightButton);
-
-  var rookButton = {
-    text: "Rook",
-    click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Rook";
-      addPiece(color + "R", square);
-      $(this).dialog( "close" );
-    }
-  }
-  buttons.push(rookButton);
-
-  var bishopButton = {
-    text: "Bishop",
-    click: function() {
-      gameLogic.moves[gameLogic.moves.length - 1] += " Bishop";
-      addPiece(color + "B", square);
-      $(this).dialog( "close" );
-    }
-  }
-  buttons.push(bishopButton);
   return buttons;
 }
 
