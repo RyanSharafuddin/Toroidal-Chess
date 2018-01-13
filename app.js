@@ -132,6 +132,7 @@ io.on('connection', function(socket) {
       var enemyName = gameParameters.enemyName;
       var roomName = gameParameters.roomName;
       //update id in onlinePlayers object
+      console.log("myName in startGame received: " + myName);
       onlinePlayers[myName]["id"] = socket.id;
       var enemyColor = onlinePlayers[enemyName]["color"];
       var myColor = (enemyColor === undefined) ? ((Math.random() > .5) ? "white" : "black") : ((enemyColor === "white") ? "black" : "white");

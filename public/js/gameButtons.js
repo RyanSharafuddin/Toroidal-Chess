@@ -4,7 +4,8 @@ DEPENDENCIES: board.js
 GLOBALS USED: gameLogic.gameOver,
               isWhite,
               canProposeDraw
-              enemyName
+              UIState.myName
+              UIState.enemyName
 
               finishGame({winner: "black" or "white" or "", reason: "resign" or "checkmate" or etc. . .})
 */
@@ -107,7 +108,7 @@ function lobbyReturn() {
   $.ajax({
     url: "lobbyReturn",
     type: 'POST',
-    data: {myName: myName},
+    data: {myName: UIState.myName},
     success: function(page) {
       console.log("within success function");
       document.open();
@@ -140,7 +141,7 @@ socket.on('drawOffer', function() {
       $(this).dialog("close");
     }
   }
-  $("#drawText").html("'" + enemyName + "' has proposed a draw.");
+  $("#drawText").html("'" + UIState.enemyName + "' has proposed a draw.");
   $("#drawBox").dialog({
     closeOnEscape: false,
     open: function(event, ui) {
@@ -154,7 +155,7 @@ socket.on('drawOffer', function() {
 
 socket.on('drawReply', function(reply) {
   if(reply == "yes") {
-    $("#drawText").html("'" + enemyName + "' has accepted your draw proposal.");
+    $("#drawText").html("'" + UIState.enemyName + "' has accepted your draw proposal.");
     $("#drawBox").dialog({
       modal: false,
       buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],
@@ -163,7 +164,7 @@ socket.on('drawReply', function(reply) {
     finishGame({winner: "draw", reason: "drawAgreement"});
   }
   else if(reply == "no") {
-    $("#drawText").html("'" + enemyName + "' has rejected your draw proposal.");
+    $("#drawText").html("'" + UIState.enemyName + "' has rejected your draw proposal.");
     $("#drawBox").dialog({
       modal: false,
       buttons: [{text: "OK", click: function() {$(this).dialog( "close" );}}],

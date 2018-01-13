@@ -320,7 +320,9 @@ var cfg = {
 };
 var board1 = ChessBoard('board1', cfg);
 var gameLogic = new InitGameState();
-var UIState; //will be inited in socket.on("start")
+var UIState = new InitUIState(); //will be inited in socket.on("start")
+console.log("UIState is " + JSON.stringify(UIState));
+console.log("myName gotten directly from the page" + $("#myName").text());
 function TotalState(pos, state) {
   this.position = pos;
   this.state = state;
@@ -330,12 +332,14 @@ function TotalState(pos, state) {
 function InitUIState(data) {
   this.isBlack = false;
   this.isWhite = false;
-  (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
+  if(data !== undefined) {
+    (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
+  }
   this.canProposeDraw = true;
-  this.myName = $("#myName").text();
-  this.enemyName = $("#enemyName").text();
+  this.myName = ($("#myName").text()) ? $("#myName").text() : this.myName;
+  this.enemyName = ($("#enemyName").text()) ? $("#enemyName").text() : this.enemyName;
   this.roomName = "X" + (($("#1").length > 0) ? this.myName : this.enemyName);
-  $("#vs").remove(); //needed to get info; don't want to display
+  $("#vs").hide(); //needed to get info; don't want to display
   this.showValid = (($("#showValidY").length > 0) ? true : false);
   this.showThreat = (($("#showThreatY").length > 0) ? true : false);
 }
@@ -349,7 +353,7 @@ var socket = io();
 socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
 
 socket.on('start', function(data) {
-  UIState = InitUIState(data); //TODO for below 2 lines: make init display function
+  UIState = new InitUIState(data); //TODO for below 2 lines: make init display function
   UIState.isWhite ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
   board1.orientation(data.color);
   console.log(JSON.stringify(board1.position()));
