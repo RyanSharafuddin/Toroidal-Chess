@@ -76,11 +76,23 @@ io.on('connection', function(socket) {
     }
     return false;
   }
+  function comparePreviousID(nickname, socket) {
+    if(onlinePlayers[nickname]) {
+      var previousID = onlinePlayers[nickname]["id"];
+      var currentID = socket.id;
+      console.log(nickname + ": previous ID = " + previousID);
+      console.log(nickname + ": current ID = " + currentID);
+      if(previousID != socket.id) {
+        console.log("ERROR! There should only be one socket now");
+      }
+    }
+  }
     //-----------------------------Lobby Functions------------------------------
     socket.on('lobby', function(nickname) {
       console.log(nickname + " has joined the lobby");
       socket.join("lobby");
       socket.emit('currentNicks', onlinePlayers); //notify of current nicknames
+      comparePreviousID(nickname, socket);
       onlinePlayers[nickname] = {id: socket.id, inLobby: true, inGame: false};
       socket.nickname = nickname;
       socket.broadcast.to("lobby").emit('lobby_enter', nickname); //notify everyone in lobby of entry
@@ -118,7 +130,6 @@ io.on('connection', function(socket) {
       onlinePlayers[socket.nickname]["inGame"] = true;
       socket.broadcast.to("lobby").emit('lobby_leave', socket.nickname); //notify everyone in lobby of leaving
       socket.leave("lobby");
-      socket.hereFlag = true;
 
       var challenger = io.sockets.connected[onlinePlayers[nickname]["id"]]; //the socket of the challenged player
       onlinePlayers[challenger.nickname]["inLobby"] = false;
@@ -127,7 +138,6 @@ io.on('connection', function(socket) {
       challenger.leave("lobby");
       //inform challenger that challenge accepted
       challenger.emit('challengeAccepted', socket.nickname);
-      challenger.hereFlag = true;
       console.log("A challenge has been accepted and a game has been started. Here is the onlinePlayers structure: ");
       console.log(JSON.stringify(onlinePlayers, null, 4));
     });
@@ -148,6 +158,7 @@ io.on('connection', function(socket) {
       }
       //update id in onlinePlayers object
       console.log("startGame received from: " + myName);
+      comparePreviousID(myName, socket);
       onlinePlayers[myName]["id"] = socket.id;
       var enemyColor = onlinePlayers[enemyName]["color"];
       var myColor = (enemyColor === undefined) ? ((Math.random() > .5) ? "white" : "black") : ((enemyColor === "white") ? "black" : "white");
@@ -202,7 +213,6 @@ io.on('connection', function(socket) {
       }
       socket.leave(socket.gameRoom);
       socket.gameRoom = undefined;
-      socket.hereFlag = true;
       onlinePlayers[nickname]["inLobby"] = true;
       onlinePlayers[nickname]["inGame"] = false;
       onlinePlayers[nickname]["color"] = undefined;
@@ -218,10 +228,6 @@ io.on('connection', function(socket) {
   //-----------------------------End Board Functions ------------------------------
 
   socket.on('disconnect', function() { //only use this for xing out of site, not disconnects caused by switching pages
-    if(socket.hereFlag) {
-      //in order to prevent this function from activating upon moving from lobby to game or game to lobby
-      return;
-    }
     if(onlinePlayers[socket.nickname] == undefined) {
       console.log("disconnected socket not present in onlinePlayers . . ., may or may not be a bug");
       console.log("nickname: " + socket.nickname);
