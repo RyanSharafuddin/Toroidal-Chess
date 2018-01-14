@@ -209,9 +209,27 @@ function gameOverMouseOver(square, piece, pos) {
     console.log(e);
     console.trace();
   }
+  function noneOrMineOrKing(square) {
+    console.log("in filter. Square checking is " + square);
+    if(pos[square] == undefined) {
+      console.log("Nothing here, do highlight");
+    }
+    else if(pos[square].charAt(0) == piece.charAt(0)) {
+      console.log("Protecting my piece, so highlight");
+    }
+    else if(square.charAt(1) == "K") {
+      console.log("King, so highlight");
+    }
+    else if(square == "d5") {
+      console.log("WTF " + pos[square]);
+    }
+    return((pos[square] == undefined) || (pos[square].charAt(0) == piece.charAt(0)) || (pos[square].charAt(1) == "K"));
+  }
   var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
   var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
   var highlights = (myPiece) ? myPieceHighlights(square, piece, pos, gameLogic) : enemyHighlights(square, piece, pos, gameLogic);
+  highlights = highlights.filter(noneOrMineOrKing);
+
   console.log("game over highlights: " + highlights);
   highlightList(square, highlights, lightColor, darkColor);
 }
