@@ -609,19 +609,20 @@ function buildBoard(orientation) {
   // algebraic notation / orientation
   if(orientation.color == "white") {
     var alpha = arrayRotateLeft(deepCopy(COLUMNS), orientation.right);
+    var row = mod(7 + orientation["up"], 8); //an orientation.up of 0 corresponds to the to the top left square being ROWS[7](a8)
   }
-  var row = mod(8 + orientation["up"], 8);
   if (orientation["color"] === 'black') {
     var alpha = arrayRotateLeft(deepCopy(COLUMNS).reverse(), orientation.right);
-    row = mod(1 - orientation["up"], 8);
+    row = mod(0 - orientation["up"], 8); //an orientation.up of 0 corresponds to top left being ROWS[0] (h1).
   }
+  console.log("in function buildBoard. orientation is  " + JSON.stringify(orientation));
 
   var squareColor = ((orientation.up + orientation.right) % 2 == 0)  ? "white" : "black";
   for (var i = 0; i < 8; i++) {
     html += '<div class="' + CSS.row + '">';
     for (var j = 0; j < 8; j++) {
       var square = alpha[j] + ROWS[row];
-
+      console.log("Square is " + square);
       html += '<div class="' + CSS.square + ' ' + CSS[squareColor] + ' ' +
         'square-' + square + '" ' +
         'style="width: ' + SQUARE_SIZE + 'px; height: ' + SQUARE_SIZE + 'px" ' +
