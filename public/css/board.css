@@ -13,6 +13,19 @@
   width: 80%;
 }
 
+#buttons {
+  width: 112%;
+}
+
+#originalButtonsContainer {
+  float: left;
+  width: 50%;
+}
+
+#scrollButtonsContainer {
+  float: right;
+  width: 50%;
+}
 
 /* http://cssbuttoncreator.com/ */
 .gameButtons {
