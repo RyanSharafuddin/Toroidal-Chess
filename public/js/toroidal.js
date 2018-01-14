@@ -404,12 +404,14 @@ function isPinnedBy(potentialPinnerLoc, pineeSquare, pos, state, enemyKingLoc) {
   if(pineeSquare == enemyKingLoc) {
     return false; //doesn't make sense to say king is pinned
   }
+  var potentialPinnerPiece = pos[potentialPinnerLoc];
+  var couldAttackBefore = ($.inArray(enemyKingLoc, validMoves(potentialPinnerLoc, potentialPinnerPiece, pos, state)) >= 0);
   var posCopy = deepCopy(pos);
   delete posCopy[pineeSquare];
-  var potentialPinnerPiece = posCopy[potentialPinnerLoc];
-  return($.inArray(enemyKingLoc, validMoves(potentialPinnerLoc, potentialPinnerPiece, posCopy, state)));
+  var canAttackIfPineeVanished = ($.inArray(enemyKingLoc, validMoves(potentialPinnerLoc, potentialPinnerPiece, posCopy, state)) >= 0);
+  return(!couldAttackBefore && canAttackIfPineeVanished);
 }
-function allPieces(color, pos) {
+function allPieces(color, pos) { //works
   var letter = ((color == "white") || (color == "w") || (color === true)) ? "w" : "b";
   return ALL_SQUARES.filter(function(square) {
     return ((pos[square] !== undefined) && (pos[square].charAt(0) == letter));
@@ -596,13 +598,16 @@ function necessaryToMate(pos, state) {
     throw("Error. Can only call necessaryToMate on a checkmated position");
   }
   var matingColor = (state.blackMated) ? "w" : "b";
+  var matedColor = (state.whiteMated) ? "w" : "b";
   var matedKingLoc = (state.blackMated) ? state.bKLoc : state.wKLoc;
-  var matedKingEscapeSquares = validMoves(matedKingLoc, matingColor + "K", pos, state);
+  var matedKingEscapeSquares = validMoves(matedKingLoc, matedColor + "K", pos, state);
+  console.log(matedKingEscapeSquares + " are the escape squares");
   var allMaterPieceLocs = allPieces(matingColor, pos);
   var matedKingCombinedSquares = [matedKingLoc].concat(matedKingEscapeSquares);
   var threatensKingOrEscapeSquareLocs = allMaterPieceLocs.filter(function(square) {
     return(arrayIntersect(matedKingCombinedSquares, validMoves(square, pos[square], pos, state)).length > 0);
   });
+  console.log(threatensKingOrEscapeSquareLocs + "is the array of direct king escape threateners")
   var pinnersNecessaryToMate = $.map(allMaterPieceLocs, function(materPieceLoc) {
     var pinnedPieces = piecesPinnedBy(materPieceLoc, pos, state);
     if(pinnedPieces.length == 0) {
@@ -615,10 +620,6 @@ function necessaryToMate(pos, state) {
     });
     return(criticalPinnedPieces.length > 0) ? materPieceLoc : null;
   });
+  console.log(pinnersNecessaryToMate + " is the array of pinners ");
   return threatensKingOrEscapeSquareLocs.concat(pinnersNecessaryToMate);
 }
-//TODO: test:
-//piecesPinnedBy
-//isPinnedBy
-//mustMovePiece
-//pinnersNecessaryToMate - criticalPinnedPieces
