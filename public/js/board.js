@@ -38,12 +38,15 @@ var uncolor_squares = function() {
 /*
 Used to highlight valid moves and threats. Given a square and a list
 of squares, highlights all those squares in the list, and the original square
+only highlights the list if square is null.
 */
 function highlightList(square, highlights, lightColor, darkColor) {
   if (highlights.length === 0) {
     return;
   }
-  color_square(square, lightColor, darkColor);
+  if((square !== null) && (square !== undefined)) {
+    color_square(square, lightColor, darkColor);
+  }
   for (var i = 0; i < highlights.length; i++) {
     color_square(highlights[i], lightColor, darkColor);
   }
@@ -172,43 +175,11 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
 };
 
 function gameOverMouseOver(square, piece, pos) {
-  if((gameLogic.whiteMated && UIState.isBlack) || (gameLogic.blackMated && UIState.isWhite)) {
-    console.log("I am the mater; highlight my threats in red");
-    var myPieceHighlights = threatenedSquares; //from toroidal.js
-    var myLightHighCol = LIGHT_RED;
-    var myDarkHighCol = DARK_RED;
-    var enemyHighlights = legalSquares //from toroidal.js
-    var enemyLightHighCol = LIGHT_GRAY;
-    var enemyDarkHighCol = DARK_GRAY;
-  }
-  //I'm the matee -- default action
-  else if((gameLogic.whiteMated && UIState.isWhite) || (gameLogic.blackMated && UIState.isBlack)) {
-    var myPieceHighlights = legalSquares;
-    var enemyHighlights = threatenedSquares;
-    var myLightHighCol = LIGHT_GRAY;
-    var myDarkHighCol = DARK_GRAY;
-    var enemyLightHighCol = LIGHT_RED;
-    var enemyDarkHighCol = DARK_RED;
-  }
-  else if(gameLogic.stalemated) {
-    var myLightHighCol = LIGHT_RED;
-    var myDarkHighCol = DARK_RED;
-    var enemyLightHighCol = LIGHT_RED;
-    var enemyDarkHighCol = DARK_RED;
-    var enemyHighlights = threatenedSquares;
-    var myPieceHighlights = threatenedSquares;
-  }
-  else {
-    return; //game end by draw agreement or leaving or resign
-  }
-  try {
-    var myPiece = ((piece.charAt(0) == 'w') && UIState.isWhite) || ((piece.charAt(0) == 'b') && UIState.isBlack);
-  }
-  catch (e) {
-    console.log("piece is " + piece);
-    console.log(e);
-    console.trace();
-  }
+  var criticalMaters = necessaryToMate(pos, gameLogic);
+  var highlights = $.map(criticalMaters, function(criticalMaterLoc) {
+    return [criticalMaterLoc].concat(threatenedSquares(criticalMaterLoc, pos[criticalMaterLoc], pos, gameLogic));
+  });
+
   function noneOrMineOrKing(square) {
     console.log("in filter. Square checking is " + square);
     if(pos[square] == undefined) {
@@ -225,13 +196,10 @@ function gameOverMouseOver(square, piece, pos) {
     }
     return((pos[square] == undefined) || (pos[square].charAt(0) == piece.charAt(0)) || (pos[square].charAt(1) == "K"));
   }
-  var lightColor = (myPiece) ? myLightHighCol : enemyLightHighCol;
-  var darkColor = (myPiece) ? myDarkHighCol : enemyDarkHighCol;
-  var highlights = (myPiece) ? myPieceHighlights(square, piece, pos, gameLogic) : enemyHighlights(square, piece, pos, gameLogic);
   highlights = highlights.filter(noneOrMineOrKing);
 
   console.log("game over highlights: " + highlights);
-  highlightList(square, highlights, lightColor, darkColor);
+  highlightList(null, highlights, LIGHT_RED, DARK_RED);
 }
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/

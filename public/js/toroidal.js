@@ -384,7 +384,7 @@ function piecesPinnedBy(potentialPinnerLoc, pos, state) {
   var allEnemyPieceLocs = allPieces(enemyColor, pos);
   for(var x = 0; x < allEnemyPieceLocs.length; x++) {
     var enemyPieceLoc = allEnemyPieceLocs[x];
-    if(isPinnedBy(source, enemyPieceLoc, pos, state, enemyKingLoc)) {
+    if(isPinnedBy(potentialPinnerLoc, enemyPieceLoc, pos, state, enemyKingLoc)) {
       pinnedPieceLocs.push(enemyPieceLoc);
     }
   }
