@@ -605,7 +605,7 @@ function buildBoard(orientation) {
   }
 
   var html = '';
-
+  const ROWS = [1, 2, 3, 4, 5, 6, 7, 8]; //to deal with off by one error when modding
   // algebraic notation / orientation
   if(orientation.color == "white") {
     var alpha = arrayRotateLeft(deepCopy(COLUMNS), orientation.right);
@@ -620,7 +620,7 @@ function buildBoard(orientation) {
   for (var i = 0; i < 8; i++) {
     html += '<div class="' + CSS.row + '">';
     for (var j = 0; j < 8; j++) {
-      var square = alpha[j] + row;
+      var square = alpha[j] + ROWS[row];
 
       html += '<div class="' + CSS.square + ' ' + CSS[squareColor] + ' ' +
         'square-' + square + '" ' +
@@ -630,8 +630,8 @@ function buildBoard(orientation) {
 
       if (cfg.showNotation === true) {
         // alpha notation
-        if ((orientation.color === 'white' && row === 1) ||
-            (orientation.color === 'black' && row === 8)) {
+        if ((orientation.color === 'white' && ROWS[row] === 1) ||
+            (orientation.color === 'black' && ROWS[row] === 8)) {
           html += '<div class="' + CSS.notation + ' ' + CSS.alpha + '">' +
             alpha[j] + '</div>';
         }
@@ -639,7 +639,7 @@ function buildBoard(orientation) {
         // numeric notation
         if (j === 0) {
           html += '<div class="' + CSS.notation + ' ' + CSS.numeric + '">' +
-            row + '</div>';
+            ROWS[row] + '</div>';
         }
       }
 
