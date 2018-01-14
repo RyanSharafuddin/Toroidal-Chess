@@ -188,6 +188,19 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
 };
 
 function gameOverMouseOver(square, piece, pos) {
+  function noneOrMineOrKing(square) {
+    return((pos[square] == undefined) || (pos[square].charAt(0) == piece.charAt(0)) || (pos[square].charAt(1) == "K"));
+  }
+  if(gameLogic.stalemated) { //if stalemated, just show the more powerful side's threats (the one that can move)
+    if(!piece) {
+      return;
+    }
+    var stalematerColor = (gameLogic.whiteTurn) ? "b" : "w";
+    if(piece.charAt(0) == stalematerColor) {
+      highlightList(null, threatenedSquares(square, piece, pos, gameLogic).filter(noneOrMineOrKing));
+    }
+    return;
+  }
   if(!(gameLogic.whiteMated || gameLogic.blackMated)) {
     return;
   }
@@ -210,9 +223,6 @@ function gameOverMouseOver(square, piece, pos) {
     highlights = threatenedSquares(square, piece, pos, gameLogic);
     var lightColor = LIGHT_BLUE;
     var darkColor = DARK_BLUE;
-  }
-  function noneOrMineOrKing(square) {
-    return((pos[square] == undefined) || (pos[square].charAt(0) == piece.charAt(0)) || (pos[square].charAt(1) == "K"));
   }
   highlights = highlights.filter(noneOrMineOrKing);
   if(highlights.length > 0) {
