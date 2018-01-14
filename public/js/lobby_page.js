@@ -200,14 +200,11 @@ lobbyState = {
   showValid: false,
   showThreat: false,
   WAIT_TIME: 60,
-  INVITE_TIME: this.WAIT_TIME - 2,
+  INVITE_TIME: 58,
   closeInvitation: undefined,
   busy: false
 }
-var lobbyNumTimes = (lobbyNumTimes == undefined) ? 1 : lobbyNumTimes + 1;
-if(lobbyNumTimes == 1) {
-  initLobbyEvents();
-}
+initSocketEvents("lobby_page.js", initLobbyEvents);
 socket.emit('lobby', lobbyState.myNickname);
 socket.inLobby = true;
 //ways to leave the lobby - accept a challenge, or have your challenge accepted

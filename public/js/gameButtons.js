@@ -118,7 +118,4 @@ function receivedResignation(resignData) {
   finishGame({winner: resignData.winnerColor, reason: "resign"});
 }
 
-var gameButtonsNumTimes = (gameButtonsNumTimes === undefined) ? 1 : gameButtonsNumTimes + 1;
-if(gameButtonsNumTimes == 1) {
-  initGameButtonsEvents();
-}
+initSocketEvents("gameButtons.js", initGameButtonsEvents);

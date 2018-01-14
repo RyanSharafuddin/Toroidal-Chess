@@ -39,7 +39,4 @@ function messageMaker(color, name, message) {
   return HTMLstr;
 }
 
-var chatNumTimes = (chatNumTimes === undefined) ? 1 : chatNumTimes + 1;
-if(chatNumTimes == 1) {
-  initChatEvents();
-}
+initSocketEvents("chat.js", initChatEvents);
