@@ -1,3 +1,9 @@
+/*
+Note: If you have time, learn about flexbox and use that instead of
+float.
+https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_Concepts_of_Flexbox
+*/
+
 #vs {
   text-align: center;
 }
@@ -25,6 +31,62 @@
 #scrollButtonsContainer {
   float: right;
   width: 50%;
+}
+
+#scrollButtonsContainer>.bottomRow {
+  position: relative;
+  top: 25px;
+}
+
+.arrow {
+	/* duplicate the triangle */
+	position: relative;
+  left: 50%;
+  top: 11px;
+	height: 0px; width: 0px;
+	border: 17px solid;
+	border-color:
+		darkorange
+		darkorange
+		transparent
+		transparent;
+	transform: rotate(-45deg); /* up arrow */
+}
+
+.arrow:hover {
+  border-color:
+    #206EBD
+    #206EBD
+    transparent
+    transparent;
+}
+
+.arrow.up {
+  transform: rotate(-45deg);
+}
+
+.arrow.right {
+  transform: rotate(45deg);
+}
+
+.arrow.left {
+  transform: rotate(-135deg);
+}
+
+.arrow.down{
+  transform: rotate(-225deg);
+}
+
+#leftArrowContainer{
+  float: left;
+  position: relative;
+  left: 35%;
+}
+
+#rightArrowContainer{
+  float: right;
+  position: relative;
+  right: 35%;
 }
 
 /* http://cssbuttoncreator.com/ */
