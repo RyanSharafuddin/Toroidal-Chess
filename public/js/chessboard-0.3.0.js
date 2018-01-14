@@ -239,7 +239,7 @@ var widget = {};
 
 var ANIMATION_HAPPENING = false,
   BOARD_BORDER_SIZE = 2,
-  CURRENT_ORIENTATION = 'white',
+  CURRENT_ORIENTATION = {up: 0, right: 0, color: "white"},
   CURRENT_POSITION = {},
   SQUARE_SIZE,
   DRAGGED_PIECE,
@@ -408,8 +408,14 @@ function expandConfig() {
   }
 
   // default for orientation is white
-  if (cfg.orientation !== 'black') {
-    cfg.orientation = 'white';
+  if (cfg.orientation["color"] !== 'black') {
+    cfg.orientation["color"] = 'white';
+  }
+  if(cfg.orientation["up"] == undefined) {
+    cfg.orientation["up"] = 0;
+  }
+  if(cfg.orientation["right"] == undefined) {
+    cfg.orientation["right"] = 0;
   }
   CURRENT_ORIENTATION = cfg.orientation;
 
@@ -575,23 +581,40 @@ var buildSquare = function(color, size, id) {
   return html;
 };
 */
+function mod(n, m) {
+  return ((n % m) + m) % m;
+}
+//mutates array
+function arrayRotateLeft(arr, count) {
+  count -= arr.length * Math.floor(count / arr.length)
+  arr.push.apply(arr, arr.splice(0, count))
+  return arr
+}
 
 function buildBoard(orientation) {
-  if (orientation !== 'black') {
-    orientation = 'white';
+  if (orientation["color"] !== 'black') {
+    orientation["color"] = 'white';
+  }
+  if(orientation.up == undefined) {
+    orientation.up = 0;
+  }
+  if(orientation.right == undefined) {
+    orientation.right = 0;
   }
 
   var html = '';
 
   // algebraic notation / orientation
-  var alpha = deepCopy(COLUMNS);
-  var row = 8;
-  if (orientation === 'black') {
-    alpha.reverse();
-    row = 1;
+  if(orientation.color == "white") {
+    var alpha = arrayRotateLeft(deepCopy(COLUMNS), orientation.right);
+  }
+  var row = mod(8 + orientation["up"], 8);
+  if (orientation["color"] === 'black') {
+    var alpha = arrayRotateLeft(deepCopy(COLUMNS).reverse(), orientation.right);
+    row = mod(1 - orientation["up"], 8);
   }
 
-  var squareColor = 'white';
+  var squareColor = ((orientation.up + orientation.right) % 2 == 0)  ? "white" : "black";
   for (var i = 0; i < 8; i++) {
     html += '<div class="' + CSS.row + '">';
     for (var j = 0; j < 8; j++) {
@@ -605,8 +628,8 @@ function buildBoard(orientation) {
 
       if (cfg.showNotation === true) {
         // alpha notation
-        if ((orientation === 'white' && row === 1) ||
-            (orientation === 'black' && row === 8)) {
+        if ((orientation.color === 'white' && row === 1) ||
+            (orientation.color === 'black' && row === 8)) {
           html += '<div class="' + CSS.notation + ' ' + CSS.alpha + '">' +
             alpha[j] + '</div>';
         }
@@ -626,11 +649,11 @@ function buildBoard(orientation) {
 
     squareColor = (squareColor === 'white' ? 'black' : 'white');
 
-    if (orientation === 'white') {
-      row--;
+    if (orientation.color === 'white') {
+      row = mod(row - 1, 8);
     }
     else {
-      row++;
+      row = mod(row + 1, 8);
     }
   }
 
@@ -980,7 +1003,7 @@ function drawBoard() {
   drawPositionInstant();
 
   if (cfg.sparePieces === true) {
-    if (CURRENT_ORIENTATION === 'white') {
+    if (CURRENT_ORIENTATION.color === 'white') {
       sparePiecesTopEl.html(buildSparePieces('black'));
       sparePiecesBottomEl.html(buildSparePieces('white'));
     }
@@ -1374,16 +1397,20 @@ widget.orientation = function(arg) {
     return CURRENT_ORIENTATION;
   }
 
-  // set to white or black
-  if (arg === 'white' || arg === 'black') {
-    CURRENT_ORIENTATION = arg;
-    drawBoard();
-    return;
-  }
+  // // set to white or black
+  // if (arg === 'white' || arg === 'black') {
+  //   CURRENT_ORIENTATION = arg;
+  //   drawBoard();
+  //   return;
+  // }
+  //my own modification. Just assume you'll be passed in a correct orientation  MY MOD
+  CURRENT_ORIENTATION = arg;
+  drawBoard();
+  return;
 
   // flip orientation
   if (arg === 'flip') {
-    CURRENT_ORIENTATION = (CURRENT_ORIENTATION === 'white') ? 'black' : 'white';
+    CURRENT_ORIENTATION.color = (CURRENT_ORIENTATION.color === 'white') ? 'black' : 'white';
     drawBoard();
     return;
   }
