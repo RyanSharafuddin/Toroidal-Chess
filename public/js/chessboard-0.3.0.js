@@ -406,7 +406,9 @@ function expandConfig() {
       position: cfg
     };
   }
-
+  if(cfg.orientation == undefined) {
+    cfg.orientation = {color: "white", up: 0, right: 0};
+  }
   // default for orientation is white
   if (cfg.orientation["color"] !== 'black') {
     cfg.orientation["color"] = 'white';
@@ -1392,6 +1394,7 @@ widget.move = function() {
 };
 
 widget.orientation = function(arg) {
+  console.log("Call to widget.orientation, arg is: " + arg);
   // no arguments, return the current orientation
   if (arguments.length === 0) {
     return CURRENT_ORIENTATION;
@@ -1404,9 +1407,6 @@ widget.orientation = function(arg) {
   //   return;
   // }
   //my own modification. Just assume you'll be passed in a correct orientation  MY MOD
-  CURRENT_ORIENTATION = arg;
-  drawBoard();
-  return;
 
   // flip orientation
   if (arg === 'flip') {
@@ -1414,7 +1414,12 @@ widget.orientation = function(arg) {
     drawBoard();
     return;
   }
-
+  console.log("successfully propagated call to widget.orientation in chessboard.js");
+  CURRENT_ORIENTATION = arg;
+  console.log("CURRENT_ORIENTATION in chessboard.js is " + JSON.stringify(CURRENT_ORIENTATION));
+  console.log("calling drawBoard() in chessBoard now");
+  drawBoard();
+  return;
   error(5482, 'Invalid value passed to the orientation method.', arg);
 };
 

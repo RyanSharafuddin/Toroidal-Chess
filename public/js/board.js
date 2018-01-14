@@ -313,7 +313,7 @@ function InitUIState(data) {
 //color is either "white" or "black"
 function InitUIDisplay(color) {
   (color == "white") ? ($("#enemyNameDisplay").addClass("unHighlightedPlayerName")) : ($("#myNameDisplay").addClass("unHighlightedPlayerName"));
-  board1.orientation(color);
+  board1.orientation({color: color, up: 0, right: 0});
 }
 //----------------------- END GLOBALS AND SETUP CONSTRUCTORS -------------------
 
@@ -386,9 +386,15 @@ function howFarRight() {
 }
 //direction is either "up" or "right"
 function moveBoard(direction, amount) {
+  console.log("Called moveBoard with args: " + direction + " " + amount);
   UIState[direction] = mod(UIState[direction] + amount, 8);
   var color = (getIsWhite()) ? "white" : "black";
-  (direction == "up") ? board1.orientation({color: color, up: UIState[direction], right: UIState.right}) : board1.orientation({color: color, up: UIState.up, right: UIState[direction]}); 
+  if(direction == "up") {
+    board1.orientation({color: color, up: UIState[direction], right: UIState.right}); //why does this work,
+  }
+  else {
+    board1.orientation({color: color, up: UIState.up, right: UIState[direction]}); //but this doesn't ?
+  }
 }
 //This function sets the state and display after it has been determined that a game is over MUST set gameOver to true
 function finishGame(data) {

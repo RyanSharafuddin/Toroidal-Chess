@@ -82,7 +82,7 @@ function lobbyReturn() {
 }
 
 function moveUp() {
-  console.log("called moveBoard up 1");
+  console.log("called moveUp");
   moveBoard("up", 1);
 }
 
