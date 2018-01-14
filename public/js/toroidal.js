@@ -47,6 +47,10 @@ function partial(f) {
   }
 }
 
+function arrayIntersect(arrOne, arrTwo) {
+  return $.map(arrOne,function(a){return $.inArray(a, arrTwo) < 0 ? null : a;})
+}
+
 //--------------------------- GAME RULES ---------------------------------------
 
 /* Returns an array of validMoves for the piece at source with position pos
@@ -318,6 +322,22 @@ function wouldNotCheck(state, oldPos, piece, source, target) {
   return !(inCheck((color == "w"), posCopy, stateCopy));
 }
 
+function getAllLegalMoves(whiteTurn, pos, state) {
+  var legalMoves = [];
+  var color = (whiteTurn) ? "w" : "b";
+  for(var square in pos) {
+    if(pos.hasOwnProperty(square)) {
+      if((pos[square] != undefined) && (pos[square].charAt(0) == color)) {
+        var moves = legalSquares(square, pos[square], pos, state);
+        if(moves.length > 0) {
+          legalMoves.push({source: square, moves: legalSquares(square, pos[square], pos, state)});
+        }
+      }
+    }
+  }
+  return legalMoves; //in form of [{source: a4, moves: [a1, a2, a3]}, {source: d4, moves:[...]}]
+}
+
 function hasMoves(whiteTurn, pos, state) {
   var color = (whiteTurn) ? "w" : "b";
   for(var square in pos) {
@@ -350,6 +370,50 @@ function check_mate_stale(whiteTurn, pos, state) {
     return {inCheck: "", checkmated: "", stalemated: true};
   }
   return {inCheck: "", checkmated: "", stalemated: false};
+}
+
+/*
+returns an array of squares that are the locations of enemy pieces that piece at potentialPinnerLoc is
+pinning to the enemy king, or [] if there are none
+*/
+function piecesPinnedBy(potentialPinnerLoc, pos, state) {
+  var pinnedPieceLocs = [];
+  var pieceColor = pos[potentialPinnerLoc].charAt(0);
+  var enemyColor = (pieceColor == "w") ? "b" : "w";
+  var enemyKingLoc = (enemyColor == "w") ? state.wKLoc : state.bKLoc;
+  var allEnemyPieceLocs = allPieces(enemyColor, pos);
+  for(var x = 0; x < allEnemyPieceLocs.length; x++) {
+    var enemyPieceLoc = allEnemyPieceLocs[x];
+    if(isPinnedBy(source, enemyPieceLoc, pos, state, enemyKingLoc)) {
+      pinnedPieceLocs.push(enemyPieceLoc);
+    }
+  }
+  return pinnedPieceLocs;
+}
+
+//returns true if all legal moves for the owner of the piece at source involve
+//moving that piece
+function mustMovePiece(source, pos, state) {
+  var color = (pos[source]).charAt(0);
+  var movArray = getAllLegalMoves((color == "w"), pos, state);
+  return ((movArray.length == 1) && (movArray[0]["source"] == source));
+}
+
+//returns whether the piece at pineeSquare is pinned to king by the piece at potentialPinnerLoc
+function isPinnedBy(potentialPinnerLoc, pineeSquare, pos, state, enemyKingLoc) {
+  if(pineeSquare == enemyKingLoc) {
+    return false; //doesn't make sense to say king is pinned
+  }
+  var posCopy = deepCopy(pos);
+  delete posCopy[pineeSquare];
+  var potentialPinnerPiece = posCopy[potentialPinnerLoc];
+  return($.inArray(enemyKingLoc, validMoves(potentialPinnerLoc, potentialPinnerPiece, posCopy, state)));
+}
+function allPieces(color, pos) {
+  var letter = ((color == "white") || (color == "w") || (color === true)) ? "w" : "b";
+  return ALL_SQUARES.filter(function(square) {
+    return ((pos[square] !== undefined) && (pos[square].charAt(0) == letter));
+  });
 }
 
 function setEnpassants(piece, source, target, state) {
@@ -533,12 +597,28 @@ function necessaryToMate(pos, state) {
   }
   var matingColor = (state.blackMated) ? "w" : "b";
   var matedKingLoc = (state.blackMated) ? state.bKLoc : state.wKLoc;
-  var allMaterPieceLocs = ALL_SQUARES.filter(function(square) {
-    return ((pos[square] !== undefined) && (pos[square].charAt(0) == matingColor));
+  var matedKingEscapeSquares = validMoves(matedKingLoc, matingColor + "K", pos, state);
+  var allMaterPieceLocs = allPieces(matingColor, pos);
+  var matedKingCombinedSquares = [matedKingLoc].concat(matedKingEscapeSquares);
+  var threatensKingOrEscapeSquareLocs = allMaterPieceLocs.filter(function(square) {
+    return(arrayIntersect(matedKingCombinedSquares, validMoves(square, pos[square], pos, state)).length > 0);
   });
-  /*
-  var threatensKingLocs = allMaterPieceLocs.filter(function(square) {
-    return matedKingLoc in validmoves of piece at pos[square]
+  var pinnersNecessaryToMate = $.map(allMaterPieceLocs, function(materPieceLoc) {
+    var pinnedPieces = piecesPinnedBy(materPieceLoc, pos, state);
+    if(pinnedPieces.length == 0) {
+      return null;
+    }
+    var criticalPinnedPieces = pinnedPieces.filter(function(pinnedPieceLoc) {
+      var posCopy = deepCopy(pos);
+      delete posCopy[materPieceLoc];
+      return mustMovePiece(pinnedPieceLoc, posCopy, state);
+    });
+    return(criticalPinnedPieces.length > 0) ? materPieceLoc : null;
   });
-  */
+  return threatensKingOrEscapeSquareLocs.concat(pinnersNecessaryToMate);
 }
+//TODO: test:
+//piecesPinnedBy
+//isPinnedBy
+//mustMovePiece
+//pinnersNecessaryToMate - criticalPinnedPieces
