@@ -392,7 +392,7 @@ function moveBoard(direction, amount) {
   if(direction == "up") {
     board1.orientation({color: color, up: UIState[direction], right: UIState.right}); //why does this work,
   }
-  else {
+  else { //direction is right
     board1.orientation({color: color, up: UIState.up, right: UIState[direction]}); //but this doesn't ?
   }
 }

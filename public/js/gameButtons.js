@@ -82,14 +82,18 @@ function lobbyReturn() {
 }
 
 function moveUp() {
-  console.log("called moveUp");
   moveBoard("up", 1);
+}
+
+function moveRight() {
+  moveBoard("right", 1);
 }
 
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
 $("#return").on('click', lobbyButton);
 $("#moveUp").on('click', moveUp);
+$("#moveRight").on('click', moveRight);
 //------------------------- CONNECTIONS ----------------------------------------
 function receivedDrawReply(reply) {
   if(reply == "yes") {
