@@ -388,7 +388,7 @@ function howFarRight() {
 function moveBoard(direction, amount) {
   UIState[direction] = mod(UIState[direction] + amount, 8);
   var color = (getIsWhite()) ? "white" : "black";
-  (direction == up) ? board1.orientation({color: color, up: UIState[direction], right: UIState.right}) : board1.orientation({color: color, up: UIState.up, right: UIState[direction]}); 
+  (direction == "up") ? board1.orientation({color: color, up: UIState[direction], right: UIState.right}) : board1.orientation({color: color, up: UIState.up, right: UIState[direction]}); 
 }
 //This function sets the state and display after it has been determined that a game is over MUST set gameOver to true
 function finishGame(data) {

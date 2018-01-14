@@ -81,9 +81,15 @@ function lobbyReturn() {
   });
 }
 
+function moveUp() {
+  console.log("called moveBoard up 1");
+  moveBoard("up", 1);
+}
+
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
 $("#return").on('click', lobbyButton);
+$("#moveUp").on('click', moveUp);
 //------------------------- CONNECTIONS ----------------------------------------
 function receivedDrawReply(reply) {
   if(reply == "yes") {
