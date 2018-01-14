@@ -605,7 +605,7 @@ function necessaryToMate(pos, state) {
   var allMaterPieceLocs = allPieces(matingColor, pos);
   var matedKingCombinedSquares = [matedKingLoc].concat(matedKingEscapeSquares);
   var threatensKingOrEscapeSquareLocs = allMaterPieceLocs.filter(function(square) {
-    return(arrayIntersect(matedKingCombinedSquares, validMoves(square, pos[square], pos, state)).length > 0);
+    return(arrayIntersect(matedKingCombinedSquares, threatenedSquares(square, pos[square], pos, state)).length > 0);
   });
   console.log(threatensKingOrEscapeSquareLocs + "is the array of direct king escape threateners")
   var pinnersNecessaryToMate = $.map(allMaterPieceLocs, function(materPieceLoc) {
@@ -621,5 +621,5 @@ function necessaryToMate(pos, state) {
     return(criticalPinnedPieces.length > 0) ? materPieceLoc : null;
   });
   console.log(pinnersNecessaryToMate + " is the array of pinners ");
-  return threatensKingOrEscapeSquareLocs.concat(pinnersNecessaryToMate);
+  return ({direct: threatensKingOrEscapeSquareLocs, pinners: pinnersNecessaryToMate});
 }

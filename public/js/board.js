@@ -52,10 +52,23 @@ function highlightList(square, highlights, lightColor, darkColor) {
   }
 }
 
+function highlightListAndUnhighlightOthers(highlights, lightColor, darkColor) {
+  for(var i = 0; i < ALL_SQUARES.length; i++) {
+    var square = ALL_SQUARES[i];
+    if($.inArray(square, highlights) >= 0) {
+      color_square(square, lightColor, darkColor);
+    }
+    else {
+      color_square(square, '', '');
+    }
+  }
+}
 var LIGHT_GRAY = '#a9a9a9';
 var DARK_GRAY = '#696969';
 var LIGHT_RED = '#DB3C3C';
 var DARK_RED = '#972B2B';
+var LIGHT_BLUE = "#4286f4";
+var DARK_BLUE = "#0d50bc";
 
 /*
 Return an array of buttons. Each button corresponds to a pawn promotion
@@ -175,41 +188,46 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
 };
 
 function gameOverMouseOver(square, piece, pos) {
-  var criticalMaters = necessaryToMate(pos, gameLogic);
-  var highlights = $.map(criticalMaters, function(criticalMaterLoc) {
-    return [criticalMaterLoc].concat(threatenedSquares(criticalMaterLoc, pos[criticalMaterLoc], pos, gameLogic));
-  });
+  if(!(gameLogic.whiteMated || gameLogic.blackMated)) {
+    return;
+  }
+  var materObj = necessaryToMate(pos, gameLogic);
+  var direct = materObj.direct;
+  var pinners = materObj.pinners;
+  //highlight direct in red always
+  highlightList(null, direct, LIGHT_RED, DARK_RED);
+  //highlight pinners in blue always
+  highlightList(null, pinners, LIGHT_BLUE, DARK_BLUE);
 
+  var highlights = [];
+  //if going over a mater or pinner piece, highlight their threatens.
+  if($.inArray(square, direct) >= 0) {
+    highlights = threatenedSquares(square, piece, pos, gameLogic);
+    var lightColor = LIGHT_RED;
+    var darkColor = DARK_RED;
+  }
+  if($.inArray(square, pinners) >= 0) {
+    highlights = threatenedSquares(square, piece, pos, gameLogic);
+    var lightColor = LIGHT_BLUE;
+    var darkColor = DARK_BLUE;
+  }
   function noneOrMineOrKing(square) {
-    console.log("in filter. Square checking is " + square);
-    if(pos[square] == undefined) {
-      console.log("Nothing here, do highlight");
-    }
-    else if(pos[square].charAt(0) == piece.charAt(0)) {
-      console.log("Protecting my piece, so highlight");
-    }
-    else if(square.charAt(1) == "K") {
-      console.log("King, so highlight");
-    }
-    else if(square == "d5") {
-      console.log("WTF " + pos[square]);
-    }
     return((pos[square] == undefined) || (pos[square].charAt(0) == piece.charAt(0)) || (pos[square].charAt(1) == "K"));
   }
   highlights = highlights.filter(noneOrMineOrKing);
-
-  console.log("game over highlights: " + highlights);
-  highlightList(null, highlights, LIGHT_RED, DARK_RED);
+  if(highlights.length > 0) {
+    highlightListAndUnhighlightOthers(highlights, lightColor, darkColor);
+  }
 }
 /*On your turn, highlight in grey the places you can move to,
   and highlight in red the squares enemy pieces threaten*/
   //on game over by mate or stalemate, see threats of winning side
 var onMouseoverSquare = function(square, piece, pos) {
-  if(!piece) {
-    return;
-  }
   if(gameLogic.gameOver) {
     gameOverMouseOver(square, piece, pos);
+    return;
+  }
+  if(!piece) {
     return;
   }
   if(!myTurn(gameLogic) || (!UIState.showValid && !UIState.showThreat) ) {
