@@ -525,3 +525,20 @@ function getUpdatedPosAndState(pos, state, source, target) {
   }
   return getUpdatedPosAndStateFinal(data.pos, data.state);
 }
+
+function necessaryToMate(pos, state) {
+  //TODO see TODO.txt
+  if(!(state.whiteMated || state.blackMated)) {
+    throw("Error. Can only call necessaryToMate on a checkmated position");
+  }
+  var matingColor = (state.blackMated) ? "w" : "b";
+  var matedKingLoc = (state.blackMated) ? state.bKLoc : state.wKLoc;
+  var allMaterPieceLocs = ALL_SQUARES.filter(function(square) {
+    return ((pos[square] !== undefined) && (pos[square].charAt(0) == matingColor));
+  });
+  /*
+  var threatensKingLocs = allMaterPieceLocs.filter(function(square) {
+    return matedKingLoc in validmoves of piece at pos[square]
+  });
+  */
+}
