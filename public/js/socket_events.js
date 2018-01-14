@@ -27,7 +27,9 @@ if(socket === undefined) {
    + "as being logged in. You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
   + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "nameNotFound");
   });
-//------------------------ LOBBY STUFF ---------------------------------------
+}
+
+function initLobbyEvents() {
   socket.on('lobby_enter', addPlayer);
 
   //when first enter lobby, find out who's here
@@ -40,22 +42,24 @@ if(socket === undefined) {
   socket.on('challengeDeclined', myChallengeDeclined);
 
   socket.on('challengeAccepted', myChallengeAccepted);
-  //----------------------------------------- END LOBBY STUFF ------------------
-  //---------------------------- CHAT PAGE -------------------------------------
-  socket.on('chatting', appendMessage);
-  //---------------------------- END CHAT PAGE ---------------------------------
-  // ---------------------------- GAME BUTTONS --------------------------------
-  socket.on('resigned', receivedResignation);
+}
 
-  socket.on('drawOffer', receivedDrawOffer);
-
-  socket.on('drawReply', receivedDrawReply);
-  // ------------------------------------- END GAME BUTTONS --------------------
-  // ---------------------------------- BOARD ----------------------------------
+function initBoardEvents() {
   socket.on('start', gameReady);
 
   socket.on('oppMove', receivedOpponentMove);
 
   socket.on("oppLeft", opponentLeft);
-  //----------------------------------- END BOARD ------------------------------
+}
+
+function initChatEvents() {
+  socket.on('chatting', appendMessage);
+}
+
+function initGameButtonsEvents() {
+  socket.on('resigned', receivedResignation);
+
+  socket.on('drawOffer', receivedDrawOffer);
+
+  socket.on('drawReply', receivedDrawReply);
 }

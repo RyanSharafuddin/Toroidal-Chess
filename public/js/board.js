@@ -274,9 +274,8 @@ function setGameEndDisplay(data) {
 
 //--------------------------- END FINISH GAME PRETTIFYING ----------------------
 //--------------------------- GLOBALS AND SETUP CONSTRUCTORS -------------------
-var numTimes = (numTimes === undefined) ? 1 : numTimes + 1;
 function initEverythingBoard() {
-  console.log("This is visit number: " + numTimes + " from you");
+  console.log("This is visit number: " + boardNumTimes + " from you");
   var cfg = {
     position: TOROIDAL_START,
     draggable: true,
@@ -348,6 +347,10 @@ var board1;
 var gameLogic;
 var UIState;
 socket.inGame = true;
+var boardNumTimes = (boardNumTimes === undefined) ? 1 : boardNumTimes + 1;
+if(boardNumTimes == 1) {
+  initBoardEvents();
+}
 initEverythingBoard();
 socket.emit('startGame', {myName: UIState.myName, enemyName: UIState.enemyName, roomName: UIState.roomName});
 // ways to leave the board - click the return to lobby button, in gameButtons.js

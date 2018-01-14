@@ -38,3 +38,8 @@ function messageMaker(color, name, message) {
   HTMLstr += ': </strong></div><div class="messageTile"> ' + message + '</div></div></li>';
   return HTMLstr;
 }
+
+var chatNumTimes = (chatNumTimes === undefined) ? 1 : chatNumTimes + 1;
+if(chatNumTimes == 1) {
+  initChatEvents();
+}

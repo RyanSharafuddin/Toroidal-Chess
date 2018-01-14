@@ -75,7 +75,7 @@ function receivedChallenge(challenge) {
     socket.emit('busyTone', challenge.challenger);
     return;
   }
-  var timeLeft = INVITE_TIME;
+  var timeLeft = lobbyState.INVITE_TIME;
   var offerValid = challenge.showValid
   var offerThreat = challenge.showThreat;
   var offerValidStr = (offerValid) ? "Yes." : "No.";
@@ -204,9 +204,9 @@ lobbyState = {
   closeInvitation: undefined,
   busy: false
 }
-var socket;
-if(socket == undefined) {
-  socket = io();
+var lobbyNumTimes = (lobbyNumTimes == undefined) ? 1 : lobbyNumTimes + 1;
+if(lobbyNumTimes == 1) {
+  initLobbyEvents();
 }
 socket.emit('lobby', lobbyState.myNickname);
 socket.inLobby = true;
