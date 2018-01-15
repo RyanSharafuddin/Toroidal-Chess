@@ -631,8 +631,8 @@ function buildBoard(orientation) {
 
       if (cfg.showNotation === true) {
         // alpha notation
-        if ((orientation.color === 'white' && ROWS[row] === 1) ||
-            (orientation.color === 'black' && ROWS[row] === 8)) {
+        if ((orientation.color === 'white' && ROWS[row] === 1) || //TODO: see if changing it to just row == 0 or 7 would cause it
+            (orientation.color === 'black' && ROWS[row] === 8)) { //to only display on bottom row.
           html += '<div class="' + CSS.notation + ' ' + CSS.alpha + '">' +
             alpha[j] + '</div>';
         }

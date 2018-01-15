@@ -280,7 +280,6 @@ function setGameEndDisplay(data) {
   console.log("nonwinnerDisplayIDs: " + nonwinnerDisplayIDs);
   console.log("data: " + JSON.stringify(data));
   for (var i = 0; i < data.nonwinners.length; i++) {
-
     $(nonwinnerDisplayIDs[i]).html(data.nonwinners[i] + data.nonwinnerDisplayString);
     $(nonwinnerDisplayIDs[i]).addClass("unHighlightedPlayerName");
   }
