@@ -89,11 +89,21 @@ function moveRight() {
   moveBoard("right", 1);
 }
 
+function moveLeft() {
+  moveBoard("right", 7);
+}
+
+function moveDown() {
+  moveBoard("up", 7);
+}
+
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
 $("#return").on('click', lobbyButton);
-$("#moveUp").on('click', moveUp);
-$("#moveRight").on('click', moveRight);
+$(".arrow.up").on('click', moveUp);
+$(".arrow.right").on('click', moveRight);
+$(".arrow.left").on('click', moveLeft);
+$(".arrow.down").on('click', moveDown);
 //------------------------- CONNECTIONS ----------------------------------------
 function receivedDrawReply(reply) {
   if(reply == "yes") {
