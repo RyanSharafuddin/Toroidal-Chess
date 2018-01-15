@@ -2,6 +2,9 @@
 Note: If you have time, learn about flexbox and use that instead of
 float.
 https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_Concepts_of_Flexbox
+
+TODO Stop using float on your left arrow container and your right arrow container and
+start using flexbox
 */
 
 #vs {
@@ -33,9 +36,20 @@ https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_C
   width: 50%;
 }
 
-#scrollButtonsContainer>.bottomRow {
+
+#scrollButtonsContainer>.middleRow {
+  display: flex;
+  justify-content: space-around;
+}
+
+#leftArrowContainer{
   position: relative;
-  top: 25px;
+  left: 15%;
+}
+
+#rightArrowContainer{
+  position: relative;
+  right: 15%;
 }
 
 .arrow {
@@ -77,17 +91,6 @@ https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_C
   transform: rotate(-225deg);
 }
 
-#leftArrowContainer{
-  float: left;
-  position: relative;
-  left: 35%;
-}
-
-#rightArrowContainer{
-  float: right;
-  position: relative;
-  right: 35%;
-}
 
 /* http://cssbuttoncreator.com/ */
 .gameButtons {
