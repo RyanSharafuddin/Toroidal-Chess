@@ -197,7 +197,7 @@ function gameOverMouseOver(square, piece, pos) {
     }
     var stalematerColor = (gameLogic.whiteTurn) ? "b" : "w";
     if(piece.charAt(0) == stalematerColor) {
-      highlightList(null, threatenedSquares(square, piece, pos, gameLogic).filter(noneOrMineOrKing));
+      highlightList(null, threatenedSquares(square, piece, pos, gameLogic).filter(noneOrMineOrKing), LIGHT_RED, DARK_RED);
     }
     return;
   }
