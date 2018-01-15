@@ -396,6 +396,11 @@ function moveBoard(direction, amount) {
     board1.orientation({color: color, up: UIState.up, right: UIState[direction]}); //but this doesn't ?
   }
 }
+
+function centerBoard() {
+  moveBoard("up", 8 - howFarUp());
+  moveBoard("right", 8 - howFarRight());
+}
 //This function sets the state and display after it has been determined that a game is over MUST set gameOver to true
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
