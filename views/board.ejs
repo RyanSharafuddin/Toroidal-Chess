@@ -48,24 +48,28 @@
             <div id="myNameDisplay" class="highlightedPlayerName"><%= myName %></div>
             <div id="buttons">
               <div id="originalButtonsContainer">
-                <button class="gameButtons" id="resign"> Resign </button>
-                <button class="gameButtons" id="draw"> Propose Draw </button>
+                <div id="topTwo">
+                  <button class="gameButtons" id="resign"> Resign </button>
+                  <button class="gameButtons" id="draw"> Propose Draw </button>
+                </div>
                 <button class="gameButtons" id="return"> Return To Lobby </button>
               </div>
 
               <div id="scrollButtonsContainer">
-                <div class="topRow">
-                  <!-- <button class="gameButtons" id="moveUp"> Move Up </button> -->
-                  <div class="arrow up"></div>
+                <div id="compass">
+                  <div class="topRow">
+                    <!-- <button class="gameButtons" id="moveUp"> Move Up </button> -->
+                    <div class="arrow up"></div>
 
-                </div>
-                <div class="middleRow">
-                <!--  <button class="gameButtons" id="moveRight"> Move Right </button> -->
-                  <div id="leftArrowContainer"> <div class="arrow left"></div> </div>
-                  <div id="rightArrowContainer"> <div class="arrow right"></div> </div>
-                </div>
-                <div class="bottomRow">
-                  <div class="arrow down"></div>
+                  </div>
+                  <div class="middleRow">
+                  <!--  <button class="gameButtons" id="moveRight"> Move Right </button> -->
+                    <div id="leftArrowContainer"> <div class="arrow left"></div> </div>
+                    <div id="rightArrowContainer"> <div class="arrow right"></div> </div>
+                  </div>
+                  <div class="bottomRow">
+                    <div class="arrow down"></div>
+                  </div>
                 </div>
               </div>
 

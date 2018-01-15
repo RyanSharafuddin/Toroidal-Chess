@@ -9,6 +9,7 @@
 //TODO: modularize this file so that it can be used for lobby chat with no changes                                                                            */
 var WHITE_CHAT_COLOR = "#7a04ef"; //the color in which white's name appears in chat
 var BLACK_CHAT_COLOR = "#ef8904";
+var LIMIT = 45;
 $('#messageForm').submit(function(){
   console.log("SUBMITTING MESSAGE?!?!?");
   var color = (getIsWhite()) ? WHITE_CHAT_COLOR : BLACK_CHAT_COLOR;
@@ -22,7 +23,6 @@ function hasWhiteSpace(s) {
 }
 
 function appendMessage(data) {
-  var LIMIT = 38;
   if ((data.message.length > LIMIT) && !hasWhiteSpace(data.message)) {
     var a = data.message.slice(0, LIMIT);
     $('#messages').append(messageMaker(data.color, data.sender, a));

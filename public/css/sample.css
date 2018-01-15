@@ -14,33 +14,28 @@ p {
 
 #wrapper {
     margin: 0 auto;
-    width: 1250px;
+    width: 100vw;  /* 100% of viewport width */
+    height: 100vh; /* means 100% of viewport height*/
+    display: flex;
 }
 
 #content {
     float: left;
     background: #FFFFFF;
-    width: 58%;
+    width: 46%;
+    height: 100%;
+    overflow: hidden;
 }
 
 #leftcolumn {
     background: #FFFFFF;
-    width: 12%;
+    width: 20%;
     float: left;
 }
 
-#historyContainer {
-  max-height: 730px;
-  overflow: scroll;
-}
 
 #rightcolumn {
     background: #FFFFFF;
-    width: 30%;
+    width: 34%;
     float: left;
-}
-
-#chatContainer {
-  max-height: 730px;
-  overflow: scroll;
 }

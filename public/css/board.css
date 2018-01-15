@@ -12,18 +12,24 @@ start using flexbox
 }
 
 #board1 {
-  width: 650px;
+  width: 100%;
 }
 
 /* For the div containing the board and the buttons */
 #board_buttons {
   align-content: center;
   margin: auto;
-  width: 80%;
+  width: 100%;
+  height: 100%;
 }
 
 #buttons {
-  width: 112%;
+  width: 100%;
+  height: 100%;
+}
+
+#return {
+  width: 100%;
 }
 
 #originalButtonsContainer {
@@ -34,31 +40,31 @@ start using flexbox
 #scrollButtonsContainer {
   float: right;
   width: 50%;
+  position: relative; /* make it a positioned ancestor of compass */
 }
 
 
-#scrollButtonsContainer>.middleRow {
+#scrollButtonsContainer .middleRow {
   display: flex;
   justify-content: space-around;
 }
 
 #leftArrowContainer{
   position: relative;
-  left: 15%;
+  right: 15%;
 }
 
 #rightArrowContainer{
   position: relative;
-  right: 15%;
+  left: 15%;
 }
 
 .arrow {
 	/* duplicate the triangle */
 	position: relative;
   left: 50%;
-  top: 11px;
 	height: 0px; width: 0px;
-	border: 17px solid;
+	border: 15px solid;
 	border-color:
 		darkorange
 		darkorange
@@ -141,7 +147,7 @@ start using flexbox
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
   box-sizing: content-box;
-  width: 650px; /* same as board */
+  width: 100%; /* same as board */
   overflow: hidden;
   -webkit-border-radius: 0 / 8px;
   border-radius: 0 / 8px;
@@ -158,4 +164,35 @@ start using flexbox
 
 .unHighlightedPlayerName {
   background: rgba(107,117,126,0.86);
+}
+
+#historyContainer {
+  max-height: 730px;
+  overflow: scroll;
+}
+
+#chatContainer {
+  max-height: 730px;
+  overflow: scroll;
+}
+
+#topTwo {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+#return {
+  width: 97%;
+}
+#resign {
+  width: 39%;
+}
+#compass {
+  position: absolute;
+  right: 30%;
+  top: 6px;
+}
+#historyHeader {
+  text-align: center;
 }

@@ -300,6 +300,8 @@ function initEverythingBoard() {
   gameLogic = new InitGameState();
   UIState = new InitUIState(); //will be inited in socket.on("start")
   console.log("UIState is " + JSON.stringify(UIState));
+  $(window).on('resize', function(){$("#board1").height($("#board1").width()); board1.resize();}); //CHANGED
+  board1.resize();
 }
 
 function TotalState(pos, state) {
