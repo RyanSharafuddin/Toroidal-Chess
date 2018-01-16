@@ -20,7 +20,7 @@
        greyed squares represent all legal moves for white's rook.
        The white rook can move from g5 to b5, even though there are pieces on e5
        and c5, since it can move right and wrap around the edge. It cannot
-       however, move to d5, since its path in both directions is blocked.</p>
+       however, move to d5, since its path going both right and left is blocked.</p>
         <!-- include illustration of the above-->
         <img id="img_1" src="img/illustration_1.png" alt="Rules illustration">
     <p>Now, imagine further bending that cylinder into a torus (doughnut shape),
@@ -39,7 +39,7 @@
                first turn, and consequently, those are the only pawns that
                en passant can apply to. </li>
           <li> A piece cannot move 8 spaces and wrap around to its starting
-               position and be considered to have moved. All moves must change
+               position and be considered to have moved - all moves must change
                the board position. </li>
     </ol>
       <!-- include starting position illustration -->
@@ -98,6 +98,13 @@
     <p> As its name implies, this button will take you back to the lobby. Be
         aware though, that if you return to the lobby while the game is still
         ongoing, you will lose the game. </p>
+    <h4> Arrow Keys </h4>
+    <p> You can click on the arrow keys to scroll the board up, down, left, or right.
+        This is equivalent to rotating the torus in the XY plane or XZ plane.
+        (Or the XY plane and YZ plane - it doesn't matter so long as the 2 planes
+        are orthogonal). You can also scroll with the arrow keys on the keyboard,
+        or the WASD keys. Try it out and make sure you understand what's happening -
+        this is key to understanding the toroidal nature of the board. </p>
     <h2> The Future </h2>
     <p> This web app is a work in progress. In the future, I may implement
         features like game chat, lobby chat, or others, as well as making the
@@ -107,10 +114,10 @@
         email me once I figure out how to do that on a website without getting
         utterly owned by spambots. Before sending a bug report, make
         sure you have a thorough understanding of the rules of the game. All
-        the code for this web application can be found on my Github page
+        the code for this web application can be found on my
         <a href="https://github.com/RyanSharafuddin/Toroidal-Chess/tree/master"
-         target="_blank">
-        here</a>.</p>
+         target="_blank"> Github page
+        </a>.</p>
     <h2> Thanks </h2>
     <p> Thanks to my cousin Siam for being the first person I ever played
         toroidal chess with. He beat me the first two times, but on this website,
