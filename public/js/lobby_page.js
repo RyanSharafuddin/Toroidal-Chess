@@ -225,7 +225,6 @@ lobbyState = {
   busy: false
 }
 var CHAT_NAME = lobbyState.myNickname;
-var color = "rgb(" + red + ", " + green + ", " + blue + ")";
 
 var CHAT_COLOR = rainbow(Math.floor(Math.random() * 20), Math.floor(Math.random() * 20)); //TODO set this to one of several by server
 initSocketEvents("lobby_page.js", initLobbyEvents);
