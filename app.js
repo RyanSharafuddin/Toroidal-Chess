@@ -223,7 +223,12 @@ io.on('connection', function(socket) {
       if(errorCheck(socket.nickname)) {
         return; //prevent crashing when people press back button and stuff
       }
-      io.in(socket.gameRoom).emit('chatting', data);
+      if(onlinePlayers[socket.nickname]["inGame"]) {
+        io.in(socket.gameRoom).emit('chatting', data);
+      }
+      else if (onlinePlayers[socket.nickname]["inLobby"]) {
+        io.in("lobby").emit('chatting', data);
+      }
     });
   //-----------------------------End Board Functions ------------------------------
 

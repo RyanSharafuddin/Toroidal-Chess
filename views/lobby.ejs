@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="css/lobby_page.css">
     <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
      rel = "stylesheet">
+     <link rel="stylesheet" href="css/chat.css">
     <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
     <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <!-- To host the above 3 things locally instead of using CDN:
@@ -50,18 +51,28 @@
 
     </div>
 
-    <div id="uc">
+    <div id="players_chat">
       <div id="online">
         <h2 id="player_header">Online Players</h2>
         <ul id="playerList">
         </ul>
       </div>
-      <div id="chat">
+      <div id="chatContainer">
+
+        <ul id="messages"></ul>
+        <form id="messageForm" action="">
+          <input id="m" autocomplete="off" />
+          <button id="chatButton">Chat</button>
+        </form>
+
+
+
       </div>
     </div>
     <script src="js/prettyDialog.js"></script>
     <script src="js/socket_events.js"></script>
     <script src="js/eventInitializer.js"></script>
+    <script src="js/chat.js"></script>
     <script src="js/lobby_page.js"></script>
   </body>
 </html>

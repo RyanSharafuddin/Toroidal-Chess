@@ -129,4 +129,9 @@ input:checked + .slider:before {
   margin: 0 auto;
   position: relative;
 }
+
+#players_chat {
+  display: flex;
+  justify-content: space-between;
+}
 /*-----------------------------------------------------------------------------*/

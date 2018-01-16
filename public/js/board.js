@@ -314,6 +314,7 @@ function InitUIState(data) {
   this.isWhite = false;
   if(data !== undefined) {
     (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
+    CHAT_COLOR = (data.color == "white") ? "#7a04ef" : "#ef8904";
   }
   this.canProposeDraw = true;
   this.myName = ($("#myName").text()) ? $("#myName").text() : this.myName;
@@ -324,6 +325,7 @@ function InitUIState(data) {
   this.showThreat = (($("#showThreatY").length > 0) ? true : false);
   this.up = 0;
   this.right = 0;
+  var CHAT_NAME = myName;
 }
 //color is either "white" or "black"
 function InitUIDisplay(color) {
@@ -398,7 +400,7 @@ function getGameOver() {
 }
 
 function getIsWhite() {
-  return UIState.isWhite;
+  return UIState.isWhite();
 }
 
 function getCanProposeDraw() {
