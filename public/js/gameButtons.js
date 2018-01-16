@@ -82,19 +82,19 @@ function lobbyReturn() {
 }
 
 function moveUp() {
-  moveBoard("up", 1);
+  moveBoard("up", 7); //perhaps the opposite of regular scroll is more intuitive?
 }
 
 function moveRight() {
-  moveBoard("right", 1);
-}
-
-function moveLeft() {
   moveBoard("right", 7);
 }
 
+function moveLeft() {
+  moveBoard("right", 1);
+}
+
 function moveDown() {
-  moveBoard("up", 7);
+  moveBoard("up", 1);
 }
 
 $(document).keydown(function(e) {
