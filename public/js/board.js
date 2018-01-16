@@ -400,7 +400,7 @@ function getGameOver() {
 }
 
 function getIsWhite() {
-  return UIState.isWhite();
+  return UIState.isWhite;
 }
 
 function getCanProposeDraw() {
