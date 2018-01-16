@@ -1,11 +1,4 @@
-/*
-Note: If you have time, learn about flexbox and use that instead of
-float.
-https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_Concepts_of_Flexbox
 
-TODO Stop using float on your left arrow container and your right arrow container and
-start using flexbox
-*/
 
 #vs {
   text-align: center;
@@ -20,7 +13,7 @@ start using flexbox
   align-content: center;
   margin: auto;
   width: 100%;
-  height: 100%;
+  height: 100vh; /* CHANGED */
 }
 
 #buttons {
@@ -35,12 +28,14 @@ start using flexbox
 #originalButtonsContainer {
   float: left;
   width: 50%;
+  height: 100%;
 }
 
 #scrollButtonsContainer {
   float: right;
   width: 50%;
   position: relative; /* make it a positioned ancestor of compass */
+  height: 100%
 }
 
 
@@ -108,7 +103,7 @@ start using flexbox
   font-size: 20px;
   margin: 7px 5px 5px 5px;
   font-weight: 200;
-  padding: 8px;
+/*  padding: 8px; */
   background-color: #F67F07;
   box-shadow: 1px 1px 20px 0px #000000;
   -webkit-box-shadow: 1px 1px 20px 0px #000000;
@@ -179,11 +174,18 @@ start using flexbox
 #topTwo {
   display: flex;
   width: 100%;
+  height: 50%;
   justify-content: space-between;
 }
 
 #return {
   width: 97%;
+}
+
+#returnDiv {
+  width:100%;
+  height:50%;
+  display: flex;
 }
 #resign {
   width: 39%;
@@ -191,7 +193,7 @@ start using flexbox
 #compass {
   position: absolute;
   right: 30%;
-  top: 6px;
+  top: 6%;
 }
 #historyHeader {
   text-align: center;

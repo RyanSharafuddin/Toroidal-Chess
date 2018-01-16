@@ -300,8 +300,8 @@ function initEverythingBoard() {
   gameLogic = new InitGameState();
   UIState = new InitUIState(); //will be inited in socket.on("start")
   console.log("UIState is " + JSON.stringify(UIState));
-  $(window).on('resize', function(){$("#board1").height($("#board1").width()); board1.resize();}); //CHANGED
-  board1.resize();
+  $(window).on('resize', scaleStuff); //CHANGED
+  scaleStuff();
 }
 
 function TotalState(pos, state) {
@@ -359,6 +359,30 @@ function opponentLeft(){
   finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
 }
 //---------------------------- Main --------------------------------------------
+
+var scaleStuff = function() {
+    var scaleSource = $("#content").height(),
+        scaleFactor = 0.2 * .125;
+        maxScale = 30,
+        minScale = 15; //Tweak these values to taste
+
+    var fontSize = scaleSource * scaleFactor; //Multiply the width of the body by the scaling factor:
+
+    if (fontSize > maxScale) fontSize = maxScale;
+    if (fontSize < minScale) fontSize = minScale; //Enforce the minimum and maximums
+
+    $('.gameButtons').css('font-size', fontSize + 'px');
+    console.log("font size is: " + $(".gameButtons").css('font-size'));
+
+    $("#board1").height($("#board1").width());
+    board1.resize();
+    var totalHeight = $("#content").height();
+    var subtract = $("#boardDisplay").height();
+    $("#buttons").height(totalHeight - subtract); //padding idiocy
+    var compassScale = .01879;
+    //$(".arrow").css('border', compassScale*scaleSource + "px solid");
+}
+
 var board1;
 var gameLogic;
 var UIState;

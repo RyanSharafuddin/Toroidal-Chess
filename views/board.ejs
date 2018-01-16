@@ -43,16 +43,20 @@
             <div id="resignBox"> <div id="resignText"> </div> </div>
             <div id="drawBox"> <div id="drawText"> </div> </div>
             <div id="prettyAlertBox"></div>
-            <div id="enemyNameDisplay" class="highlightedPlayerName"><%= enemyName %></div>
-            <div id="board1"></div>
-            <div id="myNameDisplay" class="highlightedPlayerName"><%= myName %></div>
+            <div id="boardDisplay">
+              <div id="enemyNameDisplay" class="highlightedPlayerName"><%= enemyName %></div>
+              <div id="board1"></div>
+              <div id="myNameDisplay" class="highlightedPlayerName"><%= myName %></div>
+            </div>
             <div id="buttons">
               <div id="originalButtonsContainer">
                 <div id="topTwo">
                   <button class="gameButtons" id="resign"> Resign </button>
                   <button class="gameButtons" id="draw"> Propose Draw </button>
                 </div>
-                <button class="gameButtons" id="return"> Return To Lobby </button>
+                <div id="returnDiv">
+                  <button class="gameButtons" id="return"> Return To Lobby </button>
+                </div>
               </div>
 
               <div id="scrollButtonsContainer">
