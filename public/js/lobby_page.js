@@ -204,6 +204,8 @@ lobbyState = {
   closeInvitation: undefined,
   busy: false
 }
+var CHAT_NAME = lobbyState.myNickname;
+var CHAT_COLOR = "#ef8904"; //TODO set this to one of several by server
 initSocketEvents("lobby_page.js", initLobbyEvents);
 socket.emit('lobby', lobbyState.myNickname);
 socket.inLobby = true;

@@ -42,6 +42,8 @@ function initLobbyEvents() {
   socket.on('challengeDeclined', myChallengeDeclined);
 
   socket.on('challengeAccepted', myChallengeAccepted);
+
+  socket.on('chatting', appendMessage);
 }
 
 function initBoardEvents() {
@@ -50,10 +52,6 @@ function initBoardEvents() {
   socket.on('oppMove', receivedOpponentMove);
 
   socket.on("oppLeft", opponentLeft);
-}
-
-function initChatEvents() {
-  socket.on('chatting', appendMessage);
 }
 
 function initGameButtonsEvents() {

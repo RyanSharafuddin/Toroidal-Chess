@@ -129,4 +129,15 @@ input:checked + .slider:before {
   margin: 0 auto;
   position: relative;
 }
+
+#players_chat {
+  display: flex;
+  justify-content: space-between;
+}
+
+#chatContainerContainer {
+  width: 50%;
+  height: 69vh;
+  margin-top: 10px;
+}
 /*-----------------------------------------------------------------------------*/

@@ -166,11 +166,6 @@
   overflow: scroll;
 }
 
-#chatContainer {
-  max-height: 730px;
-  overflow: scroll;
-}
-
 #topTwo {
   display: flex;
   width: 100%;

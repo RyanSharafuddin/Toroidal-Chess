@@ -6,14 +6,15 @@
   GLOBALS FROM DEPENDENCIES USED:
     getIsWhite() - whether that browser is the white player or not
     getMyName()  - nickname of that browser
-//TODO: modularize this file so that it can be used for lobby chat with no changes                                                                            */
-var WHITE_CHAT_COLOR = "#7a04ef"; //the color in which white's name appears in chat
-var BLACK_CHAT_COLOR = "#ef8904";
+TODO: modularize this file so that it can be used for lobby chat with no changes
+this file assumes the existence of a variable called CHAT_COLOR and CHAT_NAME and
+assumes the divs are in a container called chatContainer
+uses those.
+*/
+
 var LIMIT = 45;
 $('#messageForm').submit(function(){
-  console.log("SUBMITTING MESSAGE?!?!?");
-  var color = (getIsWhite()) ? WHITE_CHAT_COLOR : BLACK_CHAT_COLOR;
-  socket.emit('chatMessage', {message: $('#m').val(), sender: getMyName(), color: color});
+  socket.emit('chatMessage', {message: $('#m').val(), sender: CHAT_NAME, color: CHAT_COLOR});
   $('#m').val('');
   return false;
 });
@@ -39,4 +40,7 @@ function messageMaker(color, name, message) {
   return HTMLstr;
 }
 
-initSocketEvents("chat.js", initChatEvents);
+$(window).on('resize', function() {
+  $("#messageForm").width($("#chatContainer").width()); //don't know why setting width to 100% doesn't do that on its own
+});
+$("#messageForm").width($("#chatContainer").width()); //don't know why setting width to 100% doesn't do that on its own
