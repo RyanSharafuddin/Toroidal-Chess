@@ -97,6 +97,37 @@ function moveDown() {
   moveBoard("up", 7);
 }
 
+$(document).keydown(function(e) {
+  var tag = e.target.tagName.toLowerCase();
+  if (tag == 'input' || tag == 'textarea') {
+    return;
+  }
+  switch(e.which) {
+      case 37: // left
+      case 65: // a
+      moveLeft();
+      break;
+
+      case 38: // up
+      case 87: // w
+      moveUp();
+      break;
+
+      case 39: // right
+      case 68: //d
+      moveRight();
+      break;
+
+      case 40: // dow n
+      case 83: //s
+      moveDown();
+      break;
+
+      default: return; // exit this handler for other keys
+  }
+    e.preventDefault(); // prevent the default action (scroll / move caret)
+});
+
 $("#resign").on('click', resign);
 $("#draw").on('click', proposeDraw);
 $("#return").on('click', lobbyButton);
