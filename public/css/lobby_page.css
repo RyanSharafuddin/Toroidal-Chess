@@ -137,7 +137,7 @@ input:checked + .slider:before {
 
 #chatContainerContainer {
   width: 50%;
-  height: 100%;
+  height: 66vh;
   margin-top: 10px;
 }
 /*-----------------------------------------------------------------------------*/
