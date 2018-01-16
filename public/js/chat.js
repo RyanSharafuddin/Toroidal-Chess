@@ -39,3 +39,8 @@ function messageMaker(color, name, message) {
   HTMLstr += ': </strong></div><div class="messageTile"> ' + message + '</div></div></li>';
   return HTMLstr;
 }
+
+$(window).on('resize', function() {
+  $("#messageForm").width($("#chatContainer").width()); //don't know why setting width to 100% doesn't do that on its own
+});
+$("#messageForm").width($("#chatContainer").width()); //don't know why setting width to 100% doesn't do that on its own

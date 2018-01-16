@@ -34,20 +34,20 @@
   padding: 3px;
   position: fixed;
   bottom: 0;
-  width: 34%;
+  width: 100%; /* 100% works in lobby but not in board.ejs??? */
 }
 
 #m {
   border: 0;
   padding: 10px;
-  width: 92%;
+  width: 98%;   /* 92 for board */
   /*resize: vertical;
   overflow: scroll;*/
   margin-right: .5%;
 }
 
 #chatButton {
-  width: 96%;
+  width: 100%; /* 96 for board*/
   background:
   rgb(130, 224, 255);
   border: none;
