@@ -27,6 +27,8 @@
   float: right;
   width: 100%;
   display: inline-block;
+  max-height: 100%;
+  overflow: scroll;
 }
 
 #messageForm {
