@@ -314,7 +314,7 @@ function InitUIState(data) {
   this.isWhite = false;
   if(data !== undefined) {
     (data.color == "white") ? (this.isWhite = true) : (this.isBlack = true);
-    CHAT_COLOR = (data.color == "white") ? "#7a04ef" : "#ef8904";
+    CHAT_COLOR = (CHAT_COLOR === undefined ) ? ((data.color == "white") ? "#7a04ef" : "#ef8904") :  CHAT_COLOR;
   }
   this.canProposeDraw = true;
   this.myName = ($("#myName").text()) ? $("#myName").text() : this.myName;
