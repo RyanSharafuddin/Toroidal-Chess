@@ -118,11 +118,19 @@ $(document).keydown(function(e) {
       moveRight();
       break;
 
-      case 40: // dow n
+      case 40: // down
       case 83: //s
       moveDown();
       break;
 
+      case 81: //q
+      moveUp();
+      moveLeft();
+      break;
+
+      case 69: //e
+      moveUp();
+      moveRight();
       default: return; // exit this handler for other keys
   }
     e.preventDefault(); // prevent the default action (scroll / move caret)

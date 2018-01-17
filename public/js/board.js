@@ -382,7 +382,7 @@ var scaleStuff = function() {
     var subtract = $("#boardDisplay").height();
     $("#buttons").height(totalHeight - subtract); //padding idiocy
     var compassScale = .01879;
-    //$(".arrow").css('border', compassScale*scaleSource + "px solid");
+    //$(".arrow").css('border', compassScale*scaleSource + "px solid"); doesn't work
 }
 
 var board1;
