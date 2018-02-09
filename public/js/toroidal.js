@@ -593,7 +593,6 @@ function getUpdatedPosAndState(pos, state, source, target) {
 }
 
 function necessaryToMate(pos, state) {
-  //TODO see TODO.txt
   if(!(state.whiteMated || state.blackMated)) {
     throw("Error. Can only call necessaryToMate on a checkmated position");
   }

@@ -360,6 +360,12 @@ function opponentLeft(){
   }
   finishGame({winner: ((UIState.isWhite) ? "white" : "black"), reason: "oppLeft"});
 }
+
+function reconnectBoard() { //TODO test
+  gameLogic.gameOver = false;
+  setUpdatedStateAndPos({pos: board1.position(), state: gameLogic}, false);
+  updateDisplay(gameLogic, board1.position(), false);
+}
 //---------------------------- Main --------------------------------------------
 
 var scaleStuff = function() {
@@ -424,6 +430,9 @@ function howFarUp() {
 }
 function howFarRight() {
   return UIState.right;
+}
+function getRoomName() {
+  return UIState.roomName;
 }
 //direction is either "up" or "right"
 function moveBoard(direction, amount) {

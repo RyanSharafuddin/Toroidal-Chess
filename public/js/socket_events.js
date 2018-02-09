@@ -2,6 +2,15 @@
 Properties of socket - socket.inLobby, socket.inGame
  2 ways to leave lobby: accept a challenge, or have one of your challenges accepted
 */
+var RECONNECT_BUTTON = {text: "Reconnect",
+                        click: function() {
+                          console.log("attempting to reconnect . . .")
+                          //socket = io();
+                          socket.emit("reconnect", {name: getMyName(), roomName: getRoomName(), color: (getIsWhite() ? "white" : "black")});
+                          socket.emit("test");
+                          initBoardEvents();
+                          $(this).dialog( "close" );
+                        }};
 var socket;
 if(socket === undefined) {
   socket = io();
@@ -14,9 +23,8 @@ if(socket === undefined) {
       finishGame({winner: "draw", reason: "connectError"});
     }
     prettyAlert("Connection Lost", "The connection has been lost. "
-        + " Sorry about that! You should return to the <a href='https://toroidal-chess.herokuapp.com/'>login page</a>. "
-        + "This could just be bad luck. However, if it keeps happening, "
-        + " it is probably a bug.", [OK_BUTTON], true, "disconnect");
+        + "This might be a bug, or it could just be bad luck. "
+        + "Click the button below to attempt to resume the game.", [RECONNECT_BUTTON], true, "disconnect");
   });
 
   socket.on('nameNotFound', function() {
@@ -52,6 +60,8 @@ function initBoardEvents() {
   socket.on('oppMove', receivedOpponentMove);
 
   socket.on("oppLeft", opponentLeft);
+
+  socket.on("reconnectBoard", reconnectBoard);
 }
 
 function initGameButtonsEvents() {

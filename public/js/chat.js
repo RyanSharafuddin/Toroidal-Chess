@@ -6,7 +6,6 @@
   GLOBALS FROM DEPENDENCIES USED:
     getIsWhite() - whether that browser is the white player or not
     getMyName()  - nickname of that browser
-TODO: modularize this file so that it can be used for lobby chat with no changes
 this file assumes the existence of a variable called CHAT_COLOR and CHAT_NAME and
 assumes the divs are in a container called chatContainer
 uses those.

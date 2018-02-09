@@ -68,9 +68,9 @@ var onlinePlayers = {}; //{nickname: {id: id, inLobby: true or false, inGame: tr
 //added attributes to socket: nickname, gameRoom (undefined when not in game), nickname always defined
 //lobby room name is lobby for now
 io.on('connection', function(socket) {
-  function errorCheck(nickname) {
+  function errorCheck(nickname, functionName) {
     if(onlinePlayers[nickname] === undefined) {
-      console.log("errorCheck detected an error"); //nickname of challenger/player unrecognized
+      console.log("errorCheck detected an error in " + functionName); //nickname of challenger/player unrecognized
       socket.emit("nameNotFound");
       return true;
     }
@@ -105,7 +105,7 @@ io.on('connection', function(socket) {
       var nickname = data.nickname;
       var showValid = data.showValid;
       var showThreat = data.showThreat;
-      if(errorCheck(nickname)) {
+      if(errorCheck(nickname, "send_challenge")) {
         return; //prevent crashing when people press back button and stuff
       }
       socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {
@@ -115,14 +115,14 @@ io.on('connection', function(socket) {
     });
 
     socket.on('declineChallenge', function(challenger) {
-      if(errorCheck(challenger)) {
+      if(errorCheck(challenger, "declineChallenge")) {
         return; //prevent crashing when people press back button and stuff
       }
       socket.broadcast.to(onlinePlayers[challenger]["id"]).emit('challengeDeclined', {name: socket.nickname, reason: "want"});
     });
 
     socket.on('acceptChallenge', function(nickname) {
-      if(errorCheck(nickname)) {
+      if(errorCheck(nickname, "acceptChallenge")) {
         return; //prevent crashing when people press back button and stuff
       }
       //both players must leave lobby, then join their own private room, and then game happens
@@ -149,11 +149,31 @@ io.on('connection', function(socket) {
     });
       //-----------------------------End Lobby Functions------------------------------
       //-----------------------------Board Functions ------------------------------
+      //{nickname: {id: id, inLobby: true or false, inGame: true or false, color: "white" or "black" or undefined}}
+      //added attributes to socket: nickname, gameRoom (undefined when not in game), nickname always defined
+      //lobby room name is lobby for now
+
+    socket.on("reconnect", function(data) {
+      onlinePlayers[data.name].id = socket.id;
+      onlinePlayers[data.name].inLobby = false;
+      onlinePlayers[data.name].inGame = true;
+      onlinePlayers[data.name].color = data.color;
+      socket.nickname = data.name;
+      socket.gameRoom = data.roomName;
+      socket.join(data.roomName);
+      socket.emit("reconnectBoard"); //TODO only emit reconnect once both players have reconnected
+      console.log("Got reconnection from " + data.name + " in " + data.roomName);
+    });
+
+    socket.on("test", function() {
+      console.log("Got test");
+    });
+
     socket.on('startGame', function(gameParameters) {
       var myName = gameParameters.myName;
       var enemyName = gameParameters.enemyName;
       var roomName = gameParameters.roomName;
-      if(errorCheck(myName)) {
+      if(errorCheck(myName, "startGame")) {
         return; //prevent crashing when people press back button and stuff
       }
       //update id in onlinePlayers object
@@ -173,7 +193,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('move', function(totalState) {
-      if(errorCheck(socket.nickname)) {
+      if(errorCheck(socket.nickname, "move")) {
         return; //prevent crashing when people press back button and stuff
       }
       console.log("Move made by " + socket.nickname + " in room " + socket.gameRoom);
@@ -182,28 +202,28 @@ io.on('connection', function(socket) {
     });
 
     socket.on('resignation', function(resignData) {
-      if(errorCheck(socket.nickname)) {
+      if(errorCheck(socket.nickname, "resignation")) {
         return; //prevent crashing when people press back button and stuff
       }
       socket.broadcast.to(socket.gameRoom).emit('resigned', resignData);
     });
 
     socket.on('drawProposal', function() {
-      if(errorCheck(socket.nickname)) {
+      if(errorCheck(socket.nickname, "drawProposal")) {
         return; //prevent crashing when people press back button and stuff
       }
       socket.broadcast.to(socket.gameRoom).emit('drawOffer');
     });
 
     socket.on('drawResponse', function(answer) {
-      if(errorCheck(socket.nickname)) {
+      if(errorCheck(socket.nickname, "drawResponse")) {
         return; //prevent crashing when people press back button and stuff
       }
       socket.broadcast.to(socket.gameRoom).emit('drawReply', answer);
     });
 
     socket.on('lobbyReturn', function(data) {
-      if(errorCheck(socket.nickname)) {
+      if(errorCheck(socket.nickname, "lobbyReturn")) {
         return; //prevent crashing when people press back button and stuff
       }
       var nickname = socket.nickname;
@@ -220,7 +240,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('chatMessage', function(data) { //send to all, including self
-      if(errorCheck(socket.nickname)) {
+      if(errorCheck(socket.nickname, "chatMessage")) {
         return; //prevent crashing when people press back button and stuff
       }
       if(onlinePlayers[socket.nickname]["inGame"]) {
