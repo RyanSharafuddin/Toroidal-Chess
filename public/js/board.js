@@ -387,6 +387,7 @@ var scaleStuff = function() {
     var totalHeight = $("#content").height();
     var subtract = $("#boardDisplay").height();
     $("#buttons").height(totalHeight - subtract); //padding idiocy
+    $("#m").width("95%"); //NOTE: overrides chat.css
     var compassScale = .01879;
     //$(".arrow").css('border', compassScale*scaleSource + "px solid"); doesn't work
 }
