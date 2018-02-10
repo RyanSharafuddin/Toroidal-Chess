@@ -6,9 +6,15 @@ var RECONNECT_BUTTON = {text: "Reconnect",
                         click: function() {
                           console.log("attempting to reconnect . . .")
                           //socket = io();
-                          socket.emit("reconnect", {name: getMyName(), roomName: getRoomName(), color: (getIsWhite() ? "white" : "black")});
                           socket.emit("test");
-                          initBoardEvents();
+                          var reconObj = {
+                            name: getMyName(),
+                            roomName: getRoomName(),
+                            color: (getIsWhite() ? "white" : "black")
+                          }
+                          socket.emit("recon", reconObj);
+                          console.log(JSON.stringify(reconObj));
+                          //initBoardEvents();
                           $(this).dialog( "close" );
                         }};
 var socket;

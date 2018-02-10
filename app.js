@@ -153,11 +153,8 @@ io.on('connection', function(socket) {
       //added attributes to socket: nickname, gameRoom (undefined when not in game), nickname always defined
       //lobby room name is lobby for now
 
-    socket.on("reconnect", function(data) {
-      onlinePlayers[data.name].id = socket.id;
-      onlinePlayers[data.name].inLobby = false;
-      onlinePlayers[data.name].inGame = true;
-      onlinePlayers[data.name].color = data.color;
+    socket.on("recon", function(data) {
+      onlinePlayers[data.name] = {id: socket.id, inLobby: false, inGame: true, color: data.color};
       socket.nickname = data.name;
       socket.gameRoom = data.roomName;
       socket.join(data.roomName);
