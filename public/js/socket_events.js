@@ -24,13 +24,17 @@ if(socket === undefined) {
   socket.inLobby = false; //set to true upon entering lobby
   //ALL socket.on stuff here. Include it in the lobby.ejs
 //----------------------- UNIVERSAL EVENTS -------------------------------------
-  socket.on('disconnect', function() {
+  socket.on('disconnect', function() {  //TODO: consider doing this every X seconds until it works or for Y number of times and then inform of failure with finishGame
     if(socket.inGame && !getGameOver()) {
-      finishGame({winner: "draw", reason: "connectError"});
+      console.log("attempting to reconnect . . .")
+      var reconObj = {
+        name: getMyName(),
+        roomName: getRoomName(),
+        color: (getIsWhite() ? "white" : "black")
+      }
+      socket.emit("recon", reconObj);
+      console.log(JSON.stringify(reconObj));
     }
-    prettyAlert("Connection Lost", "The connection has been lost. "
-        + "This might be a bug, or it could just be bad luck. "
-        + "Click the button below to attempt to resume the game.", [RECONNECT_BUTTON], true, "disconnect");
   });
 
   socket.on('nameNotFound', function() {
