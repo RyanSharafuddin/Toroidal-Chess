@@ -67,6 +67,7 @@ app.post('/lobbyReturn', function(req, res) {
 var onlinePlayers = {}; //{nickname: {id: id, inLobby: true or false, inGame: true or false, color: "white" or "black" or undefined}}
 //added attributes to socket: nickname, gameRoom (undefined when not in game), nickname always defined
 //lobby room name is lobby for now
+var reconnecters = {}; //to be used to make sure game only resumes when both people reconnect
 io.on('connection', function(socket) {
   function errorCheck(nickname, functionName) {
     if(onlinePlayers[nickname] === undefined) {
@@ -154,11 +155,17 @@ io.on('connection', function(socket) {
       //lobby room name is lobby for now
 
     socket.on("recon", function(data) {
+      socket.join(data.roomName);
       onlinePlayers[data.name] = {id: socket.id, inLobby: false, inGame: true, color: data.color};
       socket.nickname = data.name;
       socket.gameRoom = data.roomName;
-      socket.join(data.roomName);
-      socket.emit("reconnectBoard"); //TODO only emit reconnect once both players have reconnected
+      if(reconnecters[data.roomName] === undefined) {
+        reconnecters[data.roomName] = 1;
+      }
+      else {
+        delete reconnecters[data.roomName];
+        io.in(socket.gameRoom).emit("reconnectBoard");
+      }
       console.log("Got reconnection from " + data.name + " in " + data.roomName);
     });
 
