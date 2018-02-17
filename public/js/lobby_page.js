@@ -210,4 +210,7 @@ var CHAT_COLOR = (CHAT_COLOR === undefined) ? randomColor({alpha: 1, luminosity:
 initSocketEvents("lobby_page.js", initLobbyEvents);
 socket.emit('lobby', lobbyState.myNickname);
 socket.inLobby = true;
+$("#timedSlide").on("click", function() {
+  console.log($("#timedSlide").prop("checked"));
+});
 //ways to leave the lobby - accept a challenge, or have your challenge accepted
