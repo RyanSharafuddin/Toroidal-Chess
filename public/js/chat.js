@@ -12,8 +12,12 @@ uses those.
 */
 
 var LIMIT = 45;
-$('#messageForm').submit(function(){
-  socket.emit('chatMessage', {message: $('#m').val(), sender: CHAT_NAME, color: CHAT_COLOR});
+var ALLOW_BLANK = false;
+$('#messageForm').submit(function() {
+  if(!ALLOW_BLANK && $("#m").val().trim() == "") {
+    return false;
+  }
+  socket.emit('chatMessage', {message: $('#m').val().replace(/ /g, "\xa0"), sender: CHAT_NAME, color: CHAT_COLOR});
   $('#m').val('');
   return false;
 });
