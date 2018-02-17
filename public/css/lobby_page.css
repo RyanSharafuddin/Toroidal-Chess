@@ -24,12 +24,14 @@ h1 {
   display: flex;
   margin-top: 30px;
   margin-left: 2%;
-  width: 50%;
+  width: 100%;
 }
 
 #allSliders {
   display: flex;
   width: 100%;
+  margin-right: 27%;
+  margin-left: 5%;
 }
 
 #allSliders > div {
