@@ -30,6 +30,10 @@ h1 {
   width: 100%;
 }
 
+ .sliderLabel {
+  width: max-content;
+}
+
 #allSliders {
   display: flex;
   width: 100%;
@@ -48,6 +52,26 @@ h1 {
 
 .timeOptions * {
   width: max-content;
+}
+
+.timeOptions p {
+  margin: 0px;
+}
+
+.timeOptions input {
+  width: 27px;
+  height: 10px;
+  margin-left: 7px;
+  margin-right: 7px;
+}
+
+#totalTimer {
+  display: flex;
+}
+
+#timeOptionsContainer {
+  position: relative;
+  left: 70px;
 }
 
 /* http://css3buttongenerator.com/ */
@@ -79,7 +103,7 @@ h1 {
 
 /*------------------ https://codepen.io/AllThingsSmitty/pen/MmxxOz -----------*/
 #sendChal {
-  margin: 0px 0px 5px 0px;
+  margin: 8px 0px 5px 0px;
   position: relative;
   left: 0%;
   width: max-content;

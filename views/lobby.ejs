@@ -51,6 +51,7 @@
           </label>
         </div>
 
+        <div id="totalTimer">
           <div class="sliderLabelContainer">
             <p class="sliderLabel">Timed:</p>
           </div>
@@ -60,14 +61,20 @@
               <div class="slider round"></div>
             </label>
           </div>
-          <div id="minutesDiv" class="timeOptions">
-            <p> Total time: </p>
-            <p> minutes </p>
+          <div id="timeOptionsContainer">
+            <div id="minutesDiv" class="timeOptions">
+              <p> Total time: </p>
+              <input type="number" id="minutes" value="20">
+              <p> minutes </p>
+            </div>
+            <div id="bonusDiv" class="timeOptions">
+              <p> Bonus:&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp </p>
+              <input type="number" id="seconds" value="5">
+              <p> seconds </p>
+            </div>
           </div>
-          <div id="bonusDiv" class="timeOptions">
-            <p> Bonus: </p>
-            <p> seconds </p>
-          </div>
+        </div>
+
       </div>
     </div>
 
