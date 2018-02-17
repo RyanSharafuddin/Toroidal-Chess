@@ -70,6 +70,7 @@ h1 {
 }
 
 #timeOptionsContainer {
+  visibility: hidden;
   position: relative;
   left: 70px;
 }

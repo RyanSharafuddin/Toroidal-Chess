@@ -212,10 +212,11 @@ socket.emit('lobby', lobbyState.myNickname);
 socket.inLobby = true;
 $("#timedSlide").on("click", function() {
   if($("#timedSlide").prop("checked")) {
-    //add the two fields
+    $("#timeOptionsContainer").css("visibility", "visible");
   }
   else {
     //remove them
+    $("#timeOptionsContainer").css("visibility", "hidden");
   }
 });
 //ways to leave the lobby - accept a challenge, or have your challenge accepted
