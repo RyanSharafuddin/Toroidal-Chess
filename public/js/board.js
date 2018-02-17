@@ -107,16 +107,44 @@ function displayPromotionButtons(color, target) {
 }
 
 //takes in an arg as to which timer to start
-function startTimer() {
-
+function startTimer(myTimer) {
+  //TODO: invoke this on reconnect
+  var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
+  timer.running = true;
+  if(myTimer) {
+    UIState.selfTimerPauseKey = setInterval(function() {
+      decrementTimer(myTimer)}
+      , 1000);
+  }
+  else {
+    UIState.enemyTimerPauseKey = setInterval(function() {
+      decrementTimer(myTimer)}
+      , 1000);
+  }
 }
 
-function pauseTimer() {
-
+function pauseTimer(myTimer) {
+  //TODO: invoke this on disconnect
+  //TODO: take promotions into account on pausing timer
+  var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
+  timer.running = false;
+  clearInterval((myTimer) ? UIState.selfTimerPauseKey : UIState.enemyTimerPauseKey);
 }
 
 function decrementTimer(myTimer) {
-  
+  var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
+  if(timer.secondsLeft == 0) {
+    timer.minutesLeft -= 1;
+    timer.secondsLeft = 59;
+  }
+  else {
+    timer.secondsLeft -= 1;
+  }
+  var secondsString = (timer.secondsLeft > 9) ? timer.secondsLeft : "0" + timer.secondsLeft;
+  var timerID = (myTimer) ? "#selfTimerContainer" : "#enemyTimerContainer";
+  $(timerID).text(timer.minutesLeft + ":" + secondsString);
+  console.log(JSON.stringify(timer));
+  //TODO: finshGame if ran out of time
 }
 
 //--------------------------- USER INTERACTION ---------------------------------
@@ -187,6 +215,8 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   if(!isLegalMove(oldPos, gameLogic, source, target)) {
     return 'snapback';
   }
+  pauseTimer(true);
+  startTimer(false);
   var data = getUpdatedPosAndState(oldPos, gameLogic, source, target);
   UIState.canProposeDraw = true; //TODO: set UI state
   setUpdatedStateAndPos(data, false);
@@ -339,6 +369,8 @@ function InitUIState(data) {
   this.bonus = $("#seconds").text();
 
   if(this.timed) {
+    this.selfTimerPauseKey = "";
+    this.enemyTimerPauseKey = "";
     $(".timerContainer").css("display", "block");
     console.log("timed game!");
     console.log(this.totalTimeMinutes);
@@ -346,15 +378,21 @@ function InitUIState(data) {
     //TODO - setup and display the timer. make it an object with a paused flag
     //oh wait. You need 2 timers. One for self and one for enemy
     this.selfTimer = {
-      running: (this.isWhite) ? true : false,
+      running: false,
       minutesLeft: this.totalTimeMinutes,
       secondsLeft: 0
     }; //state, minutes left, seconds left. then make function decrement timer, pause timer, start timer
     this.enemyTimer = {
-      running: (this.isWhite) ? false : true,
+      running: false,
       minutesLeft: this.totalTimeMinutes,
       secondsLeft: 0
     };
+    if(this.isWhite) {
+      startTimer(true);
+    }
+    else if (this.isBlack) {
+      startTimer(false);
+    }
   }
   else {
     $(".timerContainer").css("display", "none");
@@ -394,6 +432,8 @@ function receivedOpponentMove(totalState) {
   var fromEnemy = true;
   setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
   updateDisplay(gameLogic, totalState.position, fromEnemy, true);
+  pauseTimer(false);
+  startTimer(true);
 }
 
 function opponentLeft(){
