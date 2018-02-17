@@ -132,13 +132,13 @@ function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: 
     return;
   }
   //by default
-  $("#myNameDisplay").text(UIState.myName);
-  $("#enemyNameDisplay").text(UIState.enemyName);
+  $("#myNameDisplayText").text(UIState.myName);
+  $("#enemyNameDisplayText").text(UIState.enemyName);
   if(checkString == UIState.myName) {
-    $("#myNameDisplay").text(UIState.myName + " - in check");
+    $("#myNameDisplayText").text(UIState.myName + " - in check");
   }
   if(checkString == UIState.enemyName) {
-    $("#enemyNameDisplay").text(UIState.enemyName + " - in check");
+    $("#enemyNameDisplayText").text(UIState.enemyName + " - in check");
   }
   if(myTurn(state)) {
     console.log("MY TURN!");
@@ -276,13 +276,13 @@ function setGameEndDisplay(data) {
   //data in form of {winner: nickname or "", in case of draw. nonwinners: [], nonwinnerDisplayString: "resigned" or "left" etc.}
   var winnerDisplayID = (data.winner == UIState.myName) ? "#myNameDisplay" : "#enemyNameDisplay";
   var nonwinnerDisplayIDs = (data.winner.length == 0) ? ["#myNameDisplay", "#enemyNameDisplay"] : ((data.winner == UIState.enemyName) ? ["#myNameDisplay"] : ["#enemyNameDisplay"]);
-  $(winnerDisplayID).html("WINNER *" + data.winner + "* WINNER!");
+  $(winnerDisplayID + "Text").html("WINNER *" + data.winner + "* WINNER!");
   $(winnerDisplayID).removeClass("unHighlightedPlayerName");
   console.log("SET END GAME DISPLAY!");
   console.log("nonwinnerDisplayIDs: " + nonwinnerDisplayIDs);
   console.log("data: " + JSON.stringify(data));
   for (var i = 0; i < data.nonwinners.length; i++) {
-    $(nonwinnerDisplayIDs[i]).html(data.nonwinners[i] + data.nonwinnerDisplayString);
+    $(nonwinnerDisplayIDs[i] + "Text").html(data.nonwinners[i] + data.nonwinnerDisplayString);
     $(nonwinnerDisplayIDs[i]).addClass("unHighlightedPlayerName");
   }
 }
