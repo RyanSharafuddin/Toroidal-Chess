@@ -24,7 +24,12 @@ function challengePlayer(nickname) {
   lobbyState.showValid = $("#validMovesSlide").prop("checked");
   lobbyState.showThreat = $("#enemyThreatSlide").prop("checked");
 
-  socket.emit('send_challenge', {nickname: nickname, showValid: lobbyState.showValid, showThreat: lobbyState.showThreat});
+  socket.emit('send_challenge', {nickname: nickname,
+                                showValid: lobbyState.showValid,
+                                showThreat: lobbyState.showThreat,
+                                timed: $("#timedSlide").prop("checked"),
+                                minutes: $("#minutes").val(),
+                                bonus: $("#bonus").val()});
   //put up a waiting for response dialogue
   var timeLeft = lobbyState.WAIT_TIME;
   var waitHTML = "Waiting for a response from '" + nickname + "'."
@@ -88,6 +93,9 @@ function receivedChallenge(challenge) {
   challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
   challengeHTML += "Show valid moves: " + offerValidStr;
   challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
+  //TODO: debug why not working
+  challengeHTML += "<br>Timed: " + (challenge.timed) ? "Yes" : "No";
+  challengeHTML += (challenge.timed) ? "<br>Time: " + challenge.minutes + " minutes.<br>Bonus: " + challenge.bonus + " seconds." : challengeHTML += "";
   challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
   console.log(challengeHTML);
   lobbyState.busy = true;

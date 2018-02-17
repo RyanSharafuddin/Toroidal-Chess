@@ -112,7 +112,11 @@ io.on('connection', function(socket) {
       socket.broadcast.to(onlinePlayers[nickname]["id"]).emit('challenged', {
         challenger: socket.nickname,
         showValid: showValid,
-        showThreat: showThreat});
+        showThreat: showThreat,
+        timed: data.timed,
+        minutes: data.minutes,
+        bonus: data.bonus
+      });
     });
 
     socket.on('declineChallenge', function(challenger) {
