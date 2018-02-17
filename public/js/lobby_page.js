@@ -119,7 +119,7 @@ function receivedChallenge(challenge) {
       //emit to challenger that you've accepted the challenge
       socket.emit('acceptChallenge', challenge.challenger);
       //make POST request
-      var timed = challenge.timed;
+      var timed = (challenge.timed) ? "1" : "0";
       var minutes = challenge.minutes;
       var seconds = challenge.bonus;
       var offerValidStr = (challenge.showValid) ? "Yes" : "No";

@@ -106,6 +106,18 @@ function displayPromotionButtons(color, target) {
   prettyAlert("Pawn Promotion", "Promote pawn to:", promotionButtons(color, target), true, "promotions");
 }
 
+//takes in an arg as to which timer to start
+function startTimer() {
+
+}
+
+function pauseTimer() {
+
+}
+
+function decrementTimer(myTimer) {
+  
+}
 
 //--------------------------- USER INTERACTION ---------------------------------
 //only to be used when a move happens
@@ -325,16 +337,27 @@ function InitUIState(data) {
   this.timed = ($("#timed1").length > 0);
   this.totalTimeMinutes = $("#minutes").text();
   this.bonus = $("#seconds").text();
+
   if(this.timed) {
+    $(".timerContainer").css("display", "block");
     console.log("timed game!");
     console.log(this.totalTimeMinutes);
     console.log(this.bonus);
     //TODO - setup and display the timer. make it an object with a paused flag
     //oh wait. You need 2 timers. One for self and one for enemy
-    this.selfTimer = {}; //state, minutes left, seconds left. then make function decrement timer, pause timer, start timer
-    this.enemyTimer = {};
+    this.selfTimer = {
+      running: (this.isWhite) ? true : false,
+      minutesLeft: this.totalTimeMinutes,
+      secondsLeft: 0
+    }; //state, minutes left, seconds left. then make function decrement timer, pause timer, start timer
+    this.enemyTimer = {
+      running: (this.isWhite) ? false : true,
+      minutesLeft: this.totalTimeMinutes,
+      secondsLeft: 0
+    };
   }
   else {
+    $(".timerContainer").css("display", "none");
     console.log("Unlimited time");
   }
   $("#vs").hide(); //needed to get info; don't want to display
