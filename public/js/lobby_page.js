@@ -193,6 +193,14 @@ function myChallengeAccepted(accepter) {
   lobbyState.busy = false;
 }
 
+function validateMinutes() {
+  alert("Clicked away from minutes");
+}
+
+function validateBonus() {
+  alert("bonus click away");
+}
+
 
 //main
 lobbyState = {
