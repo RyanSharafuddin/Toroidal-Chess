@@ -41,6 +41,15 @@ h1 {
   flex: 1; /*grow*/
 }
 
+.timeOptions {
+  display: flex;
+  width: max-content;
+}
+
+.timeOptions * {
+  width: max-content;
+}
+
 /* http://css3buttongenerator.com/ */
 .challengeButton {
   margin: 8px 8px 8px 8px;

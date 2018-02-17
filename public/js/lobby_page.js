@@ -211,6 +211,11 @@ initSocketEvents("lobby_page.js", initLobbyEvents);
 socket.emit('lobby', lobbyState.myNickname);
 socket.inLobby = true;
 $("#timedSlide").on("click", function() {
-  console.log($("#timedSlide").prop("checked"));
+  if($("#timedSlide").prop("checked")) {
+    //add the two fields
+  }
+  else {
+    //remove them
+  }
 });
 //ways to leave the lobby - accept a challenge, or have your challenge accepted
