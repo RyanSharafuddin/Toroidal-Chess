@@ -8,6 +8,8 @@ var RECONNECT_BUTTON = {text: "Reconnect",
                           $(this).dialog( "close" );
                         }};
 var socket;
+var clearDisconnectTimeout;
+var RECONNECT_LIMIT = 30000; //how many milliseconds to wait for reconnection
 if(socket === undefined) {
   socket = io();
   socket.inGame = false;  //set to true upon entering game
@@ -18,13 +20,20 @@ if(socket === undefined) {
     if(socket.inGame && !getGameOver()) { //never mind, apparently it 'waits' for the socket reconnection
       disconnectFlagSet();
       finishGame({winner: "draw", reason: "connectError"});
+      var closeStr = prettyAlert("Disconnected", "The server has disconnected. Please wait 30 seconds while the program attempts to reconnect . . .", [], true, "disconnectionDealWith");
+      setDisconnectDialog(closeStr);
       reconnectFunction();
-      setTimeout(function() {
+      clearDisconnectTimeout = setTimeout(function() {
         if(!getIsConnected()) {
-          console.log("Not connected 10 seconds later");
+          $(closeStr).dialog("close");
+          prettyAlert("Connection Error", "The program was unable to reconnect. "
+         + "You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
+        + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "divdmweofiqiodn"); //got lazy here. Just needs to be a unique divID
+          console.log("Not connected RECONNECT_LIMIT seconds later");
+          //close disconnect dialog and replace it with failure dialog leading back to login page. then done with this branch, and onto timer
         }
       },
-      10000);//wait 10 seconds before declaring failure.
+      RECONNECT_LIMIT);//wait before declaring failure.
     }
   });
 

@@ -328,6 +328,7 @@ function InitUIState(data) {
   this.up = 0;
   this.right = 0;
   this.connected = true;
+  this.disconnectDialog = "";
   var CHAT_NAME = myName;
 }
 //color is either "white" or "black"
@@ -366,6 +367,9 @@ function opponentLeft(){
 
 function reconnectBoard() { //TODO test
   gameLogic.gameOver = false;
+  console.log("RECONNECTED!");
+  clearTimeout(clearDisconnectTimeout);
+  closeDisconnectDialog();
   setUpdatedStateAndPos({pos: board1.position(), state: gameLogic}, false);
   updateDisplay(gameLogic, board1.position(), false, false);
   connectFlagSet();
@@ -448,7 +452,6 @@ function disconnectFlagSet() {
 function connectFlagSet() {
   UIState.connected = true;
 }
-
 function reconnectFunction() {
   if(getIsConnected()) {
     return;
@@ -463,7 +466,12 @@ function reconnectFunction() {
   socket.emit("recon", reconObj);
   console.log(JSON.stringify(reconObj));
 }
-
+function setDisconnectDialog(str) {
+  UIState.disconnectDialog = str;
+}
+function closeDisconnectDialog() {
+  $(UIState.disconnectDialog).dialog("close");
+}
 //direction is either "up" or "right"
 function moveBoard(direction, amount) {
   console.log("Called moveBoard with args: " + direction + " " + amount);

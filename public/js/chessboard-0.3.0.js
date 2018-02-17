@@ -592,7 +592,7 @@ function arrayRotateLeft(arr, count) {
   return arr
 }
 
-function buildBoard(orientation) {
+function buildBoard(orientation) { //CHANGED
   if (orientation["color"] !== 'black') {
     orientation["color"] = 'white';
   }
@@ -621,7 +621,6 @@ function buildBoard(orientation) {
     html += '<div class="' + CSS.row + '">';
     for (var j = 0; j < 8; j++) {
       var square = alpha[j] + ROWS[row];
-      console.log("Square is " + square);
       html += '<div class="' + CSS.square + ' ' + CSS[squareColor] + ' ' +
         'square-' + square + '" ' +
         'style="width: ' + SQUARE_SIZE + 'px; height: ' + SQUARE_SIZE + 'px" ' +
