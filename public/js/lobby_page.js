@@ -103,6 +103,7 @@ function receivedChallenge(challenge) {
     socket.emit('busyTone', challenge.challenger);
     return;
   }
+
   var timeLeft = lobbyState.INVITE_TIME;
   var challengeHTML = makeChallengeHTML(challenge, timeLeft);
   console.log(challengeHTML);
@@ -118,20 +119,12 @@ function receivedChallenge(challenge) {
       //emit to challenger that you've accepted the challenge
       socket.emit('acceptChallenge', challenge.challenger);
       //make POST request
-      $.ajax({
-        url: "gameStart",
-        type: 'POST',
-        data: {myName: lobbyState.myNickname,
-          enemyName: challenge.challenger,
-          roomNamer: "0",
-          showValid: offerValidStr,
-          showThreat: offerThreatStr},
-        success: function(page) {
-          //necessary to open document before write
-          document.open();
-          document.write(page);
-        }
-      });
+      var timed = ($("#timedSlide").prop("checked")) ? "1" : "0";
+      var minutes = $("#minutes").val();
+      var seconds = $("#bonus").val();
+      var offerValidStr = (challenge.showValid) ? "Yes" : "No";
+      var offerThreatStr = (challenge.showThreat) ? "Yes" : "No";
+      challengeStartAJAX(challenge.challenger, "0", offerValidStr, offerThreatStr, timed, minutes, seconds);
       console.log("Have accepted the challenge!");
       lobbyState.busy = false;
     }
@@ -187,25 +180,16 @@ function myChallengeDeclined(decliner) {
 function myChallengeAccepted(accepter) {
   var offerValidStr = (lobbyState.showValid) ? "Yes." : "No.";
   var offerThreatStr = (lobbyState.showThreat) ? "Yes." : "No.";
+  var timed = ($("#timedSlide").prop("checked")) ? "1" : "0";
+  var minutes = $("#minutes").val();
+  var seconds = $("#bonus").val();
   console.log(accepter + " has accepted your challenge!");
   socket.inLobby = false;
   $("#waitBox").dialog("close");
   clearInterval(lobbyState.closeInvitation);
   //make POST request
   //data that needs to be included: myName, enemyName, challenge parameters such as show moves, threats, time
-  $.ajax({
-    url: "gameStart",
-    type: 'POST',
-    data: {myName: lobbyState.myNickname,
-      enemyName: accepter,
-      roomNamer: "1",
-      showValid: offerValidStr,
-      showThreat: offerThreatStr},
-    success: function(page) {
-      document.open();
-      document.write(page);
-    }
-  });
+  challengeStartAJAX(accepter, "1", offerValidStr, offerThreatStr, timed, minutes, seconds);
   lobbyState.busy = false;
 }
 
@@ -253,6 +237,29 @@ function validateBonus() {
 
 function validTime() {
   return  (!($("#timedSlide").prop("checked")) || (validateMinutes() && validateBonus()));
+}
+
+//roomNamer is either string "1" or "0"
+//ditto timed
+function challengeStartAJAX(enemyName, roomNamer, offerValidStr, offerThreatStr, timed, minutes, seconds) {
+  $.ajax({
+    url: "gameStart",
+    type: 'POST',
+    data: {
+      myName: lobbyState.myNickname,
+      enemyName: enemyName,
+      roomNamer: roomNamer,
+      showValid: offerValidStr,
+      showThreat: offerThreatStr,
+      timed: timed,
+      minutes: minutes,
+      seconds: seconds
+    },
+    success: function(page) {
+      document.open();
+      document.write(page);
+    }
+  });
 }
 
 //main

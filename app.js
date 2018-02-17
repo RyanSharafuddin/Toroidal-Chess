@@ -46,14 +46,15 @@ app.post('/login', function(req, res, next) {
 app.post('/gameStart', function(req, res) {
   //console.log("typeof req.body.roomNamer is: " + typeof(req.body.roomNamer)); //only takes strings for some reason
   //roomNamer is either "0" or "1"
+  //ditto with timed
   console.log("got POST request");
-  console.log("showValid: " + req.body.showValid);
-  console.log("showThreat: " + req.body.showThreat);
+  console.log("request body: " + JSON.stringify(req.body));
   res.render('board.ejs', {myName: req.body.myName,
                           enemyName: req.body.enemyName,
                           roomNamer: req.body.roomNamer,
                           showValid: req.body.showValid.charAt(0),
                           showThreat: req.body.showThreat.charAt(0)}); //since Jquery apparently can't deal with periods in ids
+                          
 });
 
 app.post('/lobbyReturn', function(req, res) {
