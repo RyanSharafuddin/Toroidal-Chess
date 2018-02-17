@@ -15,6 +15,10 @@ function addPlayer(nickname) {
 
 //to be used when someone challenges player by clicking their button
 function challengePlayer(nickname) {
+  if(!validTime()) {
+    prettyAlert("Cannot challenge", "You cannot challenge with invalid time parameters.", [OK_BUTTON], true, "failChallenge");
+    return;
+  }
   lobbyState.busy = true;
   console.log("Currently busy");
   lobbyState.showValid = $("#validMovesSlide").prop("checked");
@@ -194,13 +198,38 @@ function myChallengeAccepted(accepter) {
 }
 
 function validateMinutes() {
-  alert("Clicked away from minutes");
+  var re = /^[0-9]*$/;
+  var val = $("#minutes").val();
+  console.log("minutes val is '" + val +"'");
+  console.log("Regex test is " + re.test(val));
+  if(!(re.test(val) && val > 0 && val <= 120)) {
+    $("#minutes").css("background", "#e35152");
+    prettyAlert("Invalid Time", "The amount of time must be an integer between 1 and 120, inclusive.", [OK_BUTTON], true, "minutesValidator");
+    return false;
+  }
+  else {
+    $("#minutes").css("background", "#ffffff");
+    return true;
+  }
 }
 
 function validateBonus() {
-  alert("bonus click away");
+  var re = /^[0-9]*$/;
+  var val = $("#bonus").val();
+  if(!(re.test(val) && val >= 0 && val <= 60)) {
+    $("#bonus").css("background", "#e35152");
+    prettyAlert("Invalid Bonus", "The bonus must be an integer between 0 and 60, inclusive.", [OK_BUTTON], true, "bonusValidator");
+    return false;
+  }
+  else {
+    $("#bonus").css("background", "#ffffff");
+    return true;
+  }
 }
 
+function validTime() {
+  return  (!($("#timedSlide").prop("checked")) || (validateMinutes() && validateBonus()));
+}
 
 //main
 lobbyState = {
