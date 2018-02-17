@@ -4,33 +4,37 @@ Properties of socket - socket.inLobby, socket.inGame
 */
 var RECONNECT_BUTTON = {text: "Reconnect",
                         click: function() {
-                          console.log("attempting to reconnect . . .")
-                          //socket = io();
-                          socket.emit("test");
-                          var reconObj = {
-                            name: getMyName(),
-                            roomName: getRoomName(),
-                            color: (getIsWhite() ? "white" : "black")
-                          }
-                          socket.emit("recon", reconObj);
-                          console.log(JSON.stringify(reconObj));
-                          //initBoardEvents();
+                          reconnectFunction();
                           $(this).dialog( "close" );
                         }};
 var socket;
+var clearDisconnectTimeout;
+var RECONNECT_LIMIT = 30000; //how many milliseconds to wait for reconnection
 if(socket === undefined) {
   socket = io();
   socket.inGame = false;  //set to true upon entering game
   socket.inLobby = false; //set to true upon entering lobby
   //ALL socket.on stuff here. Include it in the lobby.ejs
 //----------------------- UNIVERSAL EVENTS -------------------------------------
-  socket.on('disconnect', function() {
-    if(socket.inGame && !getGameOver()) {
+  socket.on('disconnect', function() {  // consider doing this every X seconds until it works or for Y number of times and then inform of failure with finishGame
+    if(socket.inGame && !getGameOver()) { //never mind, apparently it 'waits' for the socket reconnection
+      disconnectFlagSet();
       finishGame({winner: "draw", reason: "connectError"});
+      var closeStr = prettyAlert("Disconnected", "The server has disconnected. Please wait 30 seconds while the program attempts to reconnect . . .", [], true, "disconnectionDealWith");
+      setDisconnectDialog(closeStr);
+      reconnectFunction();
+      clearDisconnectTimeout = setTimeout(function() {
+        if(!getIsConnected()) {
+          $(closeStr).dialog("close");
+          prettyAlert("Connection Error", "The program was unable to reconnect. "
+         + "You should return to the <a href='https://toroidal-chess.herokuapp.com/'> login page</a>"
+        + ". This could just be bad luck, but if this keeps happening, it is probably some sort of bug.", [OK_BUTTON], true, "divdmweofiqiodn"); //got lazy here. Just needs to be a unique divID
+          console.log("Not connected RECONNECT_LIMIT seconds later");
+          //close disconnect dialog and replace it with failure dialog leading back to login page. then done with this branch, and onto timer
+        }
+      },
+      RECONNECT_LIMIT);//wait before declaring failure.
     }
-    prettyAlert("Connection Lost", "The connection has been lost. "
-        + "This might be a bug, or it could just be bad luck. "
-        + "Click the button below to attempt to resume the game.", [RECONNECT_BUTTON], true, "disconnect");
   });
 
   socket.on('nameNotFound', function() {

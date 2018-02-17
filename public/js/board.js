@@ -109,7 +109,7 @@ function displayPromotionButtons(color, target) {
 
 //--------------------------- USER INTERACTION ---------------------------------
 //only to be used when a move happens
-function updateDisplay(state, pos, fromEnemy) {
+function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: add new move to history?
   if(state.moves == undefined) {
     console.log("state.moves is undefined!!");
     console.trace();
@@ -118,7 +118,9 @@ function updateDisplay(state, pos, fromEnemy) {
   if(!fromEnemy) {
     $("#draw").removeClass("disabled");
   }
-  $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
+  if(updateHistory) {
+    $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
+  }
   $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
   var checkString = (state.inCheck) ? (myTurn(state) ? UIState.myName : UIState.enemyName) : "";
   if(state.blackMated || state.whiteMated) {
@@ -182,7 +184,7 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   }
   else {
     var fromEnemy = false;
-    updateDisplay(gameLogic, oldPos, fromEnemy);
+    updateDisplay(gameLogic, oldPos, fromEnemy, true);
     sendMove(data.pos, gameLogic);
   }
 };
@@ -325,6 +327,8 @@ function InitUIState(data) {
   this.showThreat = (($("#showThreatY").length > 0) ? true : false);
   this.up = 0;
   this.right = 0;
+  this.connected = true;
+  this.disconnectDialog = "";
   var CHAT_NAME = myName;
 }
 //color is either "white" or "black"
@@ -351,7 +355,7 @@ function gameReady(data) {
 function receivedOpponentMove(totalState) {
   var fromEnemy = true;
   setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
-  updateDisplay(gameLogic, totalState.position, fromEnemy);
+  updateDisplay(gameLogic, totalState.position, fromEnemy, true);
 }
 
 function opponentLeft(){
@@ -363,8 +367,12 @@ function opponentLeft(){
 
 function reconnectBoard() { //TODO test
   gameLogic.gameOver = false;
+  console.log("RECONNECTED!");
+  clearTimeout(clearDisconnectTimeout);
+  closeDisconnectDialog();
   setUpdatedStateAndPos({pos: board1.position(), state: gameLogic}, false);
-  updateDisplay(gameLogic, board1.position(), false);
+  updateDisplay(gameLogic, board1.position(), false, false);
+  connectFlagSet();
 }
 //---------------------------- Main --------------------------------------------
 
@@ -435,6 +443,35 @@ function howFarRight() {
 function getRoomName() {
   return UIState.roomName;
 }
+function getIsConnected() {
+  return UIState.connected;
+}
+function disconnectFlagSet() {
+  UIState.connected = false;
+}
+function connectFlagSet() {
+  UIState.connected = true;
+}
+function reconnectFunction() {
+  if(getIsConnected()) {
+    return;
+  }
+  console.log("attempting to reconnect . . .")
+  socket.emit("test");
+  var reconObj = {
+    name: getMyName(),
+    roomName: getRoomName(),
+    color: (getIsWhite() ? "white" : "black")
+  }
+  socket.emit("recon", reconObj);
+  console.log(JSON.stringify(reconObj));
+}
+function setDisconnectDialog(str) {
+  UIState.disconnectDialog = str;
+}
+function closeDisconnectDialog() {
+  $(UIState.disconnectDialog).dialog("close");
+}
 //direction is either "up" or "right"
 function moveBoard(direction, amount) {
   console.log("Called moveBoard with args: " + direction + " " + amount);
@@ -455,7 +492,7 @@ function centerBoard() {
 //This function sets the state and display after it has been determined that a game is over MUST set gameOver to true
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
-                    reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement"} */
+                    reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement", "connectError"} */
   gameLogic.gameOver = true;
   var reason = data.reason;
   var winner = data.winner;

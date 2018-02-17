@@ -8,9 +8,10 @@ is somewhere on the page.
 */
 var OK_BUTTON = {text: "OK", click: function() {$(this).dialog( "close" );}} //text OK, closes the dialogue
 function prettyAlert(title, message, buttons, modal, divID) { //can make multiple dialogs without interfering with each other
-  $("#prettyAlertBox").append("<div id ='" + divID + "Box'><div id = '" + divID + "Text'></div></div>" );
   var divIDText = divID + "Text";
   var divIDBox = divID + "Box";
+  $("#" + divIDBox).remove(); //remove any previous of the same alert
+  $("#prettyAlertBox").append("<div id ='" + divIDBox + "'><div id = '" + divIDText + "'></div></div>" );
 
   $("#" + divIDText).html(message);
   $("#" + divIDBox).dialog({
@@ -22,4 +23,5 @@ function prettyAlert(title, message, buttons, modal, divID) { //can make multipl
     buttons: buttons,
     title: title
   });
+  return ("#" + divIDBox); //return the string that you must call $(string).dialog("close") on
 }
