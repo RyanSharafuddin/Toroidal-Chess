@@ -14,10 +14,17 @@ if(socket === undefined) {
   socket.inLobby = false; //set to true upon entering lobby
   //ALL socket.on stuff here. Include it in the lobby.ejs
 //----------------------- UNIVERSAL EVENTS -------------------------------------
-  socket.on('disconnect', function() {  //TODO: consider doing this every X seconds until it works or for Y number of times and then inform of failure with finishGame
-    if(socket.inGame && !getGameOver()) {
+  socket.on('disconnect', function() {  // consider doing this every X seconds until it works or for Y number of times and then inform of failure with finishGame
+    if(socket.inGame && !getGameOver()) { //never mind, apparently it 'waits' for the socket reconnection
+      disconnectFlagSet();
+      finishGame({winner: "draw", reason: "connectError"});
       reconnectFunction();
-      console.log(JSON.stringify(reconObj));
+      setTimeout(function() {
+        if(!getIsConnected()) {
+          console.log("Not connected 10 seconds later");
+        }
+      },
+      10000);//wait 10 seconds before declaring failure.
     }
   });
 
