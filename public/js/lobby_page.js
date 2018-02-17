@@ -78,6 +78,25 @@ function otherPlayerLeft(nickname) {
   $("#player" + nickname).remove();
 }
 
+function makeChallengeHTML(challenge, timeLeft) {
+  console.log("Making challengeHTML! First, printing out challenge object");
+  console.log(JSON.stringify(challenge));
+  console.log("typeof challenge.timed is " + typeof(challenge.timed));
+  var offerValid = challenge.showValid
+  var offerThreat = challenge.showThreat;
+  var offerValidStr = (offerValid) ? "Yes." : "No.";
+  var offerThreatStr = (offerThreat) ? "Yes." : "No.";
+  var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>" +
+                      "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>" +
+                      "Show valid moves: " + offerValidStr +
+                      "<br>Show enemy threats: " + offerThreatStr +
+                      ((challenge.timed) ? ("") : ("<br>Timed: No.")) +
+                      ((challenge.timed) ? ("<br>Time: " + challenge.minutes  + " minute" + ((challenge.minutes == 1) ? "" : "s") + ".<br>Bonus: " + challenge.bonus + " second" + ((challenge.bonus == 1) ? "" : "s") + ".") : "") +
+                      "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
+  console.log(challengeHTML);
+  return challengeHTML;
+}
+
 function receivedChallenge(challenge) {
   if(lobbyState.busy) {
     //emit busy tone & return
@@ -85,18 +104,7 @@ function receivedChallenge(challenge) {
     return;
   }
   var timeLeft = lobbyState.INVITE_TIME;
-  var offerValid = challenge.showValid
-  var offerThreat = challenge.showThreat;
-  var offerValidStr = (offerValid) ? "Yes." : "No.";
-  var offerThreatStr = (offerThreat) ? "Yes." : "No.";
-  var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
-  challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
-  challengeHTML += "Show valid moves: " + offerValidStr;
-  challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
-  //TODO: debug why not working
-  challengeHTML += "<br>Timed: " + (challenge.timed) ? "Yes" : "No";
-  challengeHTML += (challenge.timed) ? "<br>Time: " + challenge.minutes + " minutes.<br>Bonus: " + challenge.bonus + " seconds." : challengeHTML += "";
-  challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
+  var challengeHTML = makeChallengeHTML(challenge, timeLeft);
   console.log(challengeHTML);
   lobbyState.busy = true;
   console.log("busy now");
@@ -155,11 +163,7 @@ function receivedChallenge(challenge) {
   });
   var decrementTime = function() {
     timeLeft -= 1;
-    var challengeHTML = "<p>You have been challenged by '" + challenge.challenger + "'!<br>"
-    challengeHTML += "<p style='text-align: center;margin:0px'><strong>Game Options</strong></p>"
-    challengeHTML += "Show valid moves: " + offerValidStr;
-    challengeHTML += "<br>Show enemy threats: " + offerThreatStr;
-    challengeHTML += "<br><br>You have " + timeLeft + " seconds before the challenge times out.</p>";
+    var challengeHTML = makeChallengeHTML(challenge, timeLeft);
     $("#challengeText").html(challengeHTML);
     if(timeLeft == 0) {
       clearInterval(lobbyState.closeInvitation);
@@ -217,6 +221,12 @@ function validateMinutes() {
   }
   else {
     $("#minutes").css("background", "#ffffff");
+    if(val == 1) {
+      $("#minutesPar").text("minute");
+    }
+    else {
+      $("#minutesPar").text("minutes");
+    }
     return true;
   }
 }
@@ -231,6 +241,12 @@ function validateBonus() {
   }
   else {
     $("#bonus").css("background", "#ffffff");
+    if(val == 1) {
+      $("#bonusPar").text("second");
+    }
+    else {
+      $("#bonusPar").text("seconds");
+    }
     return true;
   }
 }
