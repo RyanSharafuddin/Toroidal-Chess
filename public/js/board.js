@@ -322,6 +322,21 @@ function InitUIState(data) {
   this.myName = ($("#myName").text()) ? $("#myName").text() : this.myName;
   this.enemyName = ($("#enemyName").text()) ? $("#enemyName").text() : this.enemyName;
   this.roomName = "X" + (($("#1").length > 0) ? this.myName : this.enemyName);
+  this.timed = ($("#timed1").length > 0);
+  this.totalTimeMinutes = $("#minutes").text();
+  this.bonus = $("#seconds").text();
+  if(this.timed) {
+    console.log("timed game!");
+    console.log(this.totalTimeMinutes);
+    console.log(this.bonus);
+    //TODO - setup and display the timer. make it an object with a paused flag
+    //oh wait. You need 2 timers. One for self and one for enemy
+    var this.selfTimer = {}; //state, minutes left, seconds left. then make function decrement timer, pause timer, start timer
+    var this.enemyTimer = {};
+  }
+  else {
+    console.log("Unlimited time");
+  }
   $("#vs").hide(); //needed to get info; don't want to display
   this.showValid = (($("#showValidY").length > 0) ? true : false);
   this.showThreat = (($("#showThreatY").length > 0) ? true : false);

@@ -49,12 +49,16 @@ app.post('/gameStart', function(req, res) {
   //ditto with timed
   console.log("got POST request");
   console.log("request body: " + JSON.stringify(req.body));
-  res.render('board.ejs', {myName: req.body.myName,
+  res.render('board.ejs', {
+                          myName: req.body.myName,
                           enemyName: req.body.enemyName,
                           roomNamer: req.body.roomNamer,
                           showValid: req.body.showValid.charAt(0),
-                          showThreat: req.body.showThreat.charAt(0)}); //since Jquery apparently can't deal with periods in ids
-                          
+                          showThreat: req.body.showThreat.charAt(0),
+                          timed: req.body.timed,
+                          minutes: req.body.minutes,
+                          seconds: req.body.seconds
+                        }); //since Jquery apparently can't deal with periods in ids
 });
 
 app.post('/lobbyReturn', function(req, res) {

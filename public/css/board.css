@@ -8,6 +8,10 @@
   width: 100%;
 }
 
+.hiddenInfo {
+  display: none; /* used for getting info from server on page without showing it */
+}
+
 /* For the div containing the board and the buttons */
 #board_buttons {
   align-content: center;
