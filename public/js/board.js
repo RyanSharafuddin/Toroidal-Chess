@@ -435,6 +435,19 @@ function howFarRight() {
 function getRoomName() {
   return UIState.roomName;
 }
+
+function reconnectFunction() {
+  console.log("attempting to reconnect . . .")
+  socket.emit("test");
+  var reconObj = {
+    name: getMyName(),
+    roomName: getRoomName(),
+    color: (getIsWhite() ? "white" : "black")
+  }
+  socket.emit("recon", reconObj);
+  console.log(JSON.stringify(reconObj));
+}
+
 //direction is either "up" or "right"
 function moveBoard(direction, amount) {
   console.log("Called moveBoard with args: " + direction + " " + amount);

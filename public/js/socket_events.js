@@ -4,17 +4,7 @@ Properties of socket - socket.inLobby, socket.inGame
 */
 var RECONNECT_BUTTON = {text: "Reconnect",
                         click: function() {
-                          console.log("attempting to reconnect . . .")
-                          //socket = io();
-                          socket.emit("test");
-                          var reconObj = {
-                            name: getMyName(),
-                            roomName: getRoomName(),
-                            color: (getIsWhite() ? "white" : "black")
-                          }
-                          socket.emit("recon", reconObj);
-                          console.log(JSON.stringify(reconObj));
-                          //initBoardEvents();
+                          reconnectFunction();
                           $(this).dialog( "close" );
                         }};
 var socket;
@@ -26,13 +16,7 @@ if(socket === undefined) {
 //----------------------- UNIVERSAL EVENTS -------------------------------------
   socket.on('disconnect', function() {  //TODO: consider doing this every X seconds until it works or for Y number of times and then inform of failure with finishGame
     if(socket.inGame && !getGameOver()) {
-      console.log("attempting to reconnect . . .")
-      var reconObj = {
-        name: getMyName(),
-        roomName: getRoomName(),
-        color: (getIsWhite() ? "white" : "black")
-      }
-      socket.emit("recon", reconObj);
+      reconnectFunction();
       console.log(JSON.stringify(reconObj));
     }
   });
