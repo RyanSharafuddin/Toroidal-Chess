@@ -119,9 +119,9 @@ function receivedChallenge(challenge) {
       //emit to challenger that you've accepted the challenge
       socket.emit('acceptChallenge', challenge.challenger);
       //make POST request
-      var timed = ($("#timedSlide").prop("checked")) ? "1" : "0";
-      var minutes = $("#minutes").val();
-      var seconds = $("#bonus").val();
+      var timed = challenge.timed;
+      var minutes = challenge.minutes;
+      var seconds = challenge.bonus;
       var offerValidStr = (challenge.showValid) ? "Yes" : "No";
       var offerThreatStr = (challenge.showThreat) ? "Yes" : "No";
       challengeStartAJAX(challenge.challenger, "0", offerValidStr, offerThreatStr, timed, minutes, seconds);

@@ -331,8 +331,8 @@ function InitUIState(data) {
     console.log(this.bonus);
     //TODO - setup and display the timer. make it an object with a paused flag
     //oh wait. You need 2 timers. One for self and one for enemy
-    var this.selfTimer = {}; //state, minutes left, seconds left. then make function decrement timer, pause timer, start timer
-    var this.enemyTimer = {};
+    this.selfTimer = {}; //state, minutes left, seconds left. then make function decrement timer, pause timer, start timer
+    this.enemyTimer = {};
   }
   else {
     console.log("Unlimited time");

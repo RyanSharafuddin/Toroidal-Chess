@@ -140,6 +140,7 @@
 
 /* http://enjoycss.com/Xzx/code/#background */
 .highlightedPlayerName {
+  position: relative; /* to help position the timer, this is considered positioned */
   margin: 5px 0px 5px 0px;
   border: 5px 0px 5px 0px solid;
   padding: 20px 0px 20px 0px;
@@ -163,6 +164,11 @@
 
 .unHighlightedPlayerName {
   background: rgba(107,117,126,0.86);
+}
+
+.timerContainer {
+  position: absolute;
+  right: 3px;
 }
 
 #historyContainer {

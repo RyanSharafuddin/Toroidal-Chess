@@ -48,9 +48,19 @@
             <div id="drawBox"> <div id="drawText"> </div> </div>
             <div id="prettyAlertBox"></div>
             <div id="boardDisplay">
-              <div id="enemyNameDisplay" class="highlightedPlayerName"><%= enemyName %></div>
+              <div id="enemyNameDisplay" class="highlightedPlayerName">
+                <%= enemyName %>
+                <div id="enemyTimerContainer" class="timerContainer">
+                  <%= minutes %>:00 
+                </div>
+              </div>
               <div id="board1"></div>
-              <div id="myNameDisplay" class="highlightedPlayerName"><%= myName %></div>
+              <div id="myNameDisplay" class="highlightedPlayerName">
+                <%= myName %>
+                <div id="selfTimerContainer" class="timerContainer">
+                  <%= minutes %>:00
+                </div>
+              </div>
             </div>
             <div id="buttons">
               <div id="originalButtonsContainer">
