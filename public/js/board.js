@@ -244,7 +244,7 @@ var onDragStart = function(source, piece, position, orientation) {
 /* Check if move is legal and update state if a legal move has been made */
 var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation) {
   uncolor_squares();
-  if(!isLegalMove(oldPos, gameLogic, source, target)) {
+  if(gameLogic.gameOver || !isLegalMove(oldPos, gameLogic, source, target)) { //is possible to call onDrop after gameOver if start dragging piece before gameOver but drop after running out of time.
     return 'snapback';
   }
   var data = getUpdatedPosAndState(oldPos, gameLogic, source, target);
