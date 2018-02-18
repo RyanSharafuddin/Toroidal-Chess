@@ -18,6 +18,10 @@ if(socket === undefined) {
 //----------------------- UNIVERSAL EVENTS -------------------------------------
   socket.on('disconnect', function() {  // consider doing this every X seconds until it works or for Y number of times and then inform of failure with finishGame
     if(socket.inGame && !getGameOver()) { //never mind, apparently it 'waits' for the socket reconnection
+      if(UIState.timed) {
+        pauseTimer(true);
+        pauseTimer(false);
+      }
       disconnectFlagSet();
       finishGame({winner: "draw", reason: "connectError"});
       var closeStr = prettyAlert("Disconnected", "The server has disconnected. Please wait 30 seconds while the program attempts to reconnect . . .", [], true, "disconnectionDealWith");

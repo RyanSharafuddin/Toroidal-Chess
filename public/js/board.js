@@ -133,9 +133,6 @@ function pauseTimer(myTimer) {
 
 function decrementTimer(myTimer) {
   var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
-  // if(!(timer.running)) {
-  //   return;
-  // }
   if(timer.secondsLeft == 0) {
     timer.minutesLeft -= 1;
     timer.secondsLeft = 59;
@@ -153,6 +150,16 @@ function decrementTimer(myTimer) {
 //--------------------------- USER INTERACTION ---------------------------------
 //only to be used when a move happens
 function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: add new move to history?
+  if(UIState.timed) {
+    if(myTurn(gameLogic)) {
+      startTimer(true);
+      pauseTimer(false);
+    }
+    else {
+      startTimer(false);
+      pauseTimer(true);
+    }
+  }
   if(state.moves == undefined) {
     console.log("state.moves is undefined!!");
     console.trace();
@@ -218,8 +225,6 @@ var onDrop = function(source, target, piece, newPos, oldPos, currentOrientation)
   if(!isLegalMove(oldPos, gameLogic, source, target)) {
     return 'snapback';
   }
-  pauseTimer(true);
-  startTimer(false);
   var data = getUpdatedPosAndState(oldPos, gameLogic, source, target);
   UIState.canProposeDraw = true; //TODO: set UI state
   setUpdatedStateAndPos(data, false);
@@ -435,8 +440,6 @@ function receivedOpponentMove(totalState) {
   var fromEnemy = true;
   setUpdatedStateAndPos({pos: totalState.position, state: totalState.state}, fromEnemy);
   updateDisplay(gameLogic, totalState.position, fromEnemy, true);
-  pauseTimer(false);
-  startTimer(true);
 }
 
 function opponentLeft(){
