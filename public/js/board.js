@@ -128,14 +128,14 @@ function pauseTimer(myTimer) {
   //TODO: take promotions into account on pausing timer
   var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
   timer.running = false;
-  //clearInterval(((myTimer) ? UIState.selfTimerPauseKey : UIState.enemyTimerPauseKey)); //clearInterval not working for some reason
+  clearInterval(((myTimer) ? UIState.selfTimerPauseKey : UIState.enemyTimerPauseKey)); //clearInterval not working for some reason
 }
 
 function decrementTimer(myTimer) {
   var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
-  if(!(timer.running)) {
-    return;
-  }
+  // if(!(timer.running)) {
+  //   return;
+  // }
   if(timer.secondsLeft == 0) {
     timer.minutesLeft -= 1;
     timer.secondsLeft = 59;
