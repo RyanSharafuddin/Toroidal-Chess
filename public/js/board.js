@@ -145,6 +145,10 @@ function decrementTimer(myTimer) {
   $(timerID).text(timer.minutesLeft + ":" + secondsString);
   console.log(JSON.stringify(timer));
   //TODO: finshGame if ran out of time
+  if((timer.secondsLeft == 0) && (timer.minutesLeft == 0)) {
+    var winner = (timer.color == "white") ? "black" : "white"; //because this is loser's timer
+    finishGame({winner: winner, reason: "clock"});
+  }
 }
 
 //--------------------------- USER INTERACTION ---------------------------------
@@ -428,9 +432,13 @@ function gameReady(data) {
   console.log(JSON.stringify(UIState));
   if(UIState.timed) {
     if(getIsWhite()) {
+      UIState.selfTimer.color = "white"; //for finishGame convenience
+      UIState.enemyTimer.color = "black";
       startTimer(true);
     }
     else {
+      UIState.selfTimer.color = "black"; //for finishGame convenience
+      UIState.enemyTimer.color = "white";
       startTimer(false);
     }
   }
@@ -576,8 +584,12 @@ function centerBoard() {
 //This function sets the state and display after it has been determined that a game is over MUST set gameOver to true
 function finishGame(data) {
   /* data in form of {winner: "white" or "black" or "draw",
-                    reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement", "connectError"} */
+                    reason: "checkmate", "stalemate", "resign", "oppLeft", "drawAgreement", "connectError", "clock"} */
   gameLogic.gameOver = true;
+  if(UIState.timed) {
+    pauseTimer(true);
+    pauseTimer(false);
+  }
   var reason = data.reason;
   var winner = data.winner;
   console.log("finishGame!! " + reason);
@@ -588,6 +600,14 @@ function finishGame(data) {
       }
       else {
         setGameEndDisplay({winner: UIState.enemyName, nonwinners: [UIState.myName], nonwinnerDisplayString: " was checkmated!"});
+      }
+      break;
+    case "clock":
+      if(((winner == "white") && UIState.isWhite) || ((winner == "black") && UIState.isBlack)) {
+        setGameEndDisplay({winner: UIState.myName, nonwinners: [UIState.enemyName], nonwinnerDisplayString: " lost by time!"});
+      }
+      else {
+        setGameEndDisplay({winner: UIState.enemyName, nonwinners: [UIState.myName], nonwinnerDisplayString: " lost by time!"});
       }
       break;
     case "stalemate":
