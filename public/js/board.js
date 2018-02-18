@@ -128,11 +128,14 @@ function pauseTimer(myTimer) {
   //TODO: take promotions into account on pausing timer
   var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
   timer.running = false;
-  clearInterval((myTimer) ? UIState.selfTimerPauseKey : UIState.enemyTimerPauseKey);
+  //clearInterval(((myTimer) ? UIState.selfTimerPauseKey : UIState.enemyTimerPauseKey)); //clearInterval not working for some reason
 }
 
 function decrementTimer(myTimer) {
   var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
+  if(!(timer.running)) {
+    return;
+  }
   if(timer.secondsLeft == 0) {
     timer.minutesLeft -= 1;
     timer.secondsLeft = 59;
@@ -369,8 +372,6 @@ function InitUIState(data) {
   this.bonus = $("#seconds").text();
 
   if(this.timed) {
-    this.selfTimerPauseKey = "";
-    this.enemyTimerPauseKey = "";
     $(".timerContainer").css("display", "block");
     console.log("timed game!");
     console.log(this.totalTimeMinutes);
@@ -387,12 +388,6 @@ function InitUIState(data) {
       minutesLeft: this.totalTimeMinutes,
       secondsLeft: 0
     };
-    if(this.isWhite) {
-      startTimer(true);
-    }
-    else if (this.isBlack) {
-      startTimer(false);
-    }
   }
   else {
     $(".timerContainer").css("display", "none");
@@ -426,6 +421,14 @@ function gameReady(data) {
   InitUIDisplay(data.color);
   console.log("receieved start");
   console.log(JSON.stringify(UIState));
+  if(UIState.timed) {
+    if(getIsWhite()) {
+      startTimer(true);
+    }
+    else {
+      startTimer(false);
+    }
+  }
 }
 
 function receivedOpponentMove(totalState) {
