@@ -151,6 +151,18 @@ function decrementTimer(myTimer) {
   }
 }
 
+function incrementTimer(myTimer, seconds) {
+  var timer = (myTimer) ? UIState.selfTimer : UIState.enemyTimer;
+  timer.secondsLeft += seconds;
+  if(timer.secondsLeft >= 60) {
+    timer.minutesLeft += 1;
+    timer.secondsLeft -= 60;
+  }
+  var secondsString = (timer.secondsLeft > 9) ? timer.secondsLeft : "0" + timer.secondsLeft;
+  var timerID = (myTimer) ? "#selfTimerContainer" : "#enemyTimerContainer";
+  $(timerID).text(timer.minutesLeft + ":" + secondsString);
+}
+
 //--------------------------- USER INTERACTION ---------------------------------
 //only to be used when a move happens
 function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: add new move to history?
@@ -174,6 +186,12 @@ function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: 
   }
   if(updateHistory) {
     $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
+    if(fromEnemy) {
+      incrementTimer(false, UIState.bonus);
+    }
+    else {
+      incrementTimer(true, UIState.bonus);
+    }
   }
   $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
   var checkString = (state.inCheck) ? (myTurn(state) ? UIState.myName : UIState.enemyName) : "";
