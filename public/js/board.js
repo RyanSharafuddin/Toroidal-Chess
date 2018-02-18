@@ -160,7 +160,7 @@ function incrementTimer(myTimer, seconds) {
   }
   var secondsString = (timer.secondsLeft > 9) ? timer.secondsLeft : "0" + timer.secondsLeft;
   var timerID = (myTimer) ? "#selfTimerContainer" : "#enemyTimerContainer";
-  $(timerID).text(timer.minutesLeft + ":" + secondsString);
+  $(timerID).text((timer.minutesLeft) + ":" + secondsString);
 }
 
 //--------------------------- USER INTERACTION ---------------------------------
@@ -187,10 +187,10 @@ function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: 
   if(updateHistory) {
     $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
     if(fromEnemy) {
-      incrementTimer(false, UIState.bonus);
+      incrementTimer(false, parseInt(UIState.bonus));
     }
     else {
-      incrementTimer(true, UIState.bonus);
+      incrementTimer(true, parseInt(UIState.bonus));
     }
   }
   $("#historyContainer").scrollTop($("#historyContainer")[0].scrollHeight);
