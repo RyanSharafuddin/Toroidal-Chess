@@ -6,12 +6,11 @@ h1 {
   text-align: center;
 }
 
-*{
+* {
   text-align: center;
 }
 
 form {
-  text-align: center;
   height: 30px;
     display: -webkit-box;
     display: -webkit-flex;
@@ -20,6 +19,12 @@ form {
   width: 80%;
   margin: 5em auto;
   border:1px solid grey;
+}
+
+#Notice {
+  text-align: left;
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
 input {
