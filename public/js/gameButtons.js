@@ -74,6 +74,10 @@ function lobbyReturn() {
     type: 'POST',
     data: {myName: getMyName()},
     success: function(page) {
+      if(!getGameOver()) {
+        var winnerColor = getIsWhite() ? "black" : "white";
+        finishGame({winner: winnerColor, reason: "resign"});
+      }
       console.log("within success function");
       document.open();
       document.write(page);
