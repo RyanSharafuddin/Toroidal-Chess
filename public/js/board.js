@@ -186,10 +186,10 @@ function updateDisplay(state, pos, fromEnemy, updateHistory) { //updateHistory: 
   }
   if(updateHistory) {
     $('#moveHistory').append('<li>' + state.moves[state.moves.length - 1] + '</li>');
-    if(fromEnemy) {
+    if(fromEnemy && UIState.timed) {
       incrementTimer(false, parseInt(UIState.bonus));
     }
-    else {
+    if ((!fromEnemy) && UIState.timed){
       incrementTimer(true, parseInt(UIState.bonus));
     }
   }
