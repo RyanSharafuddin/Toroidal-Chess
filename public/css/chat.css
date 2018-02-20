@@ -8,6 +8,7 @@
     background: #eee;
     border: 1px solid black;
     padding-left: 4px;
+    white-space: pre-wrap;
     word-wrap: break-word;
 }
 .nameTile {
@@ -42,7 +43,7 @@
 #m {
   border: 0;
   padding: 10px;
-  width: 97%;   /* was 98 */ 
+  width: 97%;   /* was 98 */
   /*resize: vertical;
   overflow: scroll;*/
   margin-right: .5%;
