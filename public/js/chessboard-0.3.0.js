@@ -604,7 +604,7 @@ function buildBoard(orientation) { //CHANGED
   }
 
   var html = '';
-  const ROWS = [1, 2, 3, 4, 5, 6, 7, 8]; //to deal with off by one error when modding
+  var ROWS = [1, 2, 3, 4, 5, 6, 7, 8]; //to deal with off by one error when modding
   // algebraic notation / orientation
   if(orientation.color == "white") {
     var alpha = arrayRotateLeft(deepCopy(COLUMNS), orientation.right);
